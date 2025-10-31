@@ -72,11 +72,15 @@ func (a *AuthService) Login(ctx context.Context, req auth.LoginRequest, ua auth.
 			return &jwt.TokenPair{}, auth.ErrWrongCred
 		}
 
+		fmt.Println(err)
+
 		return &jwt.TokenPair{}, message.ErrInternalError
 	}
 
 	res, err := pass.ComparePassAndHash(req.Password, *user.Password)
 	if err != nil {
+
+		fmt.Println(err)
 		return &jwt.TokenPair{}, message.ErrInternalError
 	}
 
@@ -91,6 +95,7 @@ func (a *AuthService) Login(ctx context.Context, req auth.LoginRequest, ua auth.
 
 		decryptedSecret, err := a.encrypt.Decrypt(user.MfaSecret)
 		if err != nil {
+			fmt.Println(err)
 			return &jwt.TokenPair{}, message.ErrInternalError
 		}
 
