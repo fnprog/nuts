@@ -24,7 +24,7 @@ func main() {
 	// Example inputs to test
 	examples := []string{
 		"Bought coffee at Starbucks for $4.50 this morning",
-		"Had lunch for $15 and filled up gas tank for $45 yesterday", 
+		"Had lunch for $15 and filled up gas tank for $45 yesterday",
 		"Got my salary of $3000 deposited on Friday",
 		"Transferred $500 from checking to savings account",
 		"Grocery shopping at Whole Foods spent about $85",
@@ -35,7 +35,7 @@ func main() {
 	for i, input := range examples {
 		fmt.Printf("\n=== Example %d ===\n", i+1)
 		fmt.Printf("Input: %s\n", input)
-		
+
 		request := llm.NeuralInputRequest{
 			Input:          input,
 			BaseCurrency:   stringPtr("USD"),
@@ -51,7 +51,7 @@ func main() {
 
 		fmt.Printf("Model: %s (%s)\n", response.Model, response.Provider)
 		fmt.Printf("Parsed %d transaction(s):\n", len(response.Transactions))
-		
+
 		for j, txn := range response.Transactions {
 			fmt.Printf("  %d. Amount: $%s, Type: %s", j+1, txn.Amount.String(), txn.Type)
 			if txn.Description != nil {

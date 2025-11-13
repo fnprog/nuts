@@ -14,8 +14,8 @@ export interface DatetimePickerProps {
   value: Date | null;
   /** must call this with the new Date when user picks */
   onChange: (date: Date | null) => void;
-  onBlur?: () => void;        // forwarded from RHF field
-  name?: string;              // forwarded from RHF field (optional)
+  onBlur?: () => void; // forwarded from RHF field
+  name?: string; // forwarded from RHF field (optional)
   disabled?: boolean;
 
   /* optional UI tweaks */
@@ -23,7 +23,7 @@ export interface DatetimePickerProps {
   endMonth?: Date;
   minDate?: Date;
   maxDate?: Date;
-  initialTime?: string;       // default "05:00"
+  initialTime?: string; // default "05:00"
   className?: string;
 }
 
@@ -41,9 +41,7 @@ export function DatetimePicker({
   className,
 }: DatetimePickerProps) {
   const [opened, setOpened] = useState(false);
-  const [time, setTime] = useState(
-    value ? format(value, "HH:mm") : initialTime,
-  );
+  const [time, setTime] = useState(value ? format(value, "HH:mm") : initialTime);
   const [date, setDate] = useState<Date | null>(value);
   const calendarRef = useRef<HTMLDivElement | null>(null);
 
@@ -54,8 +52,7 @@ export function DatetimePicker({
     onChange(d);
   };
 
-  const isDisabled = (d: Date): boolean =>
-    (minDate && d < minDate) || (maxDate && d > maxDate) || false;
+  const isDisabled = (d: Date): boolean => (minDate && d < minDate) || (maxDate && d > maxDate) || false;
 
   return (
     <Popover open={opened} onOpenChange={setOpened}>
@@ -66,22 +63,14 @@ export function DatetimePicker({
           name={name}
           disabled={disabled}
           onBlur={onBlur}
-          className={cn(
-            "w-full font-normal",
-            !value && "text-muted-foreground",
-            className,
-          )}
+          className={cn("w-full font-normal", !value && "text-muted-foreground", className)}
         >
-          {value ? (
-            `${format(value, "PPP")}, ${time}`
-          ) : (
-            <span>Pick a date</span>
-          )}
+          {value ? `${format(value, "PPP")}, ${time}` : <span>Pick a date</span>}
           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent className="w-auto p-0 flex items-start" align="start">
+      <PopoverContent className="flex w-auto items-start p-0" align="start">
         {/* calendar */}
         <div ref={calendarRef}>
           <Calendar
@@ -97,7 +86,7 @@ export function DatetimePicker({
         </div>
 
         {/* time scroller */}
-        <div className="w-[120px] my-4 mr-2">
+        <div className="my-4 mr-2 w-[120px]">
           <ScrollArea className="h-[18rem]">
             <div className="flex flex-col gap-2">
               {Array.from({ length: 96 }).map((_, i) => {
@@ -108,7 +97,7 @@ export function DatetimePicker({
                   <Button
                     key={i}
                     variant="outline"
-                    className="w-full text-left px-2"
+                    className="w-full px-2 text-left"
                     onClick={() => {
                       setTime(t);
                       if (date) {

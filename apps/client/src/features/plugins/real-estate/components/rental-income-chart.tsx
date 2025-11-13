@@ -1,20 +1,12 @@
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 const data = [
-  { month: 'Jan', income: 2500 },
-  { month: 'Feb', income: 2500 },
-  { month: 'Mar', income: 2500 },
-  { month: 'Apr', income: 2700 },
-  { month: 'May', income: 2700 },
-  { month: 'Jun', income: 2700 },
+  { month: "Jan", income: 2500 },
+  { month: "Feb", income: 2500 },
+  { month: "Mar", income: 2500 },
+  { month: "Apr", income: 2700 },
+  { month: "May", income: 2700 },
+  { month: "Jun", income: 2700 },
 ];
 
 export function RentalIncomeChart() {
@@ -34,7 +26,7 @@ export function RentalIncomeChart() {
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
             <YAxis />
-            <Tooltip formatter={(value) => [`$${value}`, 'Rental Income']} />
+            <Tooltip formatter={(value) => [`$${value}`, "Rental Income"]} />
             <Bar dataKey="income" fill="#10B981" />
           </BarChart>
         </ResponsiveContainer>

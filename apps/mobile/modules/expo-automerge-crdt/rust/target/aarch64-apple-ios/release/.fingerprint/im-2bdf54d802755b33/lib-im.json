@@ -1,0 +1,27 @@
+{
+  "rustc": 8022303366561187541,
+  "features": "[]",
+  "declared_features": "[\"arbitrary\", \"debug\", \"proptest\", \"quickcheck\", \"rayon\", \"refpool\", \"serde\"]",
+  "target": 1311532900954188081,
+  "profile": 12693162527509728243,
+  "path": 1727972753595745377,
+  "deps": [
+    [857979250431893282, "typenum", false, 1265639200091658482],
+    [3444406525609401835, "sized_chunks", false, 16667178114306312163],
+    [6373866573876774927, "bitmaps", false, 8352207005660507065],
+    [15208250692608110295, "build_script_build", false, 13239010602011298391],
+    [16615042923548037443, "rand_xoshiro", false, 16749902548278459152],
+    [18130209639506977569, "rand_core", false, 12161112931059175197]
+  ],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "aarch64-apple-ios/release/.fingerprint/im-2bdf54d802755b33/dep-lib-im",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 2069994364910194474,
+  "compile_kind": 3694122122034060669
+}

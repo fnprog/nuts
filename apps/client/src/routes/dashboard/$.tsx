@@ -1,26 +1,21 @@
-import React, { useState, useEffect, Suspense } from 'react';
-import { createFileRoute } from '@tanstack/react-router'
+import React, { useState, useEffect, Suspense } from "react";
+import { createFileRoute } from "@tanstack/react-router";
 
-import { usePluginStore } from '@/features/plugins/store';
-import { loadPluginModule } from '@/features/plugins/loader';
-import { getFirstSegment } from '@/lib/utils';
-import NotFound from '@/core/components/NotFound';
-import type { PluginRouteConfigExternal } from '@/features/plugins/types';
+import { usePluginStore } from "@/features/plugins/store";
+import { loadPluginModule } from "@/features/plugins/loader";
+import { getFirstSegment } from "@/lib/utils";
+import NotFound from "@/core/components/ui/not-found";
+import type { PluginRouteConfigExternal } from "@/features/plugins/types";
 
-export const Route = createFileRoute('/dashboard/$')({
+export const Route = createFileRoute("/dashboard/$")({
   component: RouteComponent,
-})
-
+});
 
 // Helper function to find the route component recursively
-const findComponentForPath = (
-  targetPath: string,
-  routes: PluginRouteConfigExternal[]
-): React.FC | null => {
+const findComponentForPath = (targetPath: string, routes: PluginRouteConfigExternal[]): React.FC | null => {
   for (const route of routes) {
-
     // Check main route path (removing leading slash if present)
-    const routePath = route.path.startsWith('/') ? route.path.substring(1) : route.path;
+    const routePath = route.path.startsWith("/") ? route.path.substring(1) : route.path;
     if (targetPath === routePath) {
       return route.component;
     }
@@ -36,32 +31,24 @@ const findComponentForPath = (
   return null;
 };
 
-
-
-
-
 function RouteComponent() {
-  const getPluginConfigById = usePluginStore(state => state.getPluginConfigById);
+  const getPluginConfigById = usePluginStore((state) => state.getPluginConfigById);
   const [Component, setComponent] = useState<React.ComponentType | null>(null);
   const [notFound, setNotFound] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true); // Add loading state
 
-
   const params = Route.useParams();
-  const requestedPath = params._splat
-
+  const requestedPath = params._splat;
 
   useEffect(() => {
-
     // Reset state when path changes
     setComponent(null);
     setNotFound(null);
     setIsLoading(true);
 
-
     // Only run this logic when the component mounts or when id changes
     if (!requestedPath) {
-      setNotFound('No plugin path provided');
+      setNotFound("No plugin path provided");
       setIsLoading(false);
       return;
     }
@@ -69,13 +56,12 @@ function RouteComponent() {
     const pluginId = getFirstSegment(requestedPath);
 
     if (!pluginId) {
-      setNotFound('Invalid plugin path format.');
+      setNotFound("Invalid plugin path format.");
       setIsLoading(false);
       return;
     }
 
     let isMounted = true; // Prevent state updates on unmounted component
-
 
     async function loadRoute() {
       try {
@@ -104,22 +90,19 @@ function RouteComponent() {
         }
       } catch (error) {
         console.error("Error loading plugin route:", error);
-        if (isMounted) setNotFound('An error occurred while loading the plugin component.');
+        if (isMounted) setNotFound("An error occurred while loading the plugin component.");
       } finally {
         if (isMounted) setIsLoading(false);
       }
-
     }
 
-    loadRoute()
-
+    loadRoute();
 
     // Cleanup function to set isMounted to false when the component unmounts
     // or when the effect re-runs (due to requestedPath change)
     return () => {
       isMounted = false;
     };
-
   }, [requestedPath, getPluginConfigById]);
 
   if (isLoading) {

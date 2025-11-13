@@ -15,9 +15,7 @@ export function EditRuleDialog({ rule, open, onOpenChange }: EditRuleDialogProps
           <DialogTitle>Edit Rule: {rule.name}</DialogTitle>
         </DialogHeader>
         <div className="py-4">
-          <p className="text-gray-600">
-            Rule editing form will be implemented here. This will include:
-          </p>
+          <p className="text-gray-600">Rule editing form will be implemented here. This will include:</p>
           <ul className="mt-2 space-y-1 text-sm text-gray-600">
             <li>• Rule name and priority editing</li>
             <li>• Condition modification</li>

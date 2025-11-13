@@ -1,20 +1,20 @@
-import { useState, useEffect, useMemo, memo } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { logger } from "@/lib/logger"
-import { categoryService } from "@/features/categories/services/category"
+import { useState, useEffect, useMemo, memo } from "react";
+import { useForm } from "react-hook-form";
+import { arktypeResolver } from '@hookform/resolvers/arktype';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { logger } from "@/lib/logger";
+import { transactionService } from "@/features/transactions/services/transaction.service";
+import { categoryService } from "@/features/categories/services/category.service";
 import { accountService } from "@/features/accounts/services/account";
-import { getTransaction, updateTransaction } from "../services/transaction"
-import { cn, debounce } from "@/lib/utils"
+import { cn, debounce } from "@/lib/utils";
 
-import { Button } from "@/core/components/ui/button"
-import { Input } from "@/core/components/ui/input"
-import { Textarea } from "@/core/components/ui/textarea"
-import { Sheet, SheetContent, SheetTitle, SheetClose, SheetHeader, SheetDescription } from "@/core/components/ui/sheet"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/components/ui/select"
-import { Tabs, TabsList, TabsTrigger } from "@/core/components/ui/tabs"
-import { X, ArrowDownLeft, ArrowUpRight, Loader2, Info, Lock, Wand2 } from "lucide-react"
+import { Button } from "@/core/components/ui/button";
+import { Input } from "@/core/components/ui/input";
+import { Textarea } from "@/core/components/ui/textarea";
+import { Sheet, SheetContent, SheetTitle, SheetClose, SheetHeader, SheetDescription } from "@/core/components/ui/sheet";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/core/components/ui/tabs";
+import { X, ArrowDownLeft, ArrowUpRight, Loader2, Info, Lock, Wand2 } from "lucide-react";
 import { RecordUpdateSchema, recordUpdateSchema } from "../services/transaction.types";
 import { Form, FormField, FormItem, FormControl, FormMessage, FormLabel } from "@/core/components/ui/form"
 import { DatetimePicker } from "@/core/components/ui/datetime"
@@ -33,37 +33,32 @@ import {
 } from "@/core/components/ui/tooltip"
 import { CreateEditRuleDialog } from "./create-edit-rule-dialog"
 
-
 interface EditTransactionSheetProps {
   isOpen: boolean;
   onClose: () => void;
   transactionId: string | null;
 }
 
-
 const FormLabelWithLock = ({ isLocked, children }: { isLocked: boolean; children: React.ReactNode }) => (
   <FormLabel className="flex items-center gap-1.5">
     {children}
-    {isLocked && <Lock className="h-3 w-3 text-muted-foreground" />}
+    {isLocked && <Lock className="text-muted-foreground h-3 w-3" />}
   </FormLabel>
 );
 
-export default function EditTransactionSheet({
-  isOpen,
-  onClose,
-  transactionId,
-}: EditTransactionSheetProps) {
+export default function EditTransactionSheet({ isOpen, onClose, transactionId }: EditTransactionSheetProps) {
   const [transactionNature, setTransactionNature] = useState<"expense" | "income">("expense");
   const [showCreateRuleDialog, setShowCreateRuleDialog] = useState(false);
   const [recurringType, setRecurringType] = useState<string>("one-time");
   const queryClient = useQueryClient();
 
-  const {
-    data: transaction,
-    isFetching: detailFetching,
-  } = useQuery({
+  const { data: transaction, isFetching: detailFetching } = useQuery({
     queryKey: ["transaction", transactionId],
-    queryFn: () => getTransaction(transactionId!),
+    queryFn: async () => {
+      const result = await transactionService.getTransaction(transactionId!);
+      if (result.isErr()) throw result.error;
+      return result.value;
+    },
     enabled: !!transactionId,
     initialData: () => queryClient.getQueryData(["transaction", transactionId]),
     staleTime: 0,
@@ -72,7 +67,11 @@ export default function EditTransactionSheet({
 
   const { data: categories } = useQuery({
     queryKey: ["categories"],
-    queryFn: categoryService.getCategories,
+    queryFn: async () => {
+      const result = await categoryService.getCategories();
+      if (result.isErr()) throw result.error;
+      return result.value;
+    },
     gcTime: 1000 * 60 * 5,
     staleTime: 1000 * 60 * 2,
     refetchOnMount: false,
@@ -81,7 +80,11 @@ export default function EditTransactionSheet({
 
   const { data: accounts, isLoading: accountsLoading } = useQuery({
     queryKey: ["accounts"],
-    queryFn: accountService.getAccounts,
+    queryFn: async () => {
+      const result = await accountService.getAccounts();
+      if (result.isErr()) throw result.error;
+      return result.value;
+    },
     gcTime: 1000 * 60 * 5,
     staleTime: 1000 * 60 * 2,
     refetchOnWindowFocus: false,
@@ -90,7 +93,7 @@ export default function EditTransactionSheet({
   });
 
   const form = useForm<RecordUpdateSchema>({
-    resolver: zodResolver(recordUpdateSchema),
+    resolver: arktypeResolver(recordUpdateSchema),
     mode: "onChange",
     defaultValues: {
       description: "",
@@ -105,8 +108,11 @@ export default function EditTransactionSheet({
   const isSyncedTransaction = transaction?.is_external === true;
 
   const updateMutation = useMutation({
-    mutationFn: (params: { id: string; data: RecordUpdateSchema }) =>
-      updateTransaction(params.id, params.data),
+    mutationFn: async (params: { id: string; data: RecordUpdateSchema }) => {
+      const result = await transactionService.updateTransaction(params.id, params.data);
+      if (result.isErr()) throw result.error;
+      return result.value;
+    },
     onSuccess: () => {
       toast.success("Transaction updated successfully!");
       // Invalidate queries to refresh the data
@@ -120,31 +126,30 @@ export default function EditTransactionSheet({
   });
 
   const debouncedSave = useMemo(
-    () => debounce((values: RecordUpdateSchema) => {
-      console.log("Debounced save triggered with values:", values);
+    () =>
+      debounce((values: RecordUpdateSchema) => {
+        console.log("Debounced save triggered with values:", values);
 
-      if (!transaction) {
-        console.log("No transaction found, skipping save");
-        return;
-      }
+        if (!transaction) {
+          console.log("No transaction found, skipping save");
+          return;
+        }
 
-      if (!form.formState.isValid) {
-        console.log("Form is not valid, skipping save. Errors:", form.formState.errors);
-        return;
-      }
+        if (!form.formState.isValid) {
+          console.log("Form is not valid, skipping save. Errors:", form.formState.errors);
+          return;
+        }
 
-
-      console.log("Submitting update payload:", values);
-      updateMutation.mutateAsync({ id: transaction.id, data: values as RecordUpdateSchema });
-    }, 600),
-    [transaction, updateMutation, form.formState.isValid, form.formState.errors],
+        console.log("Submitting update payload:", values);
+        updateMutation.mutateAsync({ id: transaction.id, data: values as RecordUpdateSchema });
+      }, 600),
+    [transaction, updateMutation, form.formState.isValid, form.formState.errors]
   );
 
   useEffect(() => {
     const subscription = form.watch((values, { name, type }) => {
-
       // Only trigger save on actual field changes, not on form reset
-      if (type === 'change' && form.formState.isDirty && form.formState.isValid && transaction) {
+      if (type === "change" && form.formState.isDirty && form.formState.isValid && transaction) {
         console.log("Triggering debounced save for field:", name);
         debouncedSave(values as RecordUpdateSchema);
       }
@@ -165,9 +170,7 @@ export default function EditTransactionSheet({
       } else if (transaction.type === "income") {
         nature = "income";
       } else if (transaction.type === "transfer") {
-        console.warn(
-          "EditTransactionSheet: Editing a 'transfer' transaction. This form is designed for 'expense' or 'income'."
-        );
+        console.warn("EditTransactionSheet: Editing a 'transfer' transaction. This form is designed for 'expense' or 'income'.");
         nature = "income";
       } else {
         nature = transaction.amount >= 0 ? "income" : "expense";
@@ -199,20 +202,16 @@ export default function EditTransactionSheet({
 
   const categoriesOptionsForSelect: SearchableSelectOption[] = useMemo(() => {
     if (!categories) return [];
-    return categories.map(category => ({
+    return categories.map((category) => ({
       value: category.id,
       label: `${category.name}`,
-      keywords: [category.name]
+      keywords: [category.name],
     }));
   }, [categories]);
-
 
   if (!isOpen || !transaction) return null;
 
   const currencySymbol = "$";
-
-
-
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
@@ -224,21 +223,21 @@ export default function EditTransactionSheet({
           "bottom-4",
           "right-4",
           "h-auto",
-          "w-[calc(100%-theme(spacing.4))]",
+          "w-[calc(100%-(--spacing(4)))]",
           "sm:w-auto sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl",
           "[&>button:last-child]:hidden",
           "rounded-lg",
-          "border-l border-t border-b",
+          "border-t border-b border-l",
           "shadow-xl",
           "bg-background"
         )}
       >
-        <SheetHeader className="p-6 pb-0 bg-muted/20">
+        <SheetHeader className="bg-muted/20 p-6 pb-0">
           <div className="flex items-center justify-between">
-            <SheetTitle className="text-lg flex gap-1 items-center">
+            <SheetTitle className="flex items-center gap-1 text-lg">
               Edit Transaction
               {detailFetching && (
-                <div className="flex items-center gap-2 px-2 text-sm text-muted-foreground">
+                <div className="text-muted-foreground flex items-center gap-2 px-2 text-sm">
                   <Loader2 className="h-4 w-4 animate-spin" />
                   refreshing details…
                 </div>
@@ -256,11 +255,10 @@ export default function EditTransactionSheet({
         </SheetHeader>
 
         <Form {...form}>
-          <form className="flex-1 overflow-y-auto p-6 pt-0 space-y-6">
-
+          <form className="flex-1 space-y-6 overflow-y-auto p-6 pt-0">
             {isSyncedTransaction && (
-              <div className="p-3 mt-4 rounded-md bg-blue-50 border border-blue-200 text-blue-800 flex items-center gap-3 text-sm">
-                <Info className="h-5 w-5 flex-shrink-0" />
+              <div className="mt-4 flex items-center gap-3 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
+                <Info className="h-5 w-5 shrink-0" />
                 <p>This is a synced transaction. Core details are locked to match your bank record. You can still change the category and notes.</p>
               </div>
             )}
@@ -290,8 +288,16 @@ export default function EditTransactionSheet({
                 render={({ field }) => (
                   <FormItem>
                     <Tooltip>
-                      <TooltipTrigger asChild><div><FormLabelWithLock isLocked={isSyncedTransaction}>Description</FormLabelWithLock></div></TooltipTrigger>
-                      {isSyncedTransaction && <TooltipContent><p>The merchant name is synced from your bank and cannot be changed.</p></TooltipContent>}
+                      <TooltipTrigger asChild>
+                        <div>
+                          <FormLabelWithLock isLocked={isSyncedTransaction}>Description</FormLabelWithLock>
+                        </div>
+                      </TooltipTrigger>
+                      {isSyncedTransaction && (
+                        <TooltipContent>
+                          <p>The merchant name is synced from your bank and cannot be changed.</p>
+                        </TooltipContent>
+                      )}
                     </Tooltip>
                     <FormControl>
                       <Input placeholder="e.g., Coffee with team" {...field} disabled={isSyncedTransaction} />
@@ -302,20 +308,37 @@ export default function EditTransactionSheet({
               />
 
               {/* Amount & Date Fields */}
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid gap-4 md:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="amount"
                   render={({ field }) => (
                     <FormItem>
                       <Tooltip>
-                        <TooltipTrigger asChild><div><FormLabelWithLock isLocked={isSyncedTransaction}>Amount</FormLabelWithLock></div></TooltipTrigger>
-                        {isSyncedTransaction && <TooltipContent><p>Amount is synced from your bank and cannot be changed.</p></TooltipContent>}
+                        <TooltipTrigger asChild>
+                          <div>
+                            <FormLabelWithLock isLocked={isSyncedTransaction}>Amount</FormLabelWithLock>
+                          </div>
+                        </TooltipTrigger>
+                        {isSyncedTransaction && (
+                          <TooltipContent>
+                            <p>Amount is synced from your bank and cannot be changed.</p>
+                          </TooltipContent>
+                        )}
                       </Tooltip>
                       <FormControl>
                         <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">{currencySymbol}</span>
-                          <Input type="number" step="0.01" min="0" placeholder="0.00" className="pl-7" {...field} disabled={isSyncedTransaction} onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)} />
+                          <span className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2 text-sm">{currencySymbol}</span>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            placeholder="0.00"
+                            className="pl-7"
+                            {...field}
+                            disabled={isSyncedTransaction}
+                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                          />
                         </div>
                       </FormControl>
                       <FormMessage />
@@ -328,8 +351,16 @@ export default function EditTransactionSheet({
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
                       <Tooltip>
-                        <TooltipTrigger asChild><div><FormLabelWithLock isLocked={isSyncedTransaction}>Date & Time</FormLabelWithLock></div></TooltipTrigger>
-                        {isSyncedTransaction && <TooltipContent><p>The transaction date is synced from your bank and cannot be changed.</p></TooltipContent>}
+                        <TooltipTrigger asChild>
+                          <div>
+                            <FormLabelWithLock isLocked={isSyncedTransaction}>Date & Time</FormLabelWithLock>
+                          </div>
+                        </TooltipTrigger>
+                        {isSyncedTransaction && (
+                          <TooltipContent>
+                            <p>The transaction date is synced from your bank and cannot be changed.</p>
+                          </TooltipContent>
+                        )}
                       </Tooltip>
                       <FormControl>
                         <DatetimePicker value={field.value} onChange={field.onChange} disabled={isSyncedTransaction} />
@@ -341,7 +372,7 @@ export default function EditTransactionSheet({
               </div>
 
               {/* Category & Account Fields */}
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid gap-4 md:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="category_id"
@@ -349,7 +380,13 @@ export default function EditTransactionSheet({
                     <FormItem>
                       <FormLabel>Category</FormLabel>
                       <FormControl>
-                        <SearchableSelect options={categoriesOptionsForSelect} value={field.value || ""} onChange={field.onChange} placeholder="Select category" searchPlaceholder="Search category..." />
+                        <SearchableSelect
+                          options={categoriesOptionsForSelect}
+                          value={field.value || ""}
+                          onChange={field.onChange}
+                          placeholder="Select category"
+                          searchPlaceholder="Search category..."
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -361,11 +398,23 @@ export default function EditTransactionSheet({
                   render={({ field }) => (
                     <FormItem>
                       <Tooltip>
-                        <TooltipTrigger asChild><div><FormLabelWithLock isLocked={isSyncedTransaction}>Account</FormLabelWithLock></div></TooltipTrigger>
-                        {isSyncedTransaction && <TooltipContent><p>The account is synced from your bank and cannot be changed.</p></TooltipContent>}
+                        <TooltipTrigger asChild>
+                          <div>
+                            <FormLabelWithLock isLocked={isSyncedTransaction}>Account</FormLabelWithLock>
+                          </div>
+                        </TooltipTrigger>
+                        {isSyncedTransaction && (
+                          <TooltipContent>
+                            <p>The account is synced from your bank and cannot be changed.</p>
+                          </TooltipContent>
+                        )}
                       </Tooltip>
                       <Select onValueChange={field.onChange} disabled={accountsLoading || isSyncedTransaction} value={field.value}>
-                        <FormControl><SelectTrigger><SelectValue placeholder="Select an account" /></SelectTrigger></FormControl>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select an account" />
+                          </SelectTrigger>
+                        </FormControl>
                         <SelectContent>{accounts?.map((account) => <AccountOption key={account.id} account={account} />)}</SelectContent>
                       </Select>
                       <FormMessage />
@@ -379,7 +428,9 @@ export default function EditTransactionSheet({
                 name="details.note"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Notes <span className="text-muted-foreground text-xs">(Optional)</span></FormLabel>
+                    <FormLabel>
+                      Notes <span className="text-muted-foreground text-xs">(Optional)</span>
+                    </FormLabel>
                     <FormControl>
                       <Textarea placeholder="Add any additional details or memo" {...field} value={field.value ?? ""} rows={3} />
                     </FormControl>
@@ -389,24 +440,16 @@ export default function EditTransactionSheet({
               />
 
               {/* Create Rule Section */}
-              <div className="mt-6 p-4 border rounded-lg bg-muted/20">
-                <div className="flex items-center justify-between mb-2">
+              <div className="bg-muted/20 mt-6 rounded-lg border p-4">
+                <div className="mb-2 flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Wand2 className="size-4 text-muted-foreground" />
+                    <Wand2 className="text-muted-foreground size-4" />
                     <span className="text-sm font-medium">Automation</span>
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground mb-3">
-                  Create a rule to automatically categorize similar transactions in the future.
-                </p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowCreateRuleDialog(true)}
-                  className="w-full"
-                >
-                  <Wand2 className="size-4 mr-2" />
+                <p className="text-muted-foreground mb-3 text-xs">Create a rule to automatically categorize similar transactions in the future.</p>
+                <Button type="button" variant="outline" size="sm" onClick={() => setShowCreateRuleDialog(true)} className="w-full">
+                  <Wand2 className="mr-2 size-4" />
                   Create Rule from Transaction
                 </Button>
               </div>
@@ -452,19 +495,12 @@ export default function EditTransactionSheet({
 }
 
 const AccountOption = memo(({ account }: { account: Account }) => {
-  const { imageUrl } = useBrandImage(
-    account.meta?.institution_name ?? "",
-    config.VITE_BRANDFETCH_CLIENTID
-  );
+  const { imageUrl } = useBrandImage(account.meta?.institution_name ?? "", config.VITE_BRANDFETCH_CLIENTID);
 
   return (
     <SelectItem value={account.id.toString()}>
       <div className="flex items-center gap-2">
-        {imageUrl ? (
-          <img src={imageUrl} alt="" className="h-5 w-5 rounded-full" />
-        ) : (
-          <div className="h-5 w-5 rounded-full bg-muted" />
-        )}
+        {imageUrl ? <img src={imageUrl} alt="" className="h-5 w-5 rounded-full" /> : <div className="bg-muted h-5 w-5 rounded-full" />}
         <span>{account.name}</span>
       </div>
     </SelectItem>

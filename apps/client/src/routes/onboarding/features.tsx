@@ -1,62 +1,53 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { 
-  PieChart, 
-  Target, 
-  TrendingUp, 
-  Shield, 
-  Smartphone, 
-  ArrowRight,
-  BarChart3,
-  CreditCard,
-  Calendar
-} from "lucide-react";
+import { PieChart, Target, TrendingUp, Shield, Smartphone, ArrowRight, BarChart3, CreditCard, Calendar } from "lucide-react";
 
 import { Button } from "@/core/components/ui/button";
 import { ScrollArea } from "@/core/components/ui/scroll-area";
+import { H2, P, H3, Small } from "@/core/components/ui/typography";
 import { useOnboardingStore } from "@/features/onboarding/stores/onboarding.store";
 
 const features = [
   {
     icon: PieChart,
     title: "Expense Tracking",
-    description: "Automatically categorize your transactions and see where your money goes with beautiful charts and insights."
+    description: "Automatically categorize your transactions and see where your money goes with beautiful charts and insights.",
   },
   {
     icon: Target,
     title: "Goal Setting",
-    description: "Set and track financial goals like saving for vacation, emergency fund, or that dream purchase."
+    description: "Set and track financial goals like saving for vacation, emergency fund, or that dream purchase.",
   },
   {
     icon: TrendingUp,
     title: "Net Worth Tracking",
-    description: "Monitor your wealth over time by connecting all your accounts in one secure dashboard."
+    description: "Monitor your wealth over time by connecting all your accounts in one secure dashboard.",
   },
   {
     icon: BarChart3,
     title: "Budget Management",
-    description: "Create flexible budgets that adapt to your lifestyle and get alerts when you're overspending."
+    description: "Create flexible budgets that adapt to your lifestyle and get alerts when you're overspending.",
   },
   {
     icon: CreditCard,
     title: "Account Aggregation",
-    description: "Connect checking, savings, credit cards, and investment accounts for a complete financial picture."
+    description: "Connect checking, savings, credit cards, and investment accounts for a complete financial picture.",
   },
   {
     icon: Calendar,
     title: "Bill Reminders",
-    description: "Never miss a payment again with smart reminders and recurring transaction tracking."
+    description: "Never miss a payment again with smart reminders and recurring transaction tracking.",
   },
   {
     icon: Shield,
     title: "Bank-Level Security",
-    description: "Your data is protected with 256-bit encryption and read-only access to your accounts."
+    description: "Your data is protected with 256-bit encryption and read-only access to your accounts.",
   },
   {
     icon: Smartphone,
     title: "Mobile & Web",
-    description: "Access your finances anywhere with our responsive design that works on all your devices."
-  }
+    description: "Access your finances anywhere with our responsive design that works on all your devices.",
+  },
 ];
 
 export const Route = createFileRoute("/onboarding/features")({
@@ -80,20 +71,16 @@ function RouteComponent() {
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
-      <div className="text-center space-y-2">
-        <div className="w-16 h-16 bg-primary-nuts-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <BarChart3 className="w-8 h-8 text-primary-nuts-600" />
+      <div className="space-y-2 text-center">
+        <div className="bg-primary-nuts-100 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+          <BarChart3 className="text-primary-nuts-600 h-8 w-8" />
         </div>
-        <h2 className="text-xl font-semibold text-gray-900">
-          Here's how Nuts can help you
-        </h2>
-        <p className="text-gray-600">
-          Powerful features designed to simplify your financial life
-        </p>
+        <H2>Here's how Nuts can help you</H2>
+        <P variant="muted">Powerful features designed to simplify your financial life</P>
       </div>
 
       <ScrollArea className="h-96 w-full rounded-md border border-gray-200 bg-white">
-        <div className="p-4 space-y-4">
+        <div className="space-y-4 p-4">
           {features.map((feature, index) => {
             const Icon = feature.icon;
             return (
@@ -102,16 +89,16 @@ function RouteComponent() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 + 0.1 }}
-                className="flex items-start space-x-4 p-4 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
+                className="flex items-start space-x-4 rounded-lg border border-gray-100 p-4 transition-colors hover:bg-gray-50"
               >
                 <div className="flex-shrink-0">
-                  <div className="w-12 h-12 bg-primary-nuts-100 rounded-lg flex items-center justify-center">
-                    <Icon className="w-6 h-6 text-primary-nuts-600" />
+                  <div className="bg-primary-nuts-100 flex h-12 w-12 items-center justify-center rounded-lg">
+                    <Icon className="text-primary-nuts-600 h-6 w-6" />
                   </div>
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-medium text-gray-900 mb-1">{feature.title}</h3>
-                  <p className="text-sm text-gray-600">{feature.description}</p>
+                  <H3 className="mb-1">{feature.title}</H3>
+                  <Small variant="muted">{feature.description}</Small>
                 </div>
               </motion.div>
             );
@@ -119,31 +106,28 @@ function RouteComponent() {
         </div>
       </ScrollArea>
 
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="pt-4"
-      >
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="pt-4">
         <Button
           onClick={handleContinue}
-          className="w-full bg-gradient-to-r from-primary-nuts-600 to-primary-nuts-700 hover:from-primary-nuts-700 hover:to-primary-nuts-800 text-white shadow-lg flex items-center justify-center gap-2"
+          className="from-primary-nuts-600 to-primary-nuts-700 hover:from-primary-nuts-700 hover:to-primary-nuts-800 flex w-full items-center justify-center gap-2 bg-gradient-to-r text-white shadow-lg"
         >
           Continue
-          <ArrowRight className="w-4 h-4" />
+          <ArrowRight className="h-4 w-4" />
         </Button>
       </motion.div>
 
       <div className="text-center">
-        <div className="flex justify-center space-x-2 mt-6">
-          <div className="w-2 h-2 bg-primary-nuts-600 rounded-full"></div>
-          <div className="w-2 h-2 bg-primary-nuts-600 rounded-full"></div>
-          <div className="w-2 h-2 bg-primary-nuts-600 rounded-full"></div>
-          <div className="w-2 h-2 bg-primary-nuts-600 rounded-full"></div>
-          <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-          <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
+        <div className="mt-6 flex justify-center space-x-2">
+          <div className="bg-primary-nuts-600 h-2 w-2 rounded-full"></div>
+          <div className="bg-primary-nuts-600 h-2 w-2 rounded-full"></div>
+          <div className="bg-primary-nuts-600 h-2 w-2 rounded-full"></div>
+          <div className="bg-primary-nuts-600 h-2 w-2 rounded-full"></div>
+          <div className="h-2 w-2 rounded-full bg-gray-300"></div>
+          <div className="h-2 w-2 rounded-full bg-gray-300"></div>
         </div>
-        <p className="text-sm text-gray-500 mt-2">Step 4 of 6</p>
+        <Small variant="muted" className="mt-2">
+          Step 4 of 6
+        </Small>
       </div>
     </motion.div>
   );

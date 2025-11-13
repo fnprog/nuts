@@ -152,3 +152,13 @@ income_subcategories AS (
     JOIN parent_categories pc ON pc.name = 'Income'
 )
 SELECT 1;
+
+-- name: GetCategoriesSince :many
+SELECT *
+FROM categories
+WHERE
+    created_by = sqlc.arg('user_id')
+    AND (
+        updated_at > sqlc.arg('since')
+        OR (deleted_at IS NOT NULL AND deleted_at > sqlc.arg('since'))
+    );

@@ -13,9 +13,7 @@ export function CreateRuleDialog({ open, onOpenChange }: CreateRuleDialogProps) 
           <DialogTitle>Create New Rule</DialogTitle>
         </DialogHeader>
         <div className="py-4">
-          <p className="text-gray-600">
-            Rule creation form will be implemented here. This will include:
-          </p>
+          <p className="text-gray-600">Rule creation form will be implemented here. This will include:</p>
           <ul className="mt-2 space-y-1 text-sm text-gray-600">
             <li>• Rule name and priority</li>
             <li>• Condition builder (description, amount, account, etc.)</li>

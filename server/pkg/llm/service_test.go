@@ -27,14 +27,14 @@ func (m *MockProvider) GetModelInfo() ModelInfo {
 
 func TestNeuralInputService_ParseTransactions(t *testing.T) {
 	logger := zerolog.Nop()
-	
+
 	tests := []struct {
-		name           string
-		mockResponse   string
-		mockError      error
-		request        NeuralInputRequest
-		expectedTxns   int
-		expectedError  bool
+		name          string
+		mockResponse  string
+		mockError     error
+		request       NeuralInputRequest
+		expectedTxns  int
+		expectedError bool
 	}{
 		{
 			name: "successful single transaction parsing",
@@ -80,7 +80,7 @@ func TestNeuralInputService_ParseTransactions(t *testing.T) {
 			expectedTxns: 2,
 		},
 		{
-			name: "invalid JSON response",
+			name:         "invalid JSON response",
 			mockResponse: "invalid json {",
 			request: NeuralInputRequest{
 				Input: "Test input",
@@ -88,7 +88,7 @@ func TestNeuralInputService_ParseTransactions(t *testing.T) {
 			expectedError: true,
 		},
 		{
-			name: "empty transaction array",
+			name:         "empty transaction array",
 			mockResponse: "[]",
 			request: NeuralInputRequest{
 				Input: "No financial content here",
@@ -126,7 +126,7 @@ func TestNeuralInputService_ParseTransactions(t *testing.T) {
 			assert.Equal(t, tt.expectedTxns, len(result.Transactions))
 			assert.Equal(t, "test-model", result.Model)
 			assert.Equal(t, "local", result.Provider)
-			
+
 			if len(result.Transactions) > 0 {
 				txn := result.Transactions[0]
 				assert.True(t, txn.Amount.GreaterThan(decimal.Zero))
@@ -154,29 +154,29 @@ func TestNeuralInputService_convertRawTransaction(t *testing.T) {
 		{
 			name: "valid transaction",
 			raw: map[string]interface{}{
-				"amount":                "100.50",
-				"type":                  "expense",
-				"description":           "Grocery shopping",
-				"category_hint":         "food",
-				"merchant_name":         "Whole Foods",
-				"transaction_datetime":  "2024-01-15T14:30:00Z",
-				"currency_code":         "USD",
-				"payment_medium":        "credit_card",
-				"location":              "Seattle",
-				"note":                  "Weekly groceries",
-				"confidence":            0.95,
+				"amount":               "100.50",
+				"type":                 "expense",
+				"description":          "Grocery shopping",
+				"category_hint":        "food",
+				"merchant_name":        "Whole Foods",
+				"transaction_datetime": "2024-01-15T14:30:00Z",
+				"currency_code":        "USD",
+				"payment_medium":       "credit_card",
+				"location":             "Seattle",
+				"note":                 "Weekly groceries",
+				"confidence":           0.95,
 			},
 			expected: TransactionData{
-				Amount:       decimal.NewFromFloat(100.50),
-				Type:         "expense",
-				Description:  stringPtr("Grocery shopping"),
-				CategoryHint: stringPtr("food"),
-				MerchantName: stringPtr("Whole Foods"),
-				CurrencyCode: "USD",
+				Amount:        decimal.NewFromFloat(100.50),
+				Type:          "expense",
+				Description:   stringPtr("Grocery shopping"),
+				CategoryHint:  stringPtr("food"),
+				MerchantName:  stringPtr("Whole Foods"),
+				CurrencyCode:  "USD",
 				PaymentMedium: stringPtr("credit_card"),
-				Location:     stringPtr("Seattle"),
-				Note:         stringPtr("Weekly groceries"),
-				Confidence:   0.95,
+				Location:      stringPtr("Seattle"),
+				Note:          stringPtr("Weekly groceries"),
+				Confidence:    0.95,
 			},
 		},
 		{

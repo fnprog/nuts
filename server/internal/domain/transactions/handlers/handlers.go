@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -79,8 +80,8 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	// Filters
 	params := transactions.ListTransactionsParams{
 		UserID: userID,
-		Page:   page,
-		Limit:  limit,
+		Page:   int32(page),
+		Limit:  int32(limit),
 	}
 
 	if search := q.Get("q"); search != "" {
@@ -217,70 +218,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	var req transactions.CreateTransactionRequest
 	ctx := r.Context()
 
-	// Start metrics measurement
-	metrics := telemetry.NewRequestMetrics(ctx, r.Method, "transactions.Create")
-	defer func() {
-		metrics.End(http.StatusOK) // Default status, will be overridden if there's an error
-	}()
-
-	valErr, err := h.validator.ParseAndValidate(ctx, r, &req)
-	if err != nil {
-		telemetry.RecordError(ctx, "validation_parse_error", "transactions.Create")
-		metrics.End(http.StatusBadRequest)
-		respond.Error(respond.ErrorOptions{
-			W:          w,
-			R:          r,
-			StatusCode: http.StatusBadRequest,
-			ClientErr:  message.ErrBadRequest,
-			ActualErr:  err,
-			Logger:     h.logger,
-			Details:    r.Body,
-		})
-		return
-	}
-
-	if valErr != nil {
-		telemetry.RecordError(ctx, "validation_error", "transactions.Create")
-		telemetry.RecordTransactionEvent(ctx, "create", false)
-		metrics.End(http.StatusBadRequest)
-		respond.Errors(respond.ErrorOptions{
-			W:          w,
-			R:          r,
-			StatusCode: http.StatusBadRequest,
-			ClientErr:  message.ErrValidation,
-			ActualErr:  valErr,
-			Logger:     h.logger,
-			Details:    req,
-		})
-		return
-	}
-
-	amount := decimal.NewFromFloat(req.Amount)
-	accountID, err := uuid.Parse(req.AccountID)
-	if err != nil {
-		respond.Error(respond.ErrorOptions{
-			W:          w,
-			R:          r,
-			StatusCode: http.StatusInternalServerError,
-			ClientErr:  message.ErrInternalError,
-			ActualErr:  err,
-			Logger:     h.logger,
-			Details:    req,
-		})
-		return
-	}
-
-	categoryID, err := uuid.Parse(req.CategoryID)
-	if err != nil {
-		respond.Error(respond.ErrorOptions{
-			W:          w,
-			R:          r,
-			StatusCode: http.StatusInternalServerError,
-			ClientErr:  message.ErrInternalError,
-			ActualErr:  err,
-			Logger:     h.logger,
-			Details:    req,
-		})
+	if !h.validateCreateRequest(w, r, ctx, &req) {
 		return
 	}
 
@@ -298,23 +236,21 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	isExternal := false
+	params, err := h.buildCreateTransactionParams(req, userID)
+	if err != nil {
+		respond.Error(respond.ErrorOptions{
+			W:          w,
+			R:          r,
+			StatusCode: http.StatusInternalServerError,
+			ClientErr:  message.ErrInternalError,
+			ActualErr:  err,
+			Logger:     h.logger,
+			Details:    req,
+		})
+		return
+	}
 
-	// TODO: add the reccuring stuff if there is reccuring transactions
-	// NOTE: Default to usd for now
-	transaction, err := h.service.CreateTransaction(ctx, sqlRepo.CreateTransactionParams{
-		Amount:              amount,
-		Type:                req.Type,
-		AccountID:           accountID,
-		CategoryID:          &categoryID,
-		Description:         req.Description,
-		TransactionDatetime: pgtype.Timestamptz{Time: req.TransactionDatetime, Valid: true},
-		TransactionCurrency: "USD",
-		IsExternal:          &isExternal,
-		OriginalAmount:      amount,
-		Details:             &req.Details,
-		CreatedBy:           &userID,
-	})
+	transaction, err := h.service.CreateTransaction(ctx, params)
 	if err != nil {
 		telemetry.RecordError(ctx, "create_transaction_error", "transactions.Create")
 		telemetry.RecordTransactionEvent(ctx, "create", false)
@@ -334,6 +270,66 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	// Record successful transaction creation
 	telemetry.RecordTransactionEvent(ctx, "create", true)
 	respond.Json(w, http.StatusOK, transaction, h.logger)
+}
+
+func (h *Handler) validateCreateRequest(w http.ResponseWriter, r *http.Request, ctx context.Context, req *transactions.CreateTransactionRequest) bool {
+	valErr, err := h.validator.ParseAndValidate(ctx, r, req)
+	if err != nil {
+		respond.Error(respond.ErrorOptions{
+			W:          w,
+			R:          r,
+			StatusCode: http.StatusBadRequest,
+			ClientErr:  message.ErrBadRequest,
+			ActualErr:  err,
+			Logger:     h.logger,
+			Details:    r.Body,
+		})
+		return false
+	}
+
+	if valErr != nil {
+		respond.Errors(respond.ErrorOptions{
+			W:          w,
+			R:          r,
+			StatusCode: http.StatusBadRequest,
+			ClientErr:  message.ErrValidation,
+			ActualErr:  valErr,
+			Logger:     h.logger,
+			Details:    req,
+		})
+		return false
+	}
+
+	return true
+}
+
+func (h *Handler) buildCreateTransactionParams(req transactions.CreateTransactionRequest, userID uuid.UUID) (sqlRepo.CreateTransactionParams, error) {
+	amount := decimal.NewFromFloat(req.Amount)
+	accountID, err := uuid.Parse(req.AccountID)
+	if err != nil {
+		return sqlRepo.CreateTransactionParams{}, err
+	}
+
+	categoryID, err := uuid.Parse(req.CategoryID)
+	if err != nil {
+		return sqlRepo.CreateTransactionParams{}, err
+	}
+
+	isExternal := false
+
+	return sqlRepo.CreateTransactionParams{
+		Amount:              amount,
+		Type:                req.Type,
+		AccountID:           accountID,
+		CategoryID:          &categoryID,
+		Description:         req.Description,
+		TransactionDatetime: pgtype.Timestamptz{Time: req.TransactionDatetime, Valid: true},
+		TransactionCurrency: "USD",
+		IsExternal:          &isExternal,
+		OriginalAmount:      amount,
+		Details:             &req.Details,
+		CreatedBy:           &userID,
+	}, nil
 }
 
 func (h *Handler) CreateTransfert(w http.ResponseWriter, r *http.Request) {
@@ -509,30 +505,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req transactions.UpdateTransactionRequest
-	valErr, err := h.validator.ParseAndValidate(ctx, r, &req)
-	if err != nil {
-		respond.Error(respond.ErrorOptions{
-			W:          w,
-			R:          r,
-			StatusCode: http.StatusBadRequest,
-			ClientErr:  message.ErrBadRequest,
-			ActualErr:  err,
-			Logger:     h.logger,
-			Details:    r.Body,
-		})
-		return
-	}
-
-	if valErr != nil {
-		respond.Errors(respond.ErrorOptions{
-			W:          w,
-			R:          r,
-			StatusCode: http.StatusBadRequest,
-			ClientErr:  message.ErrValidation,
-			ActualErr:  valErr,
-			Logger:     h.logger,
-			Details:    req,
-		})
+	if !h.validateUpdateRequest(w, r, ctx, &req) {
 		return
 	}
 
@@ -549,43 +522,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	params := sqlRepo.UpdateTransactionParams{
-		ID:        trscID,
-		Details:   req.Details,
-		UpdatedBy: &userID,
-	}
-
-	if req.Amount != nil {
-		params.Amount = types.FloatToNullDecimal(*req.Amount)
-	}
-
-	if req.AccountID != nil {
-		accountID, err := uuid.Parse(*req.AccountID)
-		if err != nil {
-			// Handle error
-		}
-		params.AccountID = &accountID
-	}
-
-	if req.CategoryID != nil {
-		categoryID, err := uuid.Parse(*req.CategoryID)
-		if err != nil {
-			// Handle error
-		}
-		params.CategoryID = &categoryID
-	}
-
-	if req.Description != nil {
-		params.Description = req.Description
-	}
-
-	if req.TransactionDatetime != nil {
-		params.TransactionDatetime = pgtype.Timestamptz{Time: *req.TransactionDatetime, Valid: true}
-	}
-
-	if req.Type != nil {
-		params.Type = req.Type
-	}
+	params := h.buildUpdateTransactionParams(trscID, req, userID)
 
 	transaction, err := h.service.UpdateTransaction(ctx, params)
 	if err != nil {
@@ -602,6 +539,75 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respond.Json(w, http.StatusOK, transaction, h.logger)
+}
+
+func (h *Handler) validateUpdateRequest(w http.ResponseWriter, r *http.Request, ctx context.Context, req *transactions.UpdateTransactionRequest) bool {
+	valErr, err := h.validator.ParseAndValidate(ctx, r, req)
+	if err != nil {
+		respond.Error(respond.ErrorOptions{
+			W:          w,
+			R:          r,
+			StatusCode: http.StatusBadRequest,
+			ClientErr:  message.ErrBadRequest,
+			ActualErr:  err,
+			Logger:     h.logger,
+			Details:    r.Body,
+		})
+		return false
+	}
+
+	if valErr != nil {
+		respond.Errors(respond.ErrorOptions{
+			W:          w,
+			R:          r,
+			StatusCode: http.StatusBadRequest,
+			ClientErr:  message.ErrValidation,
+			ActualErr:  valErr,
+			Logger:     h.logger,
+			Details:    req,
+		})
+		return false
+	}
+
+	return true
+}
+
+func (h *Handler) buildUpdateTransactionParams(trscID uuid.UUID, req transactions.UpdateTransactionRequest, userID uuid.UUID) sqlRepo.UpdateTransactionParams {
+	params := sqlRepo.UpdateTransactionParams{
+		ID:        trscID,
+		Details:   req.Details,
+		UpdatedBy: &userID,
+	}
+
+	if req.Amount != nil {
+		params.Amount = types.FloatToNullDecimal(*req.Amount)
+	}
+
+	if req.AccountID != nil {
+		if accountID, err := uuid.Parse(*req.AccountID); err == nil {
+			params.AccountID = &accountID
+		}
+	}
+
+	if req.CategoryID != nil {
+		if categoryID, err := uuid.Parse(*req.CategoryID); err == nil {
+			params.CategoryID = &categoryID
+		}
+	}
+
+	if req.Description != nil {
+		params.Description = req.Description
+	}
+
+	if req.TransactionDatetime != nil {
+		params.TransactionDatetime = pgtype.Timestamptz{Time: *req.TransactionDatetime, Valid: true}
+	}
+
+	if req.Type != nil {
+		params.Type = req.Type
+	}
+
+	return params
 }
 
 func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {

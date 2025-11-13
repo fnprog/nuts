@@ -48,7 +48,7 @@
     "transactionSetup": "Transaction Setup",
     "about": "About",
     "profile": "Profile",
-    "security": "Security", 
+    "security": "Security",
     "appearance": "Appearance",
     "localization": "Localization",
     "features": "Features",
@@ -58,7 +58,7 @@
     "currencies": "Currencies",
     "news": "What's New",
     "feedback": "Feedback",
-    "accountSettings": "Account settings",
+    "accountSettings": "Settings",
     "theme": "Theme",
     "light": "Light",
     "dark": "Dark"
@@ -115,7 +115,7 @@
     "destinationAccount": "Destination Account",
     "types": {
       "income": "Income",
-      "expense": "Expense", 
+      "expense": "Expense",
       "transfer": "Transfer"
     }
   },

@@ -1,14 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/core/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/core/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/core/components/ui/dialog";
 import { Button } from "@/core/components/ui/button";
 import { Input } from "@/core/components/ui/input";
 import { Label } from "@/core/components/ui/label";
-import { Skeleton } from "@/core/components/ui/skeleton";
-import IconPicker from "@/core/components/icon-picker";
-import { renderIcon } from "@/core/components/icon-picker/index.helper";
+import IconPicker from "@/core/components/ui/icon-picker";
+import { renderIcon } from "@/core/components/ui/icon-picker/index.helper";
 import { MoreHorizontal, Pencil, Trash, AlertCircle } from "lucide-react";
+import { crdtService } from "@/core/sync/crdt";
 import { useTagsQuery, useUpdateTagMutation, useDeleteTagMutation } from "@/features/preferences/services/settings.queries";
 import { logger } from "@/lib/logger";
 
@@ -23,16 +23,31 @@ export function TagList() {
     icon: string;
   } | null>(null);
 
+  const refreshTags = () => {
+    const allTags = crdtService.getTags();
+    setTags(allTags);
+  };
+
+  useEffect(() => {
+    refreshTags();
+  }, []);
+
+  const tagList = useMemo(() => {
+    return Object.values(tags).sort((a, b) => a.name.localeCompare(b.name));
+  }, [tags]);
+
   const handleUpdate = async () => {
     if (editingTag) {
       try {
-        await updateTagMutation.mutateAsync({
-          id: editingTag.id,
-          data: {
-            name: editingTag.name,
-            icon: editingTag.icon,
-          },
+        setIsUpdating(true);
+        const updateResult = await crdtService.updateTag(editingTag.id, {
+          name: editingTag.name,
+          icon: editingTag.icon,
         });
+        if (updateResult.isErr()) {
+          throw new Error(updateResult.error.message);
+        }
+        refreshTags();
         setEditingTag(null);
       } catch (error) {
         logger.error(error)
@@ -48,49 +63,6 @@ export function TagList() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <div className="border rounded-md">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Tag</TableHead>
-                <TableHead className="w-[100px]">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {Array.from({ length: 3 }).map((_, index) => (
-                <TableRow key={index}>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Skeleton className="h-4 w-4" />
-                      <Skeleton className="h-4 w-24" />
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-8 w-8" />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center gap-2 p-4 text-orange-600 bg-orange-50 rounded-md">
-        <AlertCircle className="h-4 w-4" />
-        <span className="text-sm">
-          Failed to load tags. Please try again later.
-        </span>
-      </div>
-    );
-  }
-
   return (
     <>
       <Table>
@@ -101,8 +73,8 @@ export function TagList() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {tags && tags.length > 0 ? (
-            tags.map((tag) => (
+          {tagList.length > 0 ? (
+            tagList.map((tag) => (
               <TableRow key={tag.id}>
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-2">
@@ -137,7 +109,7 @@ export function TagList() {
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={2} className="text-center py-8 text-muted-foreground">
+              <TableCell colSpan={2} className="text-muted-foreground py-8 text-center">
                 No tags found. Create your first tag to get started.
               </TableCell>
             </TableRow>

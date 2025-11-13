@@ -13,8 +13,6 @@ export const isOnboardingRequired = (user: UserInfo | null): boolean => {
   // - If user has names but no onboarding completion in localStorage, they need onboarding
   // - If user has no names, they definitely need onboarding
 
-  logger.info("user payload", { user })
-
   // Check if user has required fields filled
   const hasRequiredInfo = Boolean(user.first_name && user.last_name);
 

@@ -64,3 +64,13 @@ ORDER BY user_id
 LIMIT
     $1
     OFFSET $2;
+
+-- name: GetPreferencesSince :many
+SELECT *
+FROM preferences
+WHERE
+    user_id = sqlc.arg('user_id')
+    AND (
+        updated_at > sqlc.arg('since')
+        OR (deleted_at IS NOT NULL AND deleted_at > sqlc.arg('since'))
+    );

@@ -1,0 +1,20 @@
+{
+  "rustc": 8022303366561187541,
+  "features": "[]",
+  "declared_features": "[\"alloc\", \"getrandom\", \"serde\", \"serde1\", \"std\"]",
+  "target": 13770603672348587087,
+  "profile": 12693162527509728243,
+  "path": 3355962319360554827,
+  "deps": [],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "aarch64-linux-android/release/.fingerprint/rand_core-b33df0780a8850e3/dep-lib-rand_core",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 10255546481339591553,
+  "compile_kind": 6373778340919622063
+}

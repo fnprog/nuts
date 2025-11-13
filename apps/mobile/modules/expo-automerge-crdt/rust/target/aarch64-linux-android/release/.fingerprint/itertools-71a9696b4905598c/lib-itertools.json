@@ -1,0 +1,20 @@
+{
+  "rustc": 8022303366561187541,
+  "features": "[\"default\", \"use_alloc\", \"use_std\"]",
+  "declared_features": "[\"default\", \"use_alloc\", \"use_std\"]",
+  "target": 9541170365560449339,
+  "profile": 12693162527509728243,
+  "path": 14393706559921465151,
+  "deps": [[12170264697963848012, "either", false, 6129524319407181251]],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "aarch64-linux-android/release/.fingerprint/itertools-71a9696b4905598c/dep-lib-itertools",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 10255546481339591553,
+  "compile_kind": 6373778340919622063
+}

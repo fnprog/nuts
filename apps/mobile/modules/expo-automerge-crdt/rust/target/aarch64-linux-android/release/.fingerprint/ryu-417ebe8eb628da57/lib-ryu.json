@@ -1,0 +1,20 @@
+{
+  "rustc": 8022303366561187541,
+  "features": "[]",
+  "declared_features": "[\"no-panic\", \"small\"]",
+  "target": 8955674961151483972,
+  "profile": 12693162527509728243,
+  "path": 9298456279838141508,
+  "deps": [],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "aarch64-linux-android/release/.fingerprint/ryu-417ebe8eb628da57/dep-lib-ryu",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 10255546481339591553,
+  "compile_kind": 6373778340919622063
+}

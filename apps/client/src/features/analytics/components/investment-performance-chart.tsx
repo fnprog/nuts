@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react"
-import { Line, LineChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { useEffect, useState } from "react";
+import { Line, LineChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 // Mock data for the chart
 const data = [
@@ -15,17 +15,17 @@ const data = [
   { month: "Oct", portfolio: 10.1, benchmark: 7.5 },
   { month: "Nov", portfolio: 9.5, benchmark: 7.2 },
   { month: "Dec", portfolio: 11.2, benchmark: 8.1 },
-]
+];
 
 export default function InvestmentPerformanceChart() {
-  const [mounted, setMounted] = useState(false)
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   if (!mounted) {
-    return <div className="h-[300px] flex items-center justify-center">Loading chart...</div>
+    return <div className="flex h-[300px] items-center justify-center">Loading chart...</div>;
   }
 
   return (
@@ -43,15 +43,7 @@ export default function InvestmentPerformanceChart() {
           }}
         />
         <Legend />
-        <Line
-          type="monotone"
-          dataKey="portfolio"
-          name="Your Portfolio"
-          stroke="#8b5cf6"
-          strokeWidth={2}
-          dot={{ r: 4 }}
-          activeDot={{ r: 6, strokeWidth: 2 }}
-        />
+        <Line type="monotone" dataKey="portfolio" name="Your Portfolio" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6, strokeWidth: 2 }} />
         <Line
           type="monotone"
           dataKey="benchmark"
@@ -63,6 +55,5 @@ export default function InvestmentPerformanceChart() {
         />
       </LineChart>
     </ResponsiveContainer>
-  )
+  );
 }
-

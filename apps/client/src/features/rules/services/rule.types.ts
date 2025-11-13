@@ -1,94 +1,89 @@
-import { z } from "zod";
+import { type } from "@nuts/validation";
 
-export const conditionTypeSchema = z.enum([
-  "description",
-  "amount",
-  "account",
-  "direction",
-  "type",
-  "category",
-]);
+export const conditionTypeSchema = type("'description' | 'amount' | 'account' | 'direction' | 'type' | 'category'");
 
-export const conditionOperatorSchema = z.enum([
-  "equals",
-  "not_equals",
-  "contains",
-  "not_contains",
-  "starts_with",
-  "ends_with",
-  "greater_than",
-  "greater_equal",
-  "less_than",
-  "less_equal",
-]);
+export const conditionOperatorSchema = type(
+  "'equals' | 'not_equals' | 'contains' | 'not_contains' | 'starts_with' | 'ends_with' | 'greater_than' | 'greater_equal' | 'less_than' | 'less_equal'"
+);
 
-export const actionTypeSchema = z.enum([
-  "set_category",
-  "set_description",
-  "set_tags",
-  "set_note",
-]);
+export const actionTypeSchema = type("'set_category' | 'set_description' | 'set_tags' | 'set_note'");
 
-export const ruleConditionSchema = z.object({
+export const ruleConditionSchema = type({
   type: conditionTypeSchema,
   operator: conditionOperatorSchema,
-  value: z.union([z.string(), z.number(), z.boolean()]),
-  logic_gate: z.enum(["AND", "OR"]).optional(),
+  value: "string | number | boolean",
+  "logic_gate?": "'AND' | 'OR'",
 });
 
-export const ruleActionSchema = z.object({
+export const ruleActionSchema = type({
   type: actionTypeSchema,
-  value: z.union([z.string(), z.number(), z.boolean(), z.array(z.string())]),
+  value: "string | number | boolean | string[]",
 });
 
-export const transactionRuleSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  is_active: z.boolean(),
-  priority: z.number(),
-  conditions: z.array(ruleConditionSchema),
-  actions: z.array(ruleActionSchema),
-  created_by: z.string(),
-  updated_by: z.string().optional(),
-  created_at: z.coerce.date(),
-  updated_at: z.coerce.date(),
-  deleted_at: z.coerce.date().optional(),
+export const transactionRuleSchema = type({
+  id: "string",
+  name: "string",
+  is_active: "boolean",
+  priority: "number",
+  conditions: type([ruleConditionSchema, "[]"]),
+  actions: type([ruleActionSchema, "[]"]),
+  created_by: "string",
+  "updated_by?": "string",
+  created_at: "Date | string.date",
+  updated_at: "Date | string.date",
+  "deleted_at?": "Date | string.date",
 });
 
-export const createTransactionRuleSchema = z.object({
-  name: z.string().min(1, "Name is required").max(255, "Name too long"),
-  is_active: z.boolean().default(true),
-  priority: z.number().int().min(0).default(0),
-  conditions: z.array(ruleConditionSchema).min(1, "At least one condition is required"),
-  actions: z.array(ruleActionSchema).min(1, "At least one action is required"),
+export const createTransactionRuleSchema = type({
+  name: "string>=1",
+  is_active: "boolean = true",
+  priority: "number.integer>=0 = 0",
+  conditions: type([ruleConditionSchema, "[]"]),
+  actions: type([ruleActionSchema, "[]"]),
+}).narrow((data, ctx) => {
+  if (data.conditions.length < 1) {
+    return ctx.reject({ path: ["conditions"], message: "At least one condition is required" });
+  }
+  if (data.actions.length < 1) {
+    return ctx.reject({ path: ["actions"], message: "At least one action is required" });
+  }
+  return true;
 });
 
-export const updateTransactionRuleSchema = z.object({
-  name: z.string().min(1, "Name is required").max(255, "Name too long").optional(),
-  is_active: z.boolean().optional(),
-  priority: z.number().int().min(0).optional(),
-  conditions: z.array(ruleConditionSchema).min(1, "At least one condition is required").optional(),
-  actions: z.array(ruleActionSchema).min(1, "At least one action is required").optional(),
+export const updateTransactionRuleSchema = type({
+  "name?": "string>=1",
+  "is_active?": "boolean",
+  "priority?": "number.integer>=0",
+  "conditions?": type([ruleConditionSchema, "[]"]),
+  "actions?": type([ruleActionSchema, "[]"]),
+}).narrow((data, ctx) => {
+  if (data.conditions && data.conditions.length < 1) {
+    return ctx.reject({ path: ["conditions"], message: "At least one condition is required" });
+  }
+  if (data.actions && data.actions.length < 1) {
+    return ctx.reject({ path: ["actions"], message: "At least one action is required" });
+  }
+  return true;
 });
 
-export const ruleMatchSchema = z.object({
-  rule_id: z.string(),
-  rule_name: z.string(),
-  rule_priority: z.number(),
-  actions: z.array(ruleActionSchema),
-  applied: z.boolean(),
-  error: z.string().optional(),
+export const ruleMatchSchema = type({
+  rule_id: "string",
+  rule_name: "string",
+  rule_priority: "number",
+  actions: type([ruleActionSchema, "[]"]),
+  applied: "boolean",
+  "error?": "string",
 });
 
-export type ConditionType = z.infer<typeof conditionTypeSchema>;
-export type ConditionOperator = z.infer<typeof conditionOperatorSchema>;
-export type ActionType = z.infer<typeof actionTypeSchema>;
-export type RuleCondition = z.infer<typeof ruleConditionSchema>;
-export type RuleAction = z.infer<typeof ruleActionSchema>;
-export type TransactionRule = z.infer<typeof transactionRuleSchema>;
-export type CreateTransactionRule = z.infer<typeof createTransactionRuleSchema>;
-export type UpdateTransactionRule = z.infer<typeof updateTransactionRuleSchema>;
-export type RuleMatch = z.infer<typeof ruleMatchSchema>;
+export type ConditionType = typeof conditionTypeSchema.infer;
+export type ConditionOperator = typeof conditionOperatorSchema.infer;
+export type ActionType = typeof actionTypeSchema.infer;
+export type RuleCondition = typeof ruleConditionSchema.infer;
+export type RuleAction = typeof ruleActionSchema.infer;
+export type TransactionRule = typeof transactionRuleSchema.infer;
+export type CreateTransactionRule = typeof createTransactionRuleSchema.infer;
+export type UpdateTransactionRule = typeof updateTransactionRuleSchema.infer;
+export type RuleMatch = typeof ruleMatchSchema.infer;
 
 // Helper constants for UI
 export const CONDITION_TYPE_LABELS: Record<ConditionType, string> = {

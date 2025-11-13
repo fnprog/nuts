@@ -1,17 +1,23 @@
 import { useState } from "react";
 import { motion } from "motion/react";
-import { z } from "zod";
+import { type } from "@nuts/validation";
 
 import { Button } from "@/core/components/ui/button";
 import { Input } from "@/core/components/ui/input";
 import { Label } from "@/core/components/ui/label";
+import { H1, P, Small } from "@/core/components/ui/typography";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
-import { Nuts } from "@/core/assets/icons/Logo"
+import { Nuts } from "@/core/components/icons/Logo";
+
+const searchSchema = type({
+  "redirect?": "string",
+});
 
 export const Route = createFileRoute("/forgot-password")({
-  validateSearch: z.object({
-    redirect: z.string().optional().catch(''),
-  }),
+  validateSearch: (search) => {
+    const result = searchSchema(search);
+    return result instanceof type.errors ? { redirect: "" } : result;
+  },
   beforeLoad: ({ context, search }) => {
     if (context.auth.isAuthenticated) {
       throw redirect({ to: search.redirect || "/dashboard/home" });
@@ -20,7 +26,7 @@ export const Route = createFileRoute("/forgot-password")({
   shouldReload({ context }) {
     return !context.auth.isAuthenticated;
   },
-  component: RouteComponent
+  component: RouteComponent,
 });
 
 function RouteComponent() {
@@ -39,7 +45,6 @@ function RouteComponent() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center overflow-hidden p-4">
-
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -47,13 +52,13 @@ function RouteComponent() {
         className="relative z-10 w-full max-w-sm space-y-8"
       >
         <motion.header initial={{ scale: 0.95 }} animate={{ scale: 1 }} transition={{ delay: 0.2 }} className="flex justify-center">
-          <Nuts className="w-10 h-10" fill="var(--foreground)" />
+          <Nuts className="h-10 w-10" fill="var(--foreground)" />
         </motion.header>
 
-        <main className="w-full mt-4">
+        <main className="mt-4 w-full">
           <div className="space-y-1">
-            <h1 className="text-center text-2xl">Reset password</h1>
-            <p className="text-center">Enter your email address and we'll send you a link to reset your password</p>
+            <H1 className="text-center">Reset password</H1>
+            <P className="text-center">Enter your email address and we'll send you a link to reset your password</P>
           </div>
           <div>
             {!isSubmitted ? (
@@ -81,25 +86,22 @@ function RouteComponent() {
               </form>
             ) : (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4 text-center">
-                <p className="text-muted-foreground text-sm">
+                <Small className="text-muted-foreground">
                   Check your email for a link to reset your password. If it doesn't appear within a few minutes, check your spam folder.
-                </p>
+                </Small>
                 <Button variant="outline" className="w-full" onClick={() => setIsSubmitted(false)}>
                   Try again
                 </Button>
               </motion.div>
             )}
 
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              className="text-muted-foreground mt-4 text-center text-sm"
-            >
-              Remember your password?{" "}
-              <Link to="/login" className="text-emerald-700 transition-colors hover:text-emerald-600">
-                Log in
-              </Link>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} className="mt-4 text-center">
+              <Small className="text-muted-foreground">
+                Remember your password?{" "}
+                <Link to="/login" className="text-emerald-700 transition-colors hover:text-emerald-600">
+                  Log in
+                </Link>
+              </Small>
             </motion.div>
           </div>
         </main>

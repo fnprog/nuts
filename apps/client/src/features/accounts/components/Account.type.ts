@@ -1,14 +1,12 @@
-import * as z from "zod";
+import { type } from "@nuts/validation";
 
-export const accountFormSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  balance: z.number().min(0, "Balance must be positive"),
-  currency: z.string().min(1, "Currency is required"),
-  color: z.enum(["red", "green", "blue"], {
-    required_error: "Please select a color",
-  }),
-  type: z.enum(["cash", "savings", "investment", "credit"]),
+export const accountFormSchema = type({
+  name: "string>=1",
+  balance: "number>=0",
+  currency: "string>=1",
+  type: "'cash' | 'momo' | 'credit' | 'investment' | 'checking' | 'savings' | 'loan' | 'other'",
+  "subtype?": "string",
 });
 
-export type AccountSchema = z.infer<typeof accountFormSchema>;
+export type AccountSchema = typeof accountFormSchema.infer;
 export type AccountSubmit = (values: AccountSchema) => void;

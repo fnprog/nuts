@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState } from "react";
 import {
   BarChart3,
   PieChart,
@@ -21,40 +21,36 @@ import {
   Coins,
   Utensils,
   Car,
-} from "lucide-react"
+} from "lucide-react";
 
-import { Button } from "@/core/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/core/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/core/components/ui/tabs"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/core/components/ui/dropdown-menu"
-import { Badge } from "@/core/components/ui/badge"
-import { Separator } from "@/core/components/ui/separator"
-import { ScrollArea, ScrollBar } from "@/core/components/ui/scroll-area"
+import { Button } from "@/core/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/core/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/core/components/ui/tabs";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/core/components/ui/dropdown-menu";
+import { Badge } from "@/core/components/ui/badge";
+import { Separator } from "@/core/components/ui/separator";
+import { ScrollArea, ScrollBar } from "@/core/components/ui/scroll-area";
 
-import SpendingOverviewChart from "./spending-overview-chart"
-import IncomeExpenseChart from "./income-expense-chart"
-import CategoryBreakdownChart from "./category-breakdown-chart"
-import SavingsGoalChart from "./savings-goal-chart"
-import NetWorthChart from "./net-worth-chart"
-import CashflowForecastChart from "./cashflow-forecast-chart"
-import BudgetComparisonChart from "./budget-comparison-chart"
-import InvestmentPerformanceChart from "./investment-performance-chart"
-import ExpenseHeatmapChart from "./expense-heatmap-chart"
-import FinancialHealthScore from "./financial-health-score"
-import InsightCard from "./insight-card"
+import SpendingOverviewChart from "./spending-overview-chart";
+import IncomeExpenseChart from "./income-expense-chart";
+import CategoryBreakdownChart from "./category-breakdown-chart";
+import SavingsGoalChart from "./savings-goal-chart";
+import NetWorthChart from "./net-worth-chart";
+import CashflowForecastChart from "./cashflow-forecast-chart";
+import BudgetComparisonChart from "./budget-comparison-chart";
+import InvestmentPerformanceChart from "./investment-performance-chart";
+import ExpenseHeatmapChart from "./expense-heatmap-chart";
+import FinancialHealthScore from "./financial-health-score";
+import InsightCard from "./insight-card";
 
 export default function AnalyticsDashboard() {
-  const [activeTab, setActiveTab] = useState("overview")
-  const [timeframe,] = useState("month")
-  const [favoriteInsights, setFavoriteInsights] = useState<string[]>([])
-
+  const [activeTab, setActiveTab] = useState("overview");
+  const [timeframe] = useState("month");
+  const [favoriteInsights, setFavoriteInsights] = useState<string[]>([]);
 
   const toggleFavorite = (insightId: string) => {
-    setFavoriteInsights((prev) =>
-      prev.includes(insightId) ? prev.filter((id) => id !== insightId) : [...prev, insightId],
-    )
-  }
-
+    setFavoriteInsights((prev) => (prev.includes(insightId) ? prev.filter((id) => id !== insightId) : [...prev, insightId]));
+  };
 
   const insights = [
     {
@@ -102,77 +98,77 @@ export default function AnalyticsDashboard() {
       badge: "Performance",
       badgeColor: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
     },
-  ]
+  ];
 
   return (
     <div className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 border-blue-100 dark:border-blue-900">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="border-blue-100 bg-gradient-to-br from-blue-50 to-indigo-50 dark:border-blue-900 dark:from-blue-950 dark:to-indigo-950">
           <CardContent className="p-6">
-            <div className="flex justify-between items-start">
+            <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm font-medium text-blue-600 dark:text-blue-400">Total Income</p>
-                <h3 className="text-2xl font-bold mt-1">$8,942.00</h3>
-                <p className="text-sm text-blue-600 dark:text-blue-400 mt-1 flex items-center">
-                  <ArrowUpRight className="h-3 w-3 mr-1" />
+                <h3 className="mt-1 text-2xl font-bold">$8,942.00</h3>
+                <p className="mt-1 flex items-center text-sm text-blue-600 dark:text-blue-400">
+                  <ArrowUpRight className="mr-1 h-3 w-3" />
                   <span>12.5% from last {timeframe}</span>
                 </p>
               </div>
-              <div className="bg-blue-100 dark:bg-blue-900 p-3 rounded-full">
+              <div className="rounded-full bg-blue-100 p-3 dark:bg-blue-900">
                 <DollarSign className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-red-50 to-pink-50 dark:from-red-950 dark:to-pink-950 border-red-100 dark:border-red-900">
+        <Card className="border-red-100 bg-gradient-to-br from-red-50 to-pink-50 dark:border-red-900 dark:from-red-950 dark:to-pink-950">
           <CardContent className="p-6">
-            <div className="flex justify-between items-start">
+            <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm font-medium text-red-600 dark:text-red-400">Total Expenses</p>
-                <h3 className="text-2xl font-bold mt-1">$5,687.25</h3>
-                <p className="text-sm text-red-600 dark:text-red-400 mt-1 flex items-center">
-                  <ArrowUpRight className="h-3 w-3 mr-1" />
+                <h3 className="mt-1 text-2xl font-bold">$5,687.25</h3>
+                <p className="mt-1 flex items-center text-sm text-red-600 dark:text-red-400">
+                  <ArrowUpRight className="mr-1 h-3 w-3" />
                   <span>8.2% from last {timeframe}</span>
                 </p>
               </div>
-              <div className="bg-red-100 dark:bg-red-900 p-3 rounded-full">
+              <div className="rounded-full bg-red-100 p-3 dark:bg-red-900">
                 <CreditCard className="h-5 w-5 text-red-600 dark:text-red-400" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-950 dark:to-green-950 border-emerald-100 dark:border-emerald-900">
+        <Card className="border-emerald-100 bg-gradient-to-br from-emerald-50 to-green-50 dark:border-emerald-900 dark:from-emerald-950 dark:to-green-950">
           <CardContent className="p-6">
-            <div className="flex justify-between items-start">
+            <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">Net Savings</p>
-                <h3 className="text-2xl font-bold mt-1">$3,254.75</h3>
-                <p className="text-sm text-emerald-600 dark:text-emerald-400 mt-1 flex items-center">
-                  <ArrowUpRight className="h-3 w-3 mr-1" />
+                <h3 className="mt-1 text-2xl font-bold">$3,254.75</h3>
+                <p className="mt-1 flex items-center text-sm text-emerald-600 dark:text-emerald-400">
+                  <ArrowUpRight className="mr-1 h-3 w-3" />
                   <span>21.3% from last {timeframe}</span>
                 </p>
               </div>
-              <div className="bg-emerald-100 dark:bg-emerald-900 p-3 rounded-full">
+              <div className="rounded-full bg-emerald-100 p-3 dark:bg-emerald-900">
                 <Wallet className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-950 dark:to-violet-950 border-purple-100 dark:border-purple-900">
+        <Card className="border-purple-100 bg-gradient-to-br from-purple-50 to-violet-50 dark:border-purple-900 dark:from-purple-950 dark:to-violet-950">
           <CardContent className="p-6">
-            <div className="flex justify-between items-start">
+            <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm font-medium text-purple-600 dark:text-purple-400">Net Worth</p>
-                <h3 className="text-2xl font-bold mt-1">$142,568.32</h3>
-                <p className="text-sm text-purple-600 dark:text-purple-400 mt-1 flex items-center">
-                  <ArrowUpRight className="h-3 w-3 mr-1" />
+                <h3 className="mt-1 text-2xl font-bold">$142,568.32</h3>
+                <p className="mt-1 flex items-center text-sm text-purple-600 dark:text-purple-400">
+                  <ArrowUpRight className="mr-1 h-3 w-3" />
                   <span>5.7% from last {timeframe}</span>
                 </p>
               </div>
-              <div className="bg-purple-100 dark:bg-purple-900 p-3 rounded-full">
+              <div className="rounded-full bg-purple-100 p-3 dark:bg-purple-900">
                 <Landmark className="h-5 w-5 text-purple-600 dark:text-purple-400" />
               </div>
             </div>
@@ -186,49 +182,49 @@ export default function AnalyticsDashboard() {
           <Separator className="w-full" />
         </div>
         <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="relative space-y-6">
-          <div className="flex justify-between items-center">
+          <div className="flex items-center justify-between">
             <ScrollArea className="w-full max-w-3xl">
-              <TabsList className="bg-transparent h-auto p-0 mb-0">
+              <TabsList className="mb-0 h-auto bg-transparent p-0">
                 <TabsTrigger
                   value="overview"
-                  className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-primary data-[state=active]:text-primary border-b-2 border-transparent rounded-none px-4 py-2 font-medium"
+                  className="data-[state=active]:border-primary data-[state=active]:text-primary rounded-none border-b-2 border-transparent px-4 py-2 font-medium data-[state=active]:bg-transparent data-[state=active]:shadow-none"
                 >
-                  <BarChart3 className="h-4 w-4 mr-2" />
+                  <BarChart3 className="mr-2 h-4 w-4" />
                   Overview
                 </TabsTrigger>
                 <TabsTrigger
                   value="spending"
-                  className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-primary data-[state=active]:text-primary border-b-2 border-transparent rounded-none px-4 py-2 font-medium"
+                  className="data-[state=active]:border-primary data-[state=active]:text-primary rounded-none border-b-2 border-transparent px-4 py-2 font-medium data-[state=active]:bg-transparent data-[state=active]:shadow-none"
                 >
-                  <CreditCard className="h-4 w-4 mr-2" />
+                  <CreditCard className="mr-2 h-4 w-4" />
                   Spending Analysis
                 </TabsTrigger>
                 <TabsTrigger
                   value="income"
-                  className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-primary data-[state=active]:text-primary border-b-2 border-transparent rounded-none px-4 py-2 font-medium"
+                  className="data-[state=active]:border-primary data-[state=active]:text-primary rounded-none border-b-2 border-transparent px-4 py-2 font-medium data-[state=active]:bg-transparent data-[state=active]:shadow-none"
                 >
-                  <DollarSign className="h-4 w-4 mr-2" />
+                  <DollarSign className="mr-2 h-4 w-4" />
                   Income Tracking
                 </TabsTrigger>
                 <TabsTrigger
                   value="budget"
-                  className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-primary data-[state=active]:text-primary border-b-2 border-transparent rounded-none px-4 py-2 font-medium"
+                  className="data-[state=active]:border-primary data-[state=active]:text-primary rounded-none border-b-2 border-transparent px-4 py-2 font-medium data-[state=active]:bg-transparent data-[state=active]:shadow-none"
                 >
-                  <PieChart className="h-4 w-4 mr-2" />
+                  <PieChart className="mr-2 h-4 w-4" />
                   Budget Performance
                 </TabsTrigger>
                 <TabsTrigger
                   value="forecast"
-                  className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-primary data-[state=active]:text-primary border-b-2 border-transparent rounded-none px-4 py-2 font-medium"
+                  className="data-[state=active]:border-primary data-[state=active]:text-primary rounded-none border-b-2 border-transparent px-4 py-2 font-medium data-[state=active]:bg-transparent data-[state=active]:shadow-none"
                 >
-                  <LineChart className="h-4 w-4 mr-2" />
+                  <LineChart className="mr-2 h-4 w-4" />
                   Financial Forecast
                 </TabsTrigger>
                 <TabsTrigger
                   value="wealth"
-                  className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-primary data-[state=active]:text-primary border-b-2 border-transparent rounded-none px-4 py-2 font-medium"
+                  className="data-[state=active]:border-primary data-[state=active]:text-primary rounded-none border-b-2 border-transparent px-4 py-2 font-medium data-[state=active]:bg-transparent data-[state=active]:shadow-none"
                 >
-                  <BadgeDollarSign className="h-4 w-4 mr-2" />
+                  <BadgeDollarSign className="mr-2 h-4 w-4" />
                   Wealth Building
                 </TabsTrigger>
               </TabsList>
@@ -238,7 +234,7 @@ export default function AnalyticsDashboard() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="ml-2">
-                  <Filter className="h-4 w-4 mr-2" />
+                  <Filter className="mr-2 h-4 w-4" />
                   Filter
                 </Button>
               </DropdownMenuTrigger>
@@ -253,8 +249,8 @@ export default function AnalyticsDashboard() {
           </div>
 
           {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6 mt-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <TabsContent value="overview" className="mt-6 space-y-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               {/* Main chart */}
               <Card className="lg:col-span-2">
                 <CardHeader>
@@ -274,7 +270,7 @@ export default function AnalyticsDashboard() {
                   <CardTitle>Financial Health</CardTitle>
                   <CardDescription>Your overall financial wellness score</CardDescription>
                 </CardHeader>
-                <CardContent className="flex flex-col items-center justify-center h-[350px] pt-0">
+                <CardContent className="flex h-[350px] flex-col items-center justify-center pt-0">
                   <FinancialHealthScore score={78} />
                 </CardContent>
               </Card>
@@ -282,15 +278,15 @@ export default function AnalyticsDashboard() {
 
             {/* Insights section */}
             <div>
-              <div className="flex items-center justify-between mb-4">
+              <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-lg font-medium">Smart Insights</h3>
                 <Button variant="ghost" size="sm">
-                  <Sparkles className="h-4 w-4 mr-2 text-amber-500" />
+                  <Sparkles className="mr-2 h-4 w-4 text-amber-500" />
                   View All Insights
                 </Button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {insights.map((insight) => (
                   <InsightCard
                     key={insight.id}
@@ -303,7 +299,7 @@ export default function AnalyticsDashboard() {
             </div>
 
             {/* Category breakdown */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <Card>
                 <CardHeader>
                   <CardTitle>Spending by Category</CardTitle>
@@ -331,8 +327,8 @@ export default function AnalyticsDashboard() {
           </TabsContent>
 
           {/* Spending Analysis Tab */}
-          <TabsContent value="spending" className="space-y-6 mt-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <TabsContent value="spending" className="mt-6 space-y-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               <Card className="lg:col-span-2">
                 <CardHeader>
                   <CardTitle>Spending Trends</CardTitle>
@@ -360,14 +356,14 @@ export default function AnalyticsDashboard() {
                       { category: "Shopping", amount: 356.78, percentage: 10, color: "bg-red-500" },
                     ].map((item, index) => (
                       <div key={index} className="space-y-2">
-                        <div className="flex justify-between items-center">
+                        <div className="flex items-center justify-between">
                           <span className="font-medium">{item.category}</span>
                           <span className="font-medium">${item.amount.toFixed(2)}</span>
                         </div>
-                        <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                        <div className="bg-muted h-2 w-full overflow-hidden rounded-full">
                           <div className={`h-full ${item.color}`} style={{ width: `${item.percentage}%` }} />
                         </div>
-                        <div className="text-xs text-muted-foreground text-right">{item.percentage}% of total</div>
+                        <div className="text-muted-foreground text-right text-xs">{item.percentage}% of total</div>
                       </div>
                     ))}
                   </div>
@@ -375,7 +371,7 @@ export default function AnalyticsDashboard() {
               </Card>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <Card>
                 <CardHeader>
                   <CardTitle>Expense Heatmap</CardTitle>
@@ -402,17 +398,12 @@ export default function AnalyticsDashboard() {
                       { merchant: "Uber", amount: 187.32, transactions: 12, icon: "🚗" },
                       { merchant: "Starbucks", amount: 156.78, transactions: 18, icon: "☕" },
                     ].map((item, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors"
-                      >
+                      <div key={index} className="hover:bg-muted/50 flex items-center justify-between rounded-lg p-3 transition-colors">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-xl">
-                            {item.icon}
-                          </div>
+                          <div className="bg-muted flex h-10 w-10 items-center justify-center rounded-full text-xl">{item.icon}</div>
                           <div>
                             <div className="font-medium">{item.merchant}</div>
-                            <div className="text-sm text-muted-foreground">{item.transactions} transactions</div>
+                            <div className="text-muted-foreground text-sm">{item.transactions} transactions</div>
                           </div>
                         </div>
                         <div className="font-medium">${item.amount.toFixed(2)}</div>
@@ -425,8 +416,8 @@ export default function AnalyticsDashboard() {
           </TabsContent>
 
           {/* Income Tracking Tab */}
-          <TabsContent value="income" className="space-y-6 mt-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <TabsContent value="income" className="mt-6 space-y-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               <Card className="lg:col-span-2">
                 <CardHeader>
                   <CardTitle>Income Sources</CardTitle>
@@ -446,18 +437,11 @@ export default function AnalyticsDashboard() {
                 </CardHeader>
                 <CardContent className="pt-6">
                   <div className="flex flex-col items-center justify-center space-y-6">
-                    <div className="relative w-40 h-40">
-                      <svg className="w-full h-full" viewBox="0 0 100 100">
+                    <div className="relative h-40 w-40">
+                      <svg className="h-full w-full" viewBox="0 0 100 100">
+                        <circle className="text-muted stroke-current" strokeWidth="10" fill="transparent" r="40" cx="50" cy="50" />
                         <circle
-                          className="text-muted stroke-current"
-                          strokeWidth="10"
-                          fill="transparent"
-                          r="40"
-                          cx="50"
-                          cy="50"
-                        />
-                        <circle
-                          className="text-blue-500 stroke-current"
+                          className="stroke-current text-blue-500"
                           strokeWidth="10"
                           strokeLinecap="round"
                           fill="transparent"
@@ -468,13 +452,13 @@ export default function AnalyticsDashboard() {
                           strokeDashoffset="50.24"
                         />
                       </svg>
-                      <div className="absolute inset-0 flex items-center justify-center flex-col">
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
                         <span className="text-3xl font-bold">80%</span>
-                        <span className="text-sm text-muted-foreground">Stability</span>
+                        <span className="text-muted-foreground text-sm">Stability</span>
                       </div>
                     </div>
 
-                    <div className="space-y-2 w-full">
+                    <div className="w-full space-y-2">
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Recurring Income</span>
                         <span className="font-medium">$7,200.00</span>
@@ -493,7 +477,7 @@ export default function AnalyticsDashboard() {
               </Card>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <Card>
                 <CardHeader>
                   <CardTitle>Income Trends</CardTitle>
@@ -530,11 +514,11 @@ export default function AnalyticsDashboard() {
                         icon: <BadgeDollarSign className="h-5 w-5 text-emerald-500" />,
                       },
                     ].map((item, index) => (
-                      <div key={index} className="flex gap-4 p-4 rounded-lg border">
+                      <div key={index} className="flex gap-4 rounded-lg border p-4">
                         <div className="mt-0.5">{item.icon}</div>
                         <div>
                           <h4 className="font-medium">{item.title}</h4>
-                          <p className="text-sm text-muted-foreground">{item.description}</p>
+                          <p className="text-muted-foreground text-sm">{item.description}</p>
                         </div>
                       </div>
                     ))}
@@ -545,8 +529,8 @@ export default function AnalyticsDashboard() {
           </TabsContent>
 
           {/* Budget Performance Tab */}
-          <TabsContent value="budget" className="space-y-6 mt-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <TabsContent value="budget" className="mt-6 space-y-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               <Card className="lg:col-span-2">
                 <CardHeader>
                   <CardTitle>Budget vs. Actual</CardTitle>
@@ -567,18 +551,11 @@ export default function AnalyticsDashboard() {
                 <CardContent>
                   <div className="space-y-6">
                     <div className="flex flex-col items-center">
-                      <div className="relative w-40 h-40">
-                        <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                      <div className="relative h-40 w-40">
+                        <svg className="h-full w-full -rotate-90" viewBox="0 0 100 100">
+                          <circle className="text-muted stroke-current" strokeWidth="10" fill="transparent" r="40" cx="50" cy="50" />
                           <circle
-                            className="text-muted stroke-current"
-                            strokeWidth="10"
-                            fill="transparent"
-                            r="40"
-                            cx="50"
-                            cy="50"
-                          />
-                          <circle
-                            className="text-emerald-500 stroke-current"
+                            className="stroke-current text-emerald-500"
                             strokeWidth="10"
                             strokeLinecap="round"
                             fill="transparent"
@@ -589,50 +566,50 @@ export default function AnalyticsDashboard() {
                             strokeDashoffset="75.36"
                           />
                         </svg>
-                        <div className="absolute inset-0 flex items-center justify-center flex-col">
+                        <div className="absolute inset-0 flex flex-col items-center justify-center">
                           <span className="text-3xl font-bold">70%</span>
-                          <span className="text-sm text-muted-foreground">On Track</span>
+                          <span className="text-muted-foreground text-sm">On Track</span>
                         </div>
                       </div>
                     </div>
 
                     <div className="space-y-4">
                       <div>
-                        <div className="flex justify-between mb-1 text-sm">
+                        <div className="mb-1 flex justify-between text-sm">
                           <span>Housing</span>
                           <span>85% of budget</span>
                         </div>
-                        <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                        <div className="bg-muted h-2 w-full overflow-hidden rounded-full">
                           <div className="h-full bg-emerald-500" style={{ width: "85%" }} />
                         </div>
                       </div>
 
                       <div>
-                        <div className="flex justify-between mb-1 text-sm">
+                        <div className="mb-1 flex justify-between text-sm">
                           <span>Food</span>
                           <span>92% of budget</span>
                         </div>
-                        <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                        <div className="bg-muted h-2 w-full overflow-hidden rounded-full">
                           <div className="h-full bg-amber-500" style={{ width: "92%" }} />
                         </div>
                       </div>
 
                       <div>
-                        <div className="flex justify-between mb-1 text-sm">
+                        <div className="mb-1 flex justify-between text-sm">
                           <span>Entertainment</span>
                           <span>110% of budget</span>
                         </div>
-                        <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                        <div className="bg-muted h-2 w-full overflow-hidden rounded-full">
                           <div className="h-full bg-red-500" style={{ width: "100%" }} />
                         </div>
                       </div>
 
                       <div>
-                        <div className="flex justify-between mb-1 text-sm">
+                        <div className="mb-1 flex justify-between text-sm">
                           <span>Transportation</span>
                           <span>65% of budget</span>
                         </div>
-                        <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                        <div className="bg-muted h-2 w-full overflow-hidden rounded-full">
                           <div className="h-full bg-emerald-500" style={{ width: "65%" }} />
                         </div>
                       </div>
@@ -648,7 +625,7 @@ export default function AnalyticsDashboard() {
                 <CardDescription>Personalized suggestions to optimize your budget</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {[
                     {
                       title: "Reduce Dining Out",
@@ -676,7 +653,7 @@ export default function AnalyticsDashboard() {
                             {item.icon}
                             <h4 className="font-medium">{item.title}</h4>
                           </div>
-                          <p className="text-sm text-muted-foreground">{item.description}</p>
+                          <p className="text-muted-foreground text-sm">{item.description}</p>
                           <Badge variant="outline" className="w-fit">
                             {item.impact}
                           </Badge>
@@ -690,8 +667,8 @@ export default function AnalyticsDashboard() {
           </TabsContent>
 
           {/* Financial Forecast Tab */}
-          <TabsContent value="forecast" className="space-y-6 mt-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <TabsContent value="forecast" className="mt-6 space-y-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               <Card className="lg:col-span-2">
                 <CardHeader>
                   <CardTitle>Cash Flow Forecast</CardTitle>
@@ -741,13 +718,13 @@ export default function AnalyticsDashboard() {
                         <div className="flex justify-between">
                           <div>
                             <h4 className="font-medium">{milestone.title}</h4>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-muted-foreground text-sm">
                               {milestone.current} of {milestone.target}
                             </p>
                           </div>
                           <Badge variant="outline">{milestone.date}</Badge>
                         </div>
-                        <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                        <div className="bg-muted h-2 w-full overflow-hidden rounded-full">
                           <div className={`h-full ${milestone.color}`} style={{ width: `${milestone.progress}%` }} />
                         </div>
                       </div>
@@ -757,7 +734,7 @@ export default function AnalyticsDashboard() {
               </Card>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <Card>
                 <CardHeader>
                   <CardTitle>Scenario Planning</CardTitle>
@@ -785,18 +762,19 @@ export default function AnalyticsDashboard() {
                         status: "negative",
                       },
                     ].map((item, index) => (
-                      <div key={index} className="flex items-center justify-between p-4 rounded-lg border">
+                      <div key={index} className="flex items-center justify-between rounded-lg border p-4">
                         <div>
                           <h4 className="font-medium">{item.scenario}</h4>
-                          <p className="text-sm text-muted-foreground">{item.description}</p>
+                          <p className="text-muted-foreground text-sm">{item.description}</p>
                         </div>
                         <div
-                          className={`font-medium ${item.status === "positive"
-                            ? "text-emerald-600 dark:text-emerald-400"
-                            : item.status === "negative"
-                              ? "text-red-600 dark:text-red-400"
-                              : ""
-                            }`}
+                          className={`font-medium ${
+                            item.status === "positive"
+                              ? "text-emerald-600 dark:text-emerald-400"
+                              : item.status === "negative"
+                                ? "text-red-600 dark:text-red-400"
+                                : ""
+                          }`}
                         >
                           {item.impact}
                         </div>
@@ -813,18 +791,18 @@ export default function AnalyticsDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6">
-                    <div className="flex justify-between items-center">
+                    <div className="flex items-center justify-between">
                       <div>
                         <h4 className="text-lg font-medium">$1.2M</h4>
-                        <p className="text-sm text-muted-foreground">Projected retirement savings</p>
+                        <p className="text-muted-foreground text-sm">Projected retirement savings</p>
                       </div>
                       <div>
                         <h4 className="text-lg font-medium">62</h4>
-                        <p className="text-sm text-muted-foreground">Retirement age</p>
+                        <p className="text-muted-foreground text-sm">Retirement age</p>
                       </div>
                       <div>
                         <h4 className="text-lg font-medium">$4,800</h4>
-                        <p className="text-sm text-muted-foreground">Monthly income</p>
+                        <p className="text-muted-foreground text-sm">Monthly income</p>
                       </div>
                     </div>
 
@@ -834,7 +812,7 @@ export default function AnalyticsDashboard() {
 
                     <div className="flex justify-center">
                       <Button variant="outline">
-                        <Gauge className="h-4 w-4 mr-2" />
+                        <Gauge className="mr-2 h-4 w-4" />
                         Run Retirement Calculator
                       </Button>
                     </div>
@@ -845,8 +823,8 @@ export default function AnalyticsDashboard() {
           </TabsContent>
 
           {/* Wealth Building Tab */}
-          <TabsContent value="wealth" className="space-y-6 mt-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <TabsContent value="wealth" className="mt-6 space-y-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               <Card className="lg:col-span-2">
                 <CardHeader>
                   <CardTitle>Net Worth Growth</CardTitle>
@@ -872,7 +850,7 @@ export default function AnalyticsDashboard() {
               </Card>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <Card>
                 <CardHeader>
                   <CardTitle>Investment Performance</CardTitle>
@@ -895,14 +873,12 @@ export default function AnalyticsDashboard() {
                     {[
                       {
                         title: "Increase 401(k) Contribution",
-                        description:
-                          "You're currently contributing 6%. Increasing to 10% could add $250,000 to retirement.",
+                        description: "You're currently contributing 6%. Increasing to 10% could add $250,000 to retirement.",
                         risk: "Low Risk",
                       },
                       {
                         title: "Diversify Portfolio",
-                        description:
-                          "Your portfolio is heavily weighted in tech. Consider adding more international exposure.",
+                        description: "Your portfolio is heavily weighted in tech. Consider adding more international exposure.",
                         risk: "Medium Risk",
                       },
                       {
@@ -911,12 +887,12 @@ export default function AnalyticsDashboard() {
                         risk: "Medium Risk",
                       },
                     ].map((item, index) => (
-                      <div key={index} className="p-4 rounded-lg border">
-                        <div className="flex justify-between items-start mb-2">
+                      <div key={index} className="rounded-lg border p-4">
+                        <div className="mb-2 flex items-start justify-between">
                           <h4 className="font-medium">{item.title}</h4>
                           <Badge variant="outline">{item.risk}</Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground">{item.description}</p>
+                        <p className="text-muted-foreground text-sm">{item.description}</p>
                       </div>
                     ))}
                   </div>
@@ -927,6 +903,5 @@ export default function AnalyticsDashboard() {
         </Tabs>
       </div>
     </div>
-  )
+  );
 }
-

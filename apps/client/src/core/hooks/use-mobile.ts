@@ -13,7 +13,6 @@ const getInitialMobileState = (): boolean => {
 };
 
 export function useIsMobile() {
-  // Initialize with the correct value immediately
   const [isMobile, setIsMobile] = React.useState<boolean>(getInitialMobileState());
 
   React.useEffect(() => {
@@ -21,6 +20,7 @@ export function useIsMobile() {
     setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
 
     const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
+
     const onChange = () => {
       setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
     };

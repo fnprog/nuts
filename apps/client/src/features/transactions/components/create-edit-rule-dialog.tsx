@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { arktypeResolver } from '@hookform/resolvers/arktype';
+
 import { Plus, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/core/components/ui/dialog";
 import { Button } from "@/core/components/ui/button";
@@ -12,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/c
 import { Badge } from "@/core/components/ui/badge";
 import { Separator } from "@/core/components/ui/separator";
 import { useQuery } from "@tanstack/react-query";
-import { 
+import {
   TransactionRule,
   CreateTransactionRule,
   createTransactionRuleSchema,
@@ -24,10 +25,11 @@ import {
   ACTION_TYPE_LABELS,
   getOperatorsForConditionType,
   DIRECTION_OPTIONS,
-  TRANSACTION_TYPE_OPTIONS
+  TRANSACTION_TYPE_OPTIONS,
 } from "@/features/rules/services/rule.types";
-import { useCreateRule, useUpdateRule } from "@/features/rules/services/rule.service";
-import { categoryService } from "@/features/categories/services/category";
+import { useCreateRule, useUpdateRule } from "@/features/rules/services/rules.mutation";
+import { transactionService } from "@/features/transactions/services/transaction.service";
+import { categoryService } from "@/features/categories/services/category.service";
 import { accountService } from "@/features/accounts/services/account";
 import { toast } from "sonner";
 
@@ -44,7 +46,7 @@ interface CreateEditRuleDialogProps {
 }
 
 export function CreateEditRuleDialog({ open, onOpenChange, rule, prefillData }: CreateEditRuleDialogProps) {
-  const [currentStep, setCurrentStep] = useState<'conditions' | 'actions'>('conditions');
+  const [currentStep, setCurrentStep] = useState<"conditions" | "actions">("conditions");
   const isEditing = !!rule;
 
   const createRule = useCreateRule();
@@ -52,16 +54,24 @@ export function CreateEditRuleDialog({ open, onOpenChange, rule, prefillData }: 
 
   const { data: categories } = useQuery({
     queryKey: ["categories"],
-    queryFn: categoryService.getCategories,
+    queryFn: async () => {
+      const result = await categoryService.getCategories();
+      if (result.isErr()) throw result.error;
+      return result.value;
+    },
   });
 
   const { data: accounts } = useQuery({
     queryKey: ["accounts"],
-    queryFn: accountService.getAccounts,
+    queryFn: async () => {
+      const result = await accountService.getAccounts();
+      if (result.isErr()) throw result.error;
+      return result.value;
+    },
   });
 
   const form = useForm<CreateTransactionRule>({
-    resolver: zodResolver(createTransactionRuleSchema),
+    resolver: arktypeResolver(createTransactionRuleSchema),
     defaultValues: {
       name: "",
       is_active: true,
@@ -107,7 +117,7 @@ export function CreateEditRuleDialog({ open, onOpenChange, rule, prefillData }: 
           type: "amount" as ConditionType,
           operator: "equals" as ConditionOperator,
           value: prefillData.amount,
-          logic_gate: defaultConditions.length > 0 ? "AND" as const : undefined,
+          logic_gate: defaultConditions.length > 0 ? ("AND" as const) : undefined,
         });
       }
       if (prefillData?.account_id) {
@@ -115,7 +125,7 @@ export function CreateEditRuleDialog({ open, onOpenChange, rule, prefillData }: 
           type: "account" as ConditionType,
           operator: "equals" as ConditionOperator,
           value: prefillData.account_id,
-          logic_gate: defaultConditions.length > 0 ? "AND" as const : undefined,
+          logic_gate: defaultConditions.length > 0 ? ("AND" as const) : undefined,
         });
       }
 
@@ -148,7 +158,7 @@ export function CreateEditRuleDialog({ open, onOpenChange, rule, prefillData }: 
       }
       onOpenChange(false);
       form.reset();
-      setCurrentStep('conditions');
+      setCurrentStep("conditions");
     } catch (error) {
       toast.error(isEditing ? "Failed to update rule" : "Failed to create rule");
     }
@@ -165,15 +175,7 @@ export function CreateEditRuleDialog({ open, onOpenChange, rule, prefillData }: 
   const getValueInput = (type: ConditionType, value: any, onChange: (value: any) => void) => {
     switch (type) {
       case "amount":
-        return (
-          <Input
-            type="number"
-            step="0.01"
-            placeholder="0.00"
-            value={value || ""}
-            onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
-          />
-        );
+        return <Input type="number" step="0.01" placeholder="0.00" value={value || ""} onChange={(e) => onChange(parseFloat(e.target.value) || 0)} />;
       case "account":
         return (
           <Select value={value || ""} onValueChange={onChange}>
@@ -235,13 +237,7 @@ export function CreateEditRuleDialog({ open, onOpenChange, rule, prefillData }: 
           </Select>
         );
       default:
-        return (
-          <Input
-            placeholder="Enter value"
-            value={value || ""}
-            onChange={(e) => onChange(e.target.value)}
-          />
-        );
+        return <Input placeholder="Enter value" value={value || ""} onChange={(e) => onChange(e.target.value)} />;
     }
   };
 
@@ -263,28 +259,20 @@ export function CreateEditRuleDialog({ open, onOpenChange, rule, prefillData }: 
           </Select>
         );
       default:
-        return (
-          <Input
-            placeholder="Enter value"
-            value={value || ""}
-            onChange={(e) => onChange(e.target.value)}
-          />
-        );
+        return <Input placeholder="Enter value" value={value || ""} onChange={(e) => onChange(e.target.value)} />;
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="flex max-h-[90vh] max-w-3xl flex-col overflow-hidden">
         <DialogHeader>
-          <DialogTitle>
-            {isEditing ? "Edit Rule" : "Create New Rule"}
-          </DialogTitle>
+          <DialogTitle>{isEditing ? "Edit Rule" : "Create New Rule"}</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
-            <div className="space-y-4 mb-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-1 flex-col overflow-hidden">
+            <div className="mb-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -306,12 +294,7 @@ export function CreateEditRuleDialog({ open, onOpenChange, rule, prefillData }: 
                     <FormItem>
                       <FormLabel>Priority</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="number" 
-                          placeholder="0" 
-                          {...field} 
-                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                        />
+                        <Input type="number" placeholder="0" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -320,49 +303,39 @@ export function CreateEditRuleDialog({ open, onOpenChange, rule, prefillData }: 
               </div>
             </div>
 
-            <div className="flex gap-2 mb-4">
+            <div className="mb-4 flex gap-2">
               <Button
                 type="button"
-                variant={currentStep === 'conditions' ? 'default' : 'outline'}
-                onClick={() => setCurrentStep('conditions')}
+                variant={currentStep === "conditions" ? "default" : "outline"}
+                onClick={() => setCurrentStep("conditions")}
                 className="flex-1"
               >
                 1. When...
               </Button>
-              <Button
-                type="button"
-                variant={currentStep === 'actions' ? 'default' : 'outline'}
-                onClick={() => setCurrentStep('actions')}
-                className="flex-1"
-              >
+              <Button type="button" variant={currentStep === "actions" ? "default" : "outline"} onClick={() => setCurrentStep("actions")} className="flex-1">
                 2. Then...
               </Button>
             </div>
 
             <div className="flex-1 overflow-y-auto">
-              {currentStep === 'conditions' && (
+              {currentStep === "conditions" && (
                 <Card>
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-base">Conditions</CardTitle>
                       <Button type="button" variant="outline" size="sm" onClick={addCondition}>
-                        <Plus className="size-4 mr-1" />
+                        <Plus className="mr-1 size-4" />
                         Add Condition
                       </Button>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {conditionsArray.fields.map((field, index) => (
-                      <div key={field.id} className="space-y-3 p-4 border rounded-lg">
+                      <div key={field.id} className="space-y-3 rounded-lg border p-4">
                         <div className="flex items-center justify-between">
                           <Badge variant="outline">Condition {index + 1}</Badge>
                           {conditionsArray.fields.length > 1 && (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => conditionsArray.remove(index)}
-                            >
+                            <Button type="button" variant="ghost" size="sm" onClick={() => conditionsArray.remove(index)}>
                               <Trash2 className="size-4" />
                             </Button>
                           )}
@@ -467,29 +440,24 @@ export function CreateEditRuleDialog({ open, onOpenChange, rule, prefillData }: 
                 </Card>
               )}
 
-              {currentStep === 'actions' && (
+              {currentStep === "actions" && (
                 <Card>
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-base">Actions</CardTitle>
                       <Button type="button" variant="outline" size="sm" onClick={addAction}>
-                        <Plus className="size-4 mr-1" />
+                        <Plus className="mr-1 size-4" />
                         Add Action
                       </Button>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {actionsArray.fields.map((field, index) => (
-                      <div key={field.id} className="space-y-3 p-4 border rounded-lg">
+                      <div key={field.id} className="space-y-3 rounded-lg border p-4">
                         <div className="flex items-center justify-between">
                           <Badge variant="outline">Action {index + 1}</Badge>
                           {actionsArray.fields.length > 1 && (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => actionsArray.remove(index)}
-                            >
+                            <Button type="button" variant="ghost" size="sm" onClick={() => actionsArray.remove(index)}>
                               <Trash2 className="size-4" />
                             </Button>
                           )}
@@ -527,13 +495,7 @@ export function CreateEditRuleDialog({ open, onOpenChange, rule, prefillData }: 
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Value</FormLabel>
-                                <FormControl>
-                                  {getActionValueInput(
-                                    form.watch(`actions.${index}.type`),
-                                    field.value,
-                                    field.onChange
-                                  )}
-                                </FormControl>
+                                <FormControl>{getActionValueInput(form.watch(`actions.${index}.type`), field.value, field.onChange)}</FormControl>
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -553,17 +515,17 @@ export function CreateEditRuleDialog({ open, onOpenChange, rule, prefillData }: 
                 Cancel
               </Button>
               <div className="flex gap-2">
-                {currentStep === 'actions' && (
-                  <Button type="button" variant="outline" onClick={() => setCurrentStep('conditions')}>
+                {currentStep === "actions" && (
+                  <Button type="button" variant="outline" onClick={() => setCurrentStep("conditions")}>
                     Back
                   </Button>
                 )}
-                {currentStep === 'conditions' && (
-                  <Button type="button" onClick={() => setCurrentStep('actions')}>
+                {currentStep === "conditions" && (
+                  <Button type="button" onClick={() => setCurrentStep("actions")}>
                     Next
                   </Button>
                 )}
-                {currentStep === 'actions' && (
+                {currentStep === "actions" && (
                   <Button type="submit" disabled={createRule.isPending || updateRule.isPending}>
                     {isEditing ? "Update Rule" : "Create Rule"}
                   </Button>

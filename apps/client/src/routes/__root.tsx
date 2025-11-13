@@ -7,15 +7,20 @@ import type { QueryClient } from "@tanstack/react-query";
 import { AuthInterceptor } from "@/features/auth/components/auth-interceptor";
 import { PreferencesProvider } from "@/features/preferences/components/preferences-provider";
 import { ErrorBoundary, RouteErrorFallback } from "@/core/components/error-boundary";
+import { preferencesQueryOptions } from "@/features/preferences/services/preferences.queries";
 
 interface RouterContext {
   queryClient: QueryClient;
   auth: {
     isAuthenticated: boolean;
+    isAnonymous: boolean;
   };
 }
 
 export const Route = createRootRouteWithContext<RouterContext>()({
+  loader: async ({ context }) => {
+    await context.queryClient.ensureQueryData(preferencesQueryOptions());
+  },
   component: RootComponent,
 });
 
@@ -24,8 +29,8 @@ function RootComponent() {
     <ErrorBoundary fallback={RouteErrorFallback}>
       {/* Skip links for accessibility */}
       <div className="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 bg-primary text-primary-foreground p-2 z-50">
-        <a 
-          href="#main-content" 
+        <a
+          href="#main-content"
           className="underline"
           onClick={() => {
             const mainContent = document.getElementById('main-content');
@@ -35,7 +40,7 @@ function RootComponent() {
           Skip to main content
         </a>
       </div>
-      
+
       <ThemeProvider defaultTheme="light" storageKey="finance-theme">
         <AuthInterceptor>
           <PreferencesProvider>
@@ -45,16 +50,16 @@ function RootComponent() {
             </div>
           </PreferencesProvider>
         </AuthInterceptor>
-        
+
         {/* Toast notifications with accessibility */}
-        <Toaster 
+        <Toaster
           position="top-right"
           toastOptions={{
             duration: 4000,
           }}
         />
       </ThemeProvider>
-      
+
       {/* Development tools - only show in development */}
       {import.meta.env.DEV && (
         <>

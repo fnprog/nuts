@@ -1,49 +1,59 @@
 import { useForm } from "react-hook-form";
 import { useState, useCallback } from "react";
 import { useQueries } from "@tanstack/react-query";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { arktypeResolver } from '@hookform/resolvers/arktype';
 import { DatetimePicker } from "@/core/components/ui/datetime";
+import { toast } from "sonner";
 
 import { Button } from "@/core/components/ui/button";
 import { Root } from "@radix-ui/react-visually-hidden";
-import {
-  DialogDescription,
-} from "@/core/components/ui/dialog";
+import { DialogDescription } from "@/core/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/core/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/core/components/ui/tabs";
 import { Input } from "@/core/components/ui/input";
-import { accountService } from "@/features/accounts/services/account";
 import { RecordsSubmit, RecordCreateSchema, recordCreateSchema } from "@/features/transactions/services/transaction.types";
-import { categoryService } from "@/features/categories/services/category";
 import { ArrowUpRight, ArrowDownLeft, ArrowLeftRight } from "lucide-react";
 import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogTrigger } from "@/core/components/ui/dialog-sheet";
-import { createTransaction } from "@/features/transactions/services/transaction"
 import { useMutation } from "@tanstack/react-query"
 import { useQueryClient } from "@tanstack/react-query"
 import { RecurringSelect } from "./recurring-select";
+
+import { transactionService } from "@/features/transactions/services/transaction.service";
+import { categoryService } from "@/features/categories/services/category.service";
+import { accountService } from "@/features/accounts/services/account";
 
 
 export function RecordsDialog({ children }: React.PropsWithChildren) {
   const [isOpen, setIsOpen] = useState(false);
   const queryClient = useQueryClient();
 
-
   const createMutation = useMutation({
-    mutationFn: createTransaction,
+    mutationFn: async (data: RecordCreateSchema) => {
+      const result = await transactionService.createTransaction(data);
+      if (result.isErr()) throw result.error;
+      return result.value;
+    },
     onSuccess: () => {
       setIsOpen(false);
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["accounts"] });
+      toast.success("Transaction created successfully");
+    },
+    onError: (error) => {
+      console.error("Transaction creation failed:", error);
+      toast.error("Failed to create transaction", {
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+      });
     },
   });
 
-
-  const onSubmit = useCallback((values: RecordCreateSchema) => {
-    createMutation.mutate(values);
-  }, [createMutation]);
-
-
+  const onSubmit = useCallback(
+    (values: RecordCreateSchema) => {
+      createMutation.mutate(values);
+    },
+    [createMutation]
+  );
 
   return (
     <ResponsiveDialog open={isOpen} onOpenChange={setIsOpen}>
@@ -61,20 +71,19 @@ export function RecordsDialog({ children }: React.PropsWithChildren) {
   );
 }
 
-
 export function RecordsForm({ onSubmit }: { onSubmit: RecordsSubmit }) {
   const [transactionType, setTransactionType] = useState<"expense" | "income" | "transfer">("expense");
   const [recurringType, setRecurringType] = useState<string>("one-time");
   const [recurringConfig, setRecurringConfig] = useState<unknown>(null);
 
   const form = useForm<RecordCreateSchema>({
-    resolver: zodResolver(recordCreateSchema),
+    resolver: arktypeResolver(recordCreateSchema),
     defaultValues: {
       type: "expense",
       amount: 0,
       transaction_datetime: new Date(),
       description: "",
-      category_id: "",
+      category_id: undefined,
       account_id: "",
       details: {
         payment_medium: "",
@@ -89,15 +98,23 @@ export function RecordsForm({ onSubmit }: { onSubmit: RecordsSubmit }) {
     queries: [
       {
         queryKey: ["accounts"],
-        queryFn: accountService.getAccounts,
+        queryFn: async () => {
+          const result = await accountService.getAccounts();
+          if (result.isErr()) throw result.error;
+          return result.value;
+        },
       },
       {
         queryKey: ["categories"],
-        queryFn: categoryService.getCategories,
+        queryFn: async () => {
+          const result = await categoryService.getCategories();
+          console.log("result:", result);
+          if (result.isErr()) throw result.error;
+          return result.value;
+        },
       },
     ],
   });
-
 
   const transfertCatID = categories?.find((cat) => cat.name === "Transfers")?.id;
 
@@ -198,7 +215,7 @@ export function RecordsForm({ onSubmit }: { onSubmit: RecordsSubmit }) {
             description: "",
             category_id: transfertCatID,
             account_id: "",
-            destination_account_id: "", // Required for transfers
+            destination_account_id: "",
             details: {
               payment_medium: "",
               location: "",
@@ -211,7 +228,7 @@ export function RecordsForm({ onSubmit }: { onSubmit: RecordsSubmit }) {
             amount: 0,
             transaction_datetime: new Date(),
             description: "",
-            category_id: "",
+            category_id: undefined,
             account_id: "",
             details: {
               payment_medium: "",
@@ -225,10 +242,8 @@ export function RecordsForm({ onSubmit }: { onSubmit: RecordsSubmit }) {
     [form, transfertCatID]
   );
 
-
-
   return (
-    <Tabs value={transactionType} onValueChange={(v) => handleTabChange(v)} >
+    <Tabs value={transactionType} onValueChange={(v) => handleTabChange(v)}>
       <TabsList className="grid w-full grid-cols-3 px-4 md:px-1">
         <TabsTrigger value="expense" className="flex items-center gap-2">
           <ArrowDownLeft className="h-4 w-4" />
@@ -332,7 +347,7 @@ export function RecordsForm({ onSubmit }: { onSubmit: RecordsSubmit }) {
                 <FormItem>
                   <FormLabel>Date</FormLabel>
                   <FormControl>
-                    <DatetimePicker  {...field} />
+                    <DatetimePicker {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -450,7 +465,7 @@ export function RecordsForm({ onSubmit }: { onSubmit: RecordsSubmit }) {
                 <FormItem>
                   <FormLabel>Date</FormLabel>
                   <FormControl>
-                    <DatetimePicker  {...field} />
+                    <DatetimePicker {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -570,7 +585,7 @@ export function RecordsForm({ onSubmit }: { onSubmit: RecordsSubmit }) {
                 <FormItem>
                   <FormLabel>Date</FormLabel>
                   <FormControl>
-                    <DatetimePicker  {...field} />
+                    <DatetimePicker {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

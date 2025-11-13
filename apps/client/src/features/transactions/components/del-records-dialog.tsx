@@ -7,24 +7,19 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/core/components/ui/alert-dialog"
-import { useMutation } from "@tanstack/react-query"
-import { deleteTransactions } from "../services/transaction"
-import { toast } from "sonner"
-import { logger } from "@/lib/logger"
+} from "@/core/components/ui/alert-dialog";
+import { useMutation } from "@tanstack/react-query";
+import { transactionService } from "@/features/transactions/services/transaction.service";
+import { toast } from "sonner";
+import { logger } from "@/lib/logger";
 
-export function DeleteTransactionDialog({
-  isOpen,
-  onClose,
-  transactionId,
-}: {
-  isOpen: boolean
-  onClose: () => void
-  transactionId: string | string[] | null
-}) {
-
+export function DeleteTransactionDialog({ isOpen, onClose, transactionId }: { isOpen: boolean; onClose: () => void; transactionId: string | string[] | null }) {
   const deleteMutation = useMutation({
-    mutationFn: (id: string | string[]) => deleteTransactions(id),
+    mutationFn: async (id: string | string[]) => {
+      const result = await transactionService.deleteTransactions(id);
+      if (result.isErr()) throw result.error;
+      return result.value;
+    },
     onSuccess: () => {
       toast.success("Transaction deleted successfully!");
     },
@@ -34,14 +29,13 @@ export function DeleteTransactionDialog({
     },
   });
 
-
   const onSubmit = () => {
     if (!transactionId) return;
     deleteMutation.mutateAsync(transactionId);
-    onClose()
-  }
+    onClose();
+  };
 
-  if (!transactionId) return null
+  if (!transactionId) return null;
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
@@ -66,6 +60,5 @@ export function DeleteTransactionDialog({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  )
+  );
 }
-

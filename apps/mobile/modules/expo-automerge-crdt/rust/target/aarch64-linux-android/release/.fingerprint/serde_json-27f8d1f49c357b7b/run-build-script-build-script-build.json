@@ -1,0 +1,20 @@
+{
+  "rustc": 8022303366561187541,
+  "features": "",
+  "declared_features": "",
+  "target": 0,
+  "profile": 0,
+  "path": 0,
+  "deps": [[12832915883349295919, "build_script_build", false, 14185840130610242410]],
+  "local": [
+    {
+      "RerunIfChanged": {
+        "output": "aarch64-linux-android/release/build/serde_json-27f8d1f49c357b7b/output",
+        "paths": ["build.rs"]
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 0,
+  "compile_kind": 0
+}

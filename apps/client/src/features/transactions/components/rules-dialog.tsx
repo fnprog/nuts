@@ -5,18 +5,19 @@ import { Button } from "@/core/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
 import { Badge } from "@/core/components/ui/badge";
 import { Switch } from "@/core/components/ui/switch";
-import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
-  AlertDialogTitle, 
-  AlertDialogTrigger 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/core/components/ui/alert-dialog";
-import { useRules, useDeleteRule, useToggleRule } from "@/features/rules/services/rule.service";
+import { useRules } from "@/features/rules/services/rules.queries";
+import { useDeleteRule, useToggleRule } from "@/features/rules/services/rules.mutation";
 import { TransactionRule } from "@/features/rules/services/rule.types";
 import { RuleConditionBadge } from "@/features/rules/components/rule-condition-badge";
 import { RuleActionBadge } from "@/features/rules/components/rule-action-badge";
@@ -59,37 +60,34 @@ export function RulesDialog({ children }: RulesDialogProps) {
   return (
     <>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          {children}
-        </DialogTrigger>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+        <DialogTrigger asChild>{children}</DialogTrigger>
+        <DialogContent className="flex max-h-[80vh] max-w-4xl flex-col overflow-hidden">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Settings className="size-5" />
               Transaction Rules
             </DialogTitle>
           </DialogHeader>
-          
+
           <div className="flex-1 overflow-y-auto">
             {isLoading && (
               <div className="flex items-center justify-center p-8">
-                <div className="text-sm text-muted-foreground">Loading rules...</div>
+                <div className="text-muted-foreground text-sm">Loading rules...</div>
               </div>
             )}
 
             {error && (
               <div className="flex items-center justify-center p-8">
-                <div className="text-sm text-destructive">Failed to load rules</div>
+                <div className="text-destructive text-sm">Failed to load rules</div>
               </div>
             )}
 
             {!isLoading && !error && sortedRules.length === 0 && (
               <div className="flex flex-col items-center justify-center p-8 text-center">
-                <Settings className="size-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Rules Yet</h3>
-                <p className="text-sm text-muted-foreground mb-4 max-w-md">
-                  Create your first rule to automatically categorize and organize your transactions. 
-                  Rules help you maintain consistency and save time.
+                <Settings className="text-muted-foreground mb-4 size-12" />
+                <h3 className="mb-2 text-lg font-semibold">No Rules Yet</h3>
+                <p className="text-muted-foreground mb-4 max-w-md text-sm">
+                  Create your first rule to automatically categorize and organize your transactions. Rules help you maintain consistency and save time.
                 </p>
                 <Button onClick={() => setCreateRuleOpen(true)} className="gap-2">
                   <Plus className="size-4" />
@@ -101,8 +99,8 @@ export function RulesDialog({ children }: RulesDialogProps) {
             {!isLoading && !error && sortedRules.length > 0 && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <div className="text-sm text-muted-foreground">
-                    {sortedRules.length} rule{sortedRules.length === 1 ? '' : 's'} configured
+                  <div className="text-muted-foreground text-sm">
+                    {sortedRules.length} rule{sortedRules.length === 1 ? "" : "s"} configured
                   </div>
                   <Button onClick={() => setCreateRuleOpen(true)} size="sm" className="gap-2">
                     <Plus className="size-4" />
@@ -112,7 +110,7 @@ export function RulesDialog({ children }: RulesDialogProps) {
 
                 <div className="space-y-3">
                   {sortedRules.map((rule) => (
-                    <Card key={rule.id} className={`${!rule.is_active ? 'opacity-60' : ''}`}>
+                    <Card key={rule.id} className={`${!rule.is_active ? "opacity-60" : ""}`}>
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
@@ -127,15 +125,8 @@ export function RulesDialog({ children }: RulesDialogProps) {
                             )}
                           </div>
                           <div className="flex items-center gap-2">
-                            <Switch
-                              checked={rule.is_active}
-                              onCheckedChange={() => handleToggleRule(rule)}
-                            />
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setEditingRule(rule)}
-                            >
+                            <Switch checked={rule.is_active} onCheckedChange={() => handleToggleRule(rule)} />
+                            <Button variant="ghost" size="sm" onClick={() => setEditingRule(rule)}>
                               <Edit2 className="size-4" />
                             </Button>
                             <AlertDialog>
@@ -147,15 +138,11 @@ export function RulesDialog({ children }: RulesDialogProps) {
                               <AlertDialogContent>
                                 <AlertDialogHeader>
                                   <AlertDialogTitle>Delete Rule</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Are you sure you want to delete "{rule.name}"? This action cannot be undone.
-                                  </AlertDialogDescription>
+                                  <AlertDialogDescription>Are you sure you want to delete "{rule.name}"? This action cannot be undone.</AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => handleDeleteRule(rule)}>
-                                    Delete
-                                  </AlertDialogAction>
+                                  <AlertDialogAction onClick={() => handleDeleteRule(rule)}>Delete</AlertDialogAction>
                                 </AlertDialogFooter>
                               </AlertDialogContent>
                             </AlertDialog>
@@ -165,13 +152,13 @@ export function RulesDialog({ children }: RulesDialogProps) {
                       <CardContent className="pt-0">
                         <div className="space-y-3">
                           <div>
-                            <div className="text-xs font-medium text-muted-foreground mb-2">When:</div>
+                            <div className="text-muted-foreground mb-2 text-xs font-medium">When:</div>
                             <div className="flex flex-wrap gap-1">
                               {rule.conditions.map((condition, index) => (
                                 <div key={index} className="flex items-center gap-1">
                                   <RuleConditionBadge condition={condition} />
                                   {index < rule.conditions.length - 1 && condition.logic_gate && (
-                                    <Badge variant="outline" className="text-xs px-1">
+                                    <Badge variant="outline" className="px-1 text-xs">
                                       {condition.logic_gate}
                                     </Badge>
                                   )}
@@ -180,7 +167,7 @@ export function RulesDialog({ children }: RulesDialogProps) {
                             </div>
                           </div>
                           <div>
-                            <div className="text-xs font-medium text-muted-foreground mb-2">Then:</div>
+                            <div className="text-muted-foreground mb-2 text-xs font-medium">Then:</div>
                             <div className="flex flex-wrap gap-1">
                               {rule.actions.map((action, index) => (
                                 <RuleActionBadge key={index} action={action} />
@@ -198,17 +185,9 @@ export function RulesDialog({ children }: RulesDialogProps) {
         </DialogContent>
       </Dialog>
 
-      <CreateEditRuleDialog
-        open={createRuleOpen}
-        onOpenChange={setCreateRuleOpen}
-        rule={null}
-      />
+      <CreateEditRuleDialog open={createRuleOpen} onOpenChange={setCreateRuleOpen} rule={null} />
 
-      <CreateEditRuleDialog
-        open={!!editingRule}
-        onOpenChange={(open) => !open && setEditingRule(null)}
-        rule={editingRule}
-      />
+      <CreateEditRuleDialog open={!!editingRule} onOpenChange={(open) => !open && setEditingRule(null)} rule={editingRule} />
     </>
   );
 }

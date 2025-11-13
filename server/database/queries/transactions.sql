@@ -283,3 +283,37 @@ WHERE
     AND c.deleted_at IS NULL
 GROUP BY c.id, c.name
 ORDER BY total_amount DESC;
+
+-- name: GetTransactionsSince :many
+SELECT
+    t.id,
+    t.amount,
+    t.type,
+    t.destination_account_id,
+    t.transaction_datetime,
+    t.description,
+    t.details,
+    t.is_external,
+    t.updated_at,
+    t.deleted_at,
+    sqlc.embed(source_acct),
+    dest_acct.id AS destination_account_id_alias,
+    dest_acct.name AS destination_account_name,
+    dest_acct.type AS destination_account_type,
+    dest_acct.currency AS destination_account_currency,
+    sqlc.embed(cat)
+FROM
+    transactions AS t
+JOIN
+    accounts AS source_acct ON t.account_id = source_acct.id
+JOIN
+    categories AS cat ON t.category_id = cat.id
+LEFT JOIN
+    accounts AS dest_acct ON t.destination_account_id = dest_acct.id
+WHERE
+    t.created_by = sqlc.arg('user_id')
+    AND (
+        t.updated_at > sqlc.arg('since')
+        OR (t.deleted_at IS NOT NULL AND t.deleted_at > sqlc.arg('since'))
+    )
+ORDER BY t.transaction_datetime DESC;

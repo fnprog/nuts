@@ -1,0 +1,24 @@
+{
+  "rustc": 8022303366561187541,
+  "features": "[\"alloc\", \"clock\", \"default\", \"iana-time-zone\", \"js-sys\", \"now\", \"oldtime\", \"serde\", \"std\", \"wasm-bindgen\", \"wasmbind\", \"winapi\", \"windows-link\"]",
+  "declared_features": "[\"__internal_bench\", \"alloc\", \"arbitrary\", \"clock\", \"core-error\", \"default\", \"iana-time-zone\", \"js-sys\", \"libc\", \"now\", \"oldtime\", \"pure-rust-locales\", \"rkyv\", \"rkyv-16\", \"rkyv-32\", \"rkyv-64\", \"rkyv-validation\", \"serde\", \"std\", \"unstable-locales\", \"wasm-bindgen\", \"wasmbind\", \"winapi\", \"windows-link\"]",
+  "target": 15315924755136109342,
+  "profile": 12693162527509728243,
+  "path": 15061565583868689867,
+  "deps": [
+    [5157631553186200874, "num_traits", false, 957555429850489455],
+    [12317487911761266689, "iana_time_zone", false, 9137867246251917077],
+    [13548984313718623784, "serde", false, 13426275595436346329]
+  ],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "i686-linux-android/release/.fingerprint/chrono-d2873a13488d5f5d/dep-lib-chrono",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 10255546481339591553,
+  "compile_kind": 10878095854680285812
+}

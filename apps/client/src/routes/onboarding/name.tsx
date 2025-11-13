@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { type, arktypeResolver } from "@nuts/validation";
 import { motion } from "motion/react";
 import { User } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -11,15 +10,24 @@ import { Button } from "@/core/components/ui/button";
 import { Input } from "@/core/components/ui/input";
 import { Label } from "@/core/components/ui/label";
 import { useOnboardingStore } from "@/features/onboarding/stores/onboarding.store";
-import { userService } from "@/features/preferences/services/user";
+import { userService } from "@/features/preferences/services/user.service";
 import { shouldSkipNameStep } from "@/features/onboarding/services/onboarding";
+import { H2, P, Small } from "@/core/components/ui/typography";
 
-const nameSchema = z.object({
-  firstName: z.string().min(1, "First name is required").max(50, "First name is too long"),
-  lastName: z.string().min(1, "Last name is required").max(50, "Last name is too long"),
+const nameSchema = type({
+  firstName: "string>=1",
+  lastName: "string>=1",
+}).narrow((data, ctx) => {
+  if (data.firstName.length > 50) {
+    return ctx.reject({ path: ["firstName"], message: "First name must be at most 50 characters" });
+  }
+  if (data.lastName.length > 50) {
+    return ctx.reject({ path: ["lastName"], message: "Last name must be at most 50 characters" });
+  }
+  return true;
 });
 
-type NameFormValues = z.infer<typeof nameSchema>;
+type NameFormValues = typeof nameSchema.infer;
 
 export const Route = createFileRoute("/onboarding/name")({
   component: RouteComponent,
@@ -40,7 +48,7 @@ function RouteComponent() {
   });
 
   const form = useForm<NameFormValues>({
-    resolver: zodResolver(nameSchema),
+    resolver: arktypeResolver(nameSchema),
     defaultValues: {
       firstName: firstName || "",
       lastName: lastName || "",
@@ -71,64 +79,43 @@ function RouteComponent() {
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
-      <div className="text-center space-y-2">
-        <div className="w-16 h-16 bg-primary-nuts-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <User className="w-8 h-8 text-primary-nuts-600" />
+      <div className="space-y-2 text-center">
+        <div className="bg-primary-nuts-100 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+          <User className="text-primary-nuts-600 h-8 w-8" />
         </div>
-        <h2 className="text-xl font-semibold text-gray-900">What should we call you?</h2>
-        <p className="text-gray-600">
-          We'll use this information to personalize your experience and update your account.
-        </p>
+        <H2 className="text-gray-900">What should we call you?</H2>
+        <P className="text-gray-600">We'll use this information to personalize your experience and update your account.</P>
       </div>
 
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="space-y-2"
-        >
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="space-y-2">
           <Label htmlFor="firstName">First Name</Label>
           <Input
             id="firstName"
             type="text"
             placeholder="Enter your first name"
-            className="bg-white/80 border-gray-200 focus:border-primary-nuts-400 focus:ring-primary-nuts-400"
+            className="focus:border-primary-nuts-400 focus:ring-primary-nuts-400 border-gray-200 bg-white/80"
             {...form.register("firstName")}
           />
-          {form.formState.errors.firstName && (
-            <p className="text-sm text-red-500">{form.formState.errors.firstName.message}</p>
-          )}
+          {form.formState.errors.firstName && <p className="text-sm text-red-500">{form.formState.errors.firstName.message}</p>}
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="space-y-2"
-        >
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="space-y-2">
           <Label htmlFor="lastName">Last Name</Label>
           <Input
             id="lastName"
             type="text"
             placeholder="Enter your last name"
-            className="bg-white/80 border-gray-200 focus:border-primary-nuts-400 focus:ring-primary-nuts-400"
+            className="focus:border-primary-nuts-400 focus:ring-primary-nuts-400 border-gray-200 bg-white/80"
             {...form.register("lastName")}
           />
-          {form.formState.errors.lastName && (
-            <p className="text-sm text-red-500">{form.formState.errors.lastName.message}</p>
-          )}
+          {form.formState.errors.lastName && <Small className="text-red-500">{form.formState.errors.lastName.message}</Small>}
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="pt-4"
-        >
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="pt-4">
           <Button
             type="submit"
-            className="w-full bg-gradient-to-r from-primary-nuts-600 to-primary-nuts-700 hover:from-primary-nuts-700 hover:to-primary-nuts-800 text-white shadow-lg"
+            className="from-primary-nuts-600 to-primary-nuts-700 hover:from-primary-nuts-700 hover:to-primary-nuts-800 w-full bg-gradient-to-r text-white shadow-lg"
             disabled={form.formState.isSubmitting}
           >
             Continue
@@ -137,15 +124,15 @@ function RouteComponent() {
       </form>
 
       <div className="text-center">
-        <div className="flex justify-center space-x-2 mt-6">
-          <div className="w-2 h-2 bg-primary-nuts-600 rounded-full"></div>
-          <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-          <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-          <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-          <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-          <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
+        <div className="mt-6 flex justify-center space-x-2">
+          <div className="bg-primary-nuts-600 h-2 w-2 rounded-full"></div>
+          <div className="h-2 w-2 rounded-full bg-gray-300"></div>
+          <div className="h-2 w-2 rounded-full bg-gray-300"></div>
+          <div className="h-2 w-2 rounded-full bg-gray-300"></div>
+          <div className="h-2 w-2 rounded-full bg-gray-300"></div>
+          <div className="h-2 w-2 rounded-full bg-gray-300"></div>
         </div>
-        <p className="text-sm text-gray-500 mt-2">Step 1 of 6</p>
+        <Small className="mt-2 text-gray-500">Step 1 of 6</Small>
       </div>
     </motion.div>
   );

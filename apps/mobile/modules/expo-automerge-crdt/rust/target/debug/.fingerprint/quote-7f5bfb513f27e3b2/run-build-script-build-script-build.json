@@ -1,0 +1,20 @@
+{
+  "rustc": 10128419115332751062,
+  "features": "",
+  "declared_features": "",
+  "target": 0,
+  "profile": 0,
+  "path": 0,
+  "deps": [[11082282709338087849, "build_script_build", false, 8980269853389157714]],
+  "local": [
+    {
+      "RerunIfChanged": {
+        "output": "debug/build/quote-7f5bfb513f27e3b2/output",
+        "paths": ["build.rs"]
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 0,
+  "compile_kind": 0
+}

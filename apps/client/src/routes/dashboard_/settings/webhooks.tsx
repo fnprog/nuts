@@ -11,6 +11,7 @@ import { Badge } from "@/core/components/ui/badge";
 
 import { createFileRoute } from "@tanstack/react-router";
 import { useSettingsStore } from "@/features/preferences/stores/settings.store";
+import { Small } from "@/core/components/ui/typography";
 
 export const Route = createFileRoute("/dashboard_/settings/webhooks")({
   component: RouteComponent,
@@ -88,7 +89,7 @@ function RouteComponent() {
                     <div className="grid gap-2">
                       {availableEvents.map((event) => (
                         <div key={event} className="flex items-center justify-between">
-                          <span className="text-sm">{event}</span>
+                          <Small>{event}</Small>
                           <Switch checked={newWebhook.events.includes(event)} onCheckedChange={() => toggleEvent(event)} />
                         </div>
                       ))}

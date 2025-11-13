@@ -284,4 +284,3 @@ func (s *NeuralInputService) convertRawTransaction(raw map[string]interface{}) (
 
 	return transaction, nil
 }
-

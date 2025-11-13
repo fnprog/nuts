@@ -11,13 +11,14 @@ import { useLazyChartComponents } from "@/features/dashboard/hooks/useLazyChart"
 import { SidebarTrigger } from "@/core/components/ui/sidebar";
 import { Button } from "@/core/components/ui/button";
 import { LayoutDashboard, PlusCircle } from "lucide-react";
-import { EmptyStateGuide } from "@/core/components/EmptyStateGuide";
+import { EmptyStateGuide } from "@/core/components/ui/emtpy-state-guide";
 import { ErrorBoundary } from "@/core/components/error-boundary";
+import { H2, Small, Muted } from "@/core/components/ui/typography";
+
 
 export const Route = createFileRoute("/dashboard/home")({
   component: RouteComponent,
 });
-
 
 function RouteComponent() {
   const { t } = useTranslation();
@@ -37,8 +38,6 @@ function RouteComponent() {
     addChart(config.id);
   };
 
-
-
   return (
     <>
       {!hasAccounts && (
@@ -50,75 +49,73 @@ function RouteComponent() {
         />
       )}
 
-      <div className={!hasAccounts ? 'blur-sm pointer-events-none' : ''}>
-        <div className="border-b border-b-bg-nuts-500/20 py-1 flex gap-2 items-center md:hidden -mx-4 px-3">
+      <div className={`h-full w-full ${!hasAccounts ? "pointer-events-none blur-sm" : ""}`}>
+        <div className="border-b-bg-nuts-500/20 -mx-4 flex items-center gap-2 border-b px-3 py-1 md:hidden">
           <SidebarTrigger />
-          <span className="font-semibold text-sm tracking-tight">Dashboard</span>
+          <Small className="font-semibold tracking-tight">Dashboard</Small>
         </div>
-        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear ">
+        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear">
           <div className="flex w-full items-center justify-between gap-2">
-            <h1 className="text-2xl font-bold tracking-tight">{t("greet")} xyz</h1>
-            <AddChartDialog onAddChart={handleAddChart} >
-              <Button variant="outline" size="sm" className="hidden md:inline-flex">
-                <PlusCircle className="mr-2 h-4 w-4" />
+            <H2>{t("greet")} xyz</H2>
+            <AddChartDialog onAddChart={handleAddChart}>
+              <Button variant="default" size="sm" className="hidden md:inline-flex">
+                <PlusCircle className="mr-2 size-4" />
                 Add Chart
               </Button>
             </AddChartDialog>
           </div>
         </header>
-        <div className="flex flex-1">
-          <div className="h-full w-full space-y-8   py-2">
-            <div className="space-y-8">
+        <div className="flex flex-1 h-full">
+          <div className="h-full w-full ">
+            {chartOrder.length === 0 ? (
+
+              <div className="col-span-2 text-center py-12 flex flex-col justify-center items-center text-muted-foreground">
+                <img src="/nuts_empty.png" className="md:w-60 w-50 grayscale" />
+                <Muted>Your dashboard is empty. Add some charts using the button above!</Muted>
+              </div>
+            ) : (
               <DashboardGrid>
-                {chartOrder.length === 0 ? (
-                  <div className="col-span-2 text-center py-12 flex flex-col justify-center items-center text-muted-foreground">
-                    <img src="/nuts_empty.png" className="md:w-60 w-50 grayscale" />
-                    Your dashboard is empty. Add some charts using the button above!
-                  </div>
-                ) : (
-                  chartOrder.map((chartId) => {
-                    const layout = layoutMap.get(chartId);
-                    const ChartToRender = lazyChartComponents.get(chartId);
-                    const loadingError = loadingErrors.get(chartId);
+                {chartOrder.map((chartId) => {
+                  const layout = layoutMap.get(chartId);
+                  const ChartToRender = lazyChartComponents.get(chartId);
+                  const loadingError = loadingErrors.get(chartId);
 
-                    if (!layout) return <ChartErrorFallback key={chartId} chartId={chartId} error={new Error("Layout missing")} />;
-                    if (loadingError) return <ChartErrorFallback key={chartId} chartId={chartId} error={loadingError} />;
+                  if (!layout) return <ChartErrorFallback key={chartId} chartId={chartId} error={new Error("Layout missing")} />;
+                  if (loadingError) return <ChartErrorFallback key={chartId} chartId={chartId} error={loadingError} />;
 
-                    // If the component isn't loaded yet (but no error), show skeleton
-                    // The Suspense fallback will handle the component's internal loading
-                    if (!ChartToRender) return <ChartLoadingSkeleton key={chartId} size={layout.size} />;
+                  // If the component isn't loaded yet (but no error), show skeleton
+                  // The Suspense fallback will handle the component's internal loading
+                  if (!ChartToRender) return <ChartLoadingSkeleton key={chartId} size={layout.size} />;
 
-                    return (
-                      <ErrorBoundary 
-                        key={chartId} 
-                        fallback={(props) => <ChartErrorFallback chartId={chartId} error={props.error} />}
-                      >
-                        <Suspense fallback={<ChartLoadingSkeleton size={layout.size} />}>
-                          <ChartToRender
-                            id={layout.id}
-                            size={layout.size}
-                            isLocked={layout.isLocked}
-                          />
-                        </Suspense>
-                      </ErrorBoundary>
-                    );
-                  }))}
+                  return (
+                    <ErrorBoundary
+                      key={chartId}
+                      fallback={(props) => <ChartErrorFallback chartId={chartId} error={props.error} />}
+                    >
+                      <Suspense fallback={<ChartLoadingSkeleton size={layout.size} />}>
+                        <ChartToRender
+                          id={layout.id}
+                          size={layout.size}
+                          isLocked={layout.isLocked}
+                        />
+                      </Suspense>
+                    </ErrorBoundary>
+                  );
+                })}
               </DashboardGrid>
-            </div>
-          </div>
-        </div>
+            )
+            )}
+          </div >
+        </div >
 
-        {/* Mobile FAB */}
-        <div className="fixed bottom-6 right-6 z-50 sm:hidden">
-          <AddChartDialog
-            onAddChart={handleAddChart}
-          >
+        <div className="fixed right-6 bottom-6 z-50 sm:hidden">
+          <AddChartDialog onAddChart={handleAddChart}>
             <Button size="icon" variant="destructive" className="h-14 w-14 rounded-full shadow-lg">
               <PlusCircle className="size-6" />
             </Button>
           </AddChartDialog>
         </div>
-      </div>
+      </div >
     </>
   );
 }

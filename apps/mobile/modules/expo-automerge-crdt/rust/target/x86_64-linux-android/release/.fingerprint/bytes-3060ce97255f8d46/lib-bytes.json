@@ -1,0 +1,20 @@
+{
+  "rustc": 8022303366561187541,
+  "features": "[\"default\", \"std\"]",
+  "declared_features": "[\"default\", \"extra-platforms\", \"serde\", \"std\"]",
+  "target": 15971911772774047941,
+  "profile": 16165979032364375785,
+  "path": 1016878544231104279,
+  "deps": [],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "x86_64-linux-android/release/.fingerprint/bytes-3060ce97255f8d46/dep-lib-bytes",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 10255546481339591553,
+  "compile_kind": 13862352012247744383
+}

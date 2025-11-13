@@ -10,30 +10,28 @@ import (
 )
 
 type ListTransactionsParams struct {
-	UserID      uuid.UUID
-	Page        int
-	Limit       int
-	Search      *string
-	Type        *string
-	AccountID   *uuid.UUID
-	CategoryID  *uuid.UUID
-	Currency    *string
-	StartDate   *time.Time
-	EndDate     *time.Time
-	MinAmount   *float64
-	MaxAmount   *float64
-	Tags        []string
-	IsExternal  *bool
-	IsRecurring *bool
-	IsPending   *bool
+	UserID     uuid.UUID
+	Page       int32
+	Limit      int32
+	Search     *string
+	Type       *string
+	AccountID  *uuid.UUID
+	CategoryID *uuid.UUID
+	Currency   *string
+	StartDate  *time.Time
+	EndDate    *time.Time
+	MinAmount  *float64
+	MaxAmount  *float64
+	Tags       []string
+	IsExternal *bool
 }
 
 // Pagination represents the metadata for a paginated response.
 type Pagination struct {
-	TotalItems int `json:"total_items"`
-	TotalPages int `json:"total_pages"`
-	Page       int `json:"page"`
-	Limit      int `json:"limit"`
+	TotalItems int32 `json:"total_items"`
+	TotalPages int32 `json:"total_pages"`
+	Page       int32 `json:"page"`
+	Limit      int32 `json:"limit"`
 }
 
 // PaginatedTransactionsResponse is a generic wrapper for paginated data.

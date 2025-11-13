@@ -31,10 +31,10 @@ func NewLocalProvider(config Config, logger *zerolog.Logger) *LocalProvider {
 
 // OllamaRequest represents the request structure for Ollama API
 type OllamaRequest struct {
-	Model       string  `json:"model"`
-	Prompt      string  `json:"prompt"`
-	Stream      bool    `json:"stream"`
-	Options     Options `json:"options,omitempty"`
+	Model   string  `json:"model"`
+	Prompt  string  `json:"prompt"`
+	Stream  bool    `json:"stream"`
+	Options Options `json:"options,omitempty"`
 }
 
 type Options struct {

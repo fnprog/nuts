@@ -1,10 +1,10 @@
-import { lazy } from 'react';
-import type { DashboardChartModule } from '../types';
+import { lazy } from "react";
+import type { DashboardChartModule } from "../types";
 
-export const config: DashboardChartModule['config'] = {
-  id: 'expense-income',
-  title: 'Expense vs. Income',
-  description: 'Compares total income and expenses over a period.',
+export const config: DashboardChartModule["config"] = {
+  id: "expense-income",
+  title: "Expense vs. Income",
+  description: "Compares total income and expenses over a period.",
   defaultSize: 2, // Example: Wide default size
   // rendererConfig: {
   //   type: 'bar', // Example: Bar chart
@@ -14,7 +14,7 @@ export const config: DashboardChartModule['config'] = {
   // },
 };
 
-export const ChartComponent = lazy(() => import('./component'));
+export const ChartComponent = lazy(() => import("./component"));
 
 const moduleDefinition: DashboardChartModule = {
   config,

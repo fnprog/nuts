@@ -1,6 +1,5 @@
 import { AccountWTrend, GroupedAccount } from "../services/account.types";
-import { formatDistanceToNow, parseISO } from 'date-fns';
-
+import { formatDistanceToNow, parseISO } from "date-fns";
 
 export function groupAccountsByType(accounts: AccountWTrend[]): GroupedAccount[] {
   const grouped: Record<string, GroupedAccount> = {};
@@ -23,18 +22,13 @@ export function groupAccountsByType(accounts: AccountWTrend[]): GroupedAccount[]
   return Object.values(grouped);
 }
 
-export function findAccountByIdFromGroups(
-  groups: GroupedAccount[],
-  id: string
-): AccountWTrend | undefined {
+export function findAccountByIdFromGroups(groups: GroupedAccount[], id: string): AccountWTrend | undefined {
   for (const group of groups) {
-    const account = group.accounts.find(acc => acc.id === id);
+    const account = group.accounts.find((acc) => acc.id === id);
     if (account) return account;
   }
   return undefined;
 }
-
-
 
 export function timeAgo(isoDate: string): string {
   const raw = formatDistanceToNow(parseISO(isoDate), { addSuffix: true });

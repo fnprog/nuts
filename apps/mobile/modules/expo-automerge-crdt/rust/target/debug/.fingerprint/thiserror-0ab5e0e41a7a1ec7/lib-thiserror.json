@@ -1,0 +1,23 @@
+{
+  "rustc": 10128419115332751062,
+  "features": "[]",
+  "declared_features": "[]",
+  "target": 13586076721141200315,
+  "profile": 2241668132362809309,
+  "path": 17516469878834332633,
+  "deps": [
+    [8008191657135824715, "build_script_build", false, 2986533874789804575],
+    [15291996789830541733, "thiserror_impl", false, 11073514549444377154]
+  ],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "debug/.fingerprint/thiserror-0ab5e0e41a7a1ec7/dep-lib-thiserror",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 2069994364910194474,
+  "compile_kind": 0
+}

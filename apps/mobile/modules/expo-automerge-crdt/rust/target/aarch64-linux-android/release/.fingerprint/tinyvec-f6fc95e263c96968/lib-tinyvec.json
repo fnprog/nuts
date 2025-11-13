@@ -1,0 +1,20 @@
+{
+  "rustc": 8022303366561187541,
+  "features": "[\"alloc\", \"default\", \"tinyvec_macros\"]",
+  "declared_features": "[\"alloc\", \"arbitrary\", \"borsh\", \"debugger_visualizer\", \"default\", \"experimental_write_impl\", \"generic-array\", \"grab_spare_slice\", \"latest_stable_rust\", \"nightly_slice_partition_dedup\", \"real_blackbox\", \"rustc_1_40\", \"rustc_1_55\", \"rustc_1_57\", \"rustc_1_61\", \"serde\", \"std\", \"tinyvec_macros\"]",
+  "target": 9043339761408747423,
+  "profile": 12693162527509728243,
+  "path": 12269367245810367708,
+  "deps": [[4524103270527811306, "tinyvec_macros", false, 10962622234103650630]],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "aarch64-linux-android/release/.fingerprint/tinyvec-f6fc95e263c96968/dep-lib-tinyvec",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 10255546481339591553,
+  "compile_kind": 6373778340919622063
+}

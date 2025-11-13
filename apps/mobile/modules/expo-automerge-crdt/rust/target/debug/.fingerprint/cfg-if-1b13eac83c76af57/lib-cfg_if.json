@@ -1,0 +1,20 @@
+{
+  "rustc": 8022303366561187541,
+  "features": "[]",
+  "declared_features": "[\"core\", \"rustc-dep-of-std\"]",
+  "target": 13840298032947503755,
+  "profile": 2241668132362809309,
+  "path": 12510968713023047350,
+  "deps": [],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "debug/.fingerprint/cfg-if-1b13eac83c76af57/dep-lib-cfg_if",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 2069994364910194474,
+  "compile_kind": 0
+}

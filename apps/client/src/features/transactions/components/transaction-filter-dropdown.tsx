@@ -1,15 +1,15 @@
-import { useState, useCallback, useMemo } from "react"
-import { CalendarIcon, FilterIcon, ChevronDown, X, Check, ChevronRight } from "lucide-react"
-import { Button } from "@/core/components/ui/button"
-import { Badge } from "@/core/components/ui/badge"
-import { Popover, PopoverContent, PopoverTrigger } from "@/core/components/ui/popover"
-import { Calendar } from "@/core/components/ui/calendar"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/core/components/ui/command"
-import { cn } from "@/lib/utils"
-import { format } from "date-fns"
-import { useQuery } from "@tanstack/react-query"
-import { accountService } from "@/features/accounts/services/account"
-import { categoryService } from "@/features/categories/services/category"
+import { useState, useCallback, useMemo } from "react";
+import { CalendarIcon, FilterIcon, ChevronDown, X, Check, ChevronRight } from "lucide-react";
+import { Button } from "@/core/components/ui/button";
+import { Badge } from "@/core/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/core/components/ui/popover";
+import { Calendar } from "@/core/components/ui/calendar";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/core/components/ui/command";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { useQuery } from "@tanstack/react-query";
+import { categoryService } from "@/features/categories/services/category.service";
+import { accountService } from "@/features/accounts/services/account";
 
 export interface TransactionFilterState {
   account_id?: string
@@ -23,16 +23,16 @@ export interface TransactionFilterState {
 }
 
 interface TransactionFilterDropdownProps {
-  filters: TransactionFilterState
-  onFiltersChange: (filters: TransactionFilterState) => void
-  onClearAll: () => void
+  filters: TransactionFilterState;
+  onFiltersChange: (filters: TransactionFilterState) => void;
+  onClearAll: () => void;
 }
 
 const TRANSACTION_TYPES = [
   { value: "income", label: "Income" },
   { value: "expense", label: "Expense" },
   { value: "transfer", label: "Transfer" },
-]
+];
 
 // const STATUS_TYPES = [
 //   { value: "recurring", label: "Recurring Transactions" },
@@ -46,64 +46,72 @@ const CURRENCIES = [
   { value: "GBP", label: "GBP" },
   { value: "CAD", label: "CAD" },
   { value: "JPY", label: "JPY" },
-]
+];
 
-export function TransactionFilterDropdown({
-  filters,
-  onFiltersChange,
-  onClearAll,
-}: TransactionFilterDropdownProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null)
-  const [isDatePickerOpen, setIsDatePickerOpen] = useState<"start" | "end" | null>(null)
+export function TransactionFilterDropdown({ filters, onFiltersChange, onClearAll }: TransactionFilterDropdownProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState<"start" | "end" | null>(null);
 
   // Fetch accounts and categories
   const { data: accounts = [] } = useQuery({
     queryKey: ["accounts"],
-    queryFn: accountService.getAccounts,
-  })
+    queryFn: async () => {
+      const result = await accountService.getAccounts();
+      if (result.isErr()) throw result.error;
+      return result.value;
+    },
+  });
 
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
-    queryFn: categoryService.getCategories,
-  })
+    queryFn: async () => {
+      const result = await categoryService.getCategories();
+      if (result.isErr()) throw result.error;
+      return result.value;
+    },
+  });
 
   // Transform data for dropdowns
-  const accountOptions = useMemo(() => 
-    accounts.map((account) => ({
-      value: account.id,
-      label: `${account.name} (${account.currency})`,
-    })), [accounts]
-  )
+  const accountOptions = useMemo(
+    () =>
+      accounts.map((account) => ({
+        value: account.id,
+        label: `${account.name} (${account.currency})`,
+      })),
+    [accounts]
+  );
 
-  const categoryOptions = useMemo(() => 
-    categories.map((category) => ({
-      value: category.id,
-      label: category.name,
-    })), [categories]
-  )
+  const categoryOptions = useMemo(
+    () =>
+      categories.map((category) => ({
+        value: category.id,
+        label: category.name,
+      })),
+    [categories]
+  );
 
   const updateFilter = useCallback(
     (key: keyof TransactionFilterState, value: any) => {
       onFiltersChange({
         ...filters,
         [key]: value || undefined,
-      })
+      });
     },
     [filters, onFiltersChange]
-  )
+  );
 
   const removeFilter = useCallback(
     (key: keyof TransactionFilterState) => {
-      const newFilters = { ...filters }
-      delete newFilters[key]
-      onFiltersChange(newFilters)
+      const newFilters = { ...filters };
+      delete newFilters[key];
+      onFiltersChange(newFilters);
     },
     [filters, onFiltersChange]
-  )
+  );
 
   // Count active filters
-  const activeFilterCount = Object.values(filters).filter(Boolean).length
+  const activeFilterCount = Object.values(filters).filter(Boolean).length;
 
   // Helper to get filter label
   const getFilterLabel = (key: keyof TransactionFilterState, value: any) => {
@@ -125,28 +133,28 @@ export function TransactionFilterDropdown({
       case 'end_date':
         return `To: ${format(value as Date, "MMM dd, yyyy")}`
       default:
-        return String(value)
+        return String(value);
     }
-  }
+  };
 
   // Filter menu items
   const filterMenuItems = [
     {
-      key: 'accounts',
-      label: 'Accounts',
-      icon: '🏦',
+      key: "accounts",
+      label: "Accounts",
+      icon: "🏦",
       hasSubmenu: true,
     },
     {
-      key: 'categories',
-      label: 'Categories',
-      icon: '📂',
+      key: "categories",
+      label: "Categories",
+      icon: "📂",
       hasSubmenu: true,
     },
     {
-      key: 'type',
-      label: 'Transaction Type',
-      icon: '🔄',
+      key: "type",
+      label: "Transaction Type",
+      icon: "🔄",
       hasSubmenu: true,
     },
     {
@@ -162,16 +170,16 @@ export function TransactionFilterDropdown({
       hasSubmenu: true,
     },
     {
-      key: 'date',
-      label: 'Date Range',
-      icon: '📅',
+      key: "date",
+      label: "Date Range",
+      icon: "📅",
       hasSubmenu: true,
     },
-  ]
+  ];
 
   const renderSubmenu = (menuKey: string) => {
     switch (menuKey) {
-      case 'accounts':
+      case "accounts":
         return (
           <Command>
             <CommandInput placeholder="Search accounts..." />
@@ -183,25 +191,20 @@ export function TransactionFilterDropdown({
                     key={account.value}
                     value={account.value}
                     onSelect={() => {
-                      updateFilter('account_id', account.value)
-                      setActiveSubmenu(null)
+                      updateFilter("account_id", account.value);
+                      setActiveSubmenu(null);
                     }}
                   >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        filters.account_id === account.value ? "opacity-100" : "opacity-0"
-                      )}
-                    />
+                    <Check className={cn("mr-2 h-4 w-4", filters.account_id === account.value ? "opacity-100" : "opacity-0")} />
                     {account.label}
                   </CommandItem>
                 ))}
               </CommandGroup>
             </CommandList>
           </Command>
-        )
+        );
 
-      case 'categories':
+      case "categories":
         return (
           <Command>
             <CommandInput placeholder="Search categories..." />
@@ -213,25 +216,20 @@ export function TransactionFilterDropdown({
                     key={category.value}
                     value={category.value}
                     onSelect={() => {
-                      updateFilter('category_id', category.value)
-                      setActiveSubmenu(null)
+                      updateFilter("category_id", category.value);
+                      setActiveSubmenu(null);
                     }}
                   >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        filters.category_id === category.value ? "opacity-100" : "opacity-0"
-                      )}
-                    />
+                    <Check className={cn("mr-2 h-4 w-4", filters.category_id === category.value ? "opacity-100" : "opacity-0")} />
                     {category.label}
                   </CommandItem>
                 ))}
               </CommandGroup>
             </CommandList>
           </Command>
-        )
+        );
 
-      case 'type':
+      case "type":
         return (
           <Command>
             <CommandList>
@@ -241,23 +239,18 @@ export function TransactionFilterDropdown({
                     key={type.value}
                     value={type.value}
                     onSelect={() => {
-                      updateFilter('type', type.value)
-                      setActiveSubmenu(null)
+                      updateFilter("type", type.value);
+                      setActiveSubmenu(null);
                     }}
                   >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        filters.type === type.value ? "opacity-100" : "opacity-0"
-                      )}
-                    />
+                    <Check className={cn("mr-2 h-4 w-4", filters.type === type.value ? "opacity-100" : "opacity-0")} />
                     {type.label}
                   </CommandItem>
                 ))}
               </CommandGroup>
             </CommandList>
           </Command>
-        )
+        );
 
       case 'status':
         return (
@@ -324,38 +317,27 @@ export function TransactionFilterDropdown({
                     key={currency.value}
                     value={currency.value}
                     onSelect={() => {
-                      updateFilter('currency', currency.value)
-                      setActiveSubmenu(null)
+                      updateFilter("currency", currency.value);
+                      setActiveSubmenu(null);
                     }}
                   >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        filters.currency === currency.value ? "opacity-100" : "opacity-0"
-                      )}
-                    />
+                    <Check className={cn("mr-2 h-4 w-4", filters.currency === currency.value ? "opacity-100" : "opacity-0")} />
                     {currency.label}
                   </CommandItem>
                 ))}
               </CommandGroup>
             </CommandList>
           </Command>
-        )
+        );
 
-      case 'date':
+      case "date":
         return (
-          <div className="p-2 space-y-3 min-w-[300px]">
+          <div className="min-w-[300px] space-y-3 p-2">
             <div className="space-y-2">
               <label className="text-sm font-medium">From</label>
               <Popover open={isDatePickerOpen === "start"} onOpenChange={(open) => setIsDatePickerOpen(open ? "start" : null)}>
                 <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !filters.start_date && "text-muted-foreground"
-                    )}
-                  >
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !filters.start_date && "text-muted-foreground")}>
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {filters.start_date ? format(filters.start_date, "MMM dd, yyyy") : "Select start date"}
                   </Button>
@@ -365,10 +347,10 @@ export function TransactionFilterDropdown({
                     mode="single"
                     selected={filters.start_date}
                     onSelect={(date) => {
-                      updateFilter("start_date", date)
-                      setIsDatePickerOpen(null)
+                      updateFilter("start_date", date);
+                      setIsDatePickerOpen(null);
                     }}
-                    initialFocus
+                    autoFocus
                   />
                 </PopoverContent>
               </Popover>
@@ -378,13 +360,7 @@ export function TransactionFilterDropdown({
               <label className="text-sm font-medium">To</label>
               <Popover open={isDatePickerOpen === "end"} onOpenChange={(open) => setIsDatePickerOpen(open ? "end" : null)}>
                 <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !filters.end_date && "text-muted-foreground"
-                    )}
-                  >
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !filters.end_date && "text-muted-foreground")}>
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {filters.end_date ? format(filters.end_date, "MMM dd, yyyy") : "Select end date"}
                   </Button>
@@ -394,8 +370,8 @@ export function TransactionFilterDropdown({
                     mode="single"
                     selected={filters.end_date}
                     onSelect={(date) => {
-                      updateFilter("end_date", date)
-                      setIsDatePickerOpen(null)
+                      updateFilter("end_date", date);
+                      setIsDatePickerOpen(null);
                     }}
                     initialFocus
                   />
@@ -403,33 +379,26 @@ export function TransactionFilterDropdown({
               </Popover>
             </div>
           </div>
-        )
+        );
 
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   return (
-    <div className="flex items-center gap-2 flex-wrap">
+    <div className="flex flex-wrap items-center gap-2">
       {/* Active Filters */}
       {Object.entries(filters).map(([key, value]) => {
-        if (!value) return null
+        if (!value) return null;
         return (
-          <Badge
-            key={key}
-            variant="secondary"
-            className="flex items-center gap-1 px-2 py-1"
-          >
+          <Badge key={key} variant="secondary" className="flex items-center gap-1 px-2 py-1">
             {getFilterLabel(key as keyof TransactionFilterState, value)}
-            <button
-              onClick={() => removeFilter(key as keyof TransactionFilterState)}
-              className="ml-1 hover:bg-destructive/20 rounded-full p-0.5"
-            >
+            <button onClick={() => removeFilter(key as keyof TransactionFilterState)} className="hover:bg-destructive/20 ml-1 rounded-full p-0.5">
               <X className="h-3 w-3" />
             </button>
           </Badge>
-        )
+        );
       })}
 
       {/* Filter Button */}
@@ -450,16 +419,11 @@ export function TransactionFilterDropdown({
           <div className="flex">
             {/* Main Menu */}
             <div className="w-48 border-r">
-              <div className="p-2 border-b">
+              <div className="border-b p-2">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-sm">Filters</span>
+                  <span className="text-sm font-medium">Filters</span>
                   {activeFilterCount > 0 && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={onClearAll}
-                      className="h-auto p-1 text-xs"
-                    >
+                    <Button variant="ghost" size="sm" onClick={onClearAll} className="h-auto p-1 text-xs">
                       Clear all
                     </Button>
                   )}
@@ -469,10 +433,7 @@ export function TransactionFilterDropdown({
                 {filterMenuItems.map((item) => (
                   <button
                     key={item.key}
-                    className={cn(
-                      "w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-accent",
-                      activeSubmenu === item.key && "bg-accent"
-                    )}
+                    className={cn("hover:bg-accent flex w-full items-center justify-between px-3 py-2 text-sm", activeSubmenu === item.key && "bg-accent")}
                     onMouseEnter={() => setActiveSubmenu(item.key)}
                     onClick={() => setActiveSubmenu(activeSubmenu === item.key ? null : item.key)}
                   >
@@ -487,14 +448,10 @@ export function TransactionFilterDropdown({
             </div>
 
             {/* Submenu */}
-            {activeSubmenu && (
-              <div className="flex-1 min-w-[250px]">
-                {renderSubmenu(activeSubmenu)}
-              </div>
-            )}
+            {activeSubmenu && <div className="min-w-[250px] flex-1">{renderSubmenu(activeSubmenu)}</div>}
           </div>
         </PopoverContent>
       </Popover>
     </div>
-  )
+  );
 }

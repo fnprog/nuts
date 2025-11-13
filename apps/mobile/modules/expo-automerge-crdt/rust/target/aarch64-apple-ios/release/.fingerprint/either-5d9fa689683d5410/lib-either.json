@@ -1,0 +1,20 @@
+{
+  "rustc": 8022303366561187541,
+  "features": "[\"std\", \"use_std\"]",
+  "declared_features": "[\"default\", \"serde\", \"std\", \"use_std\"]",
+  "target": 17124342308084364240,
+  "profile": 12693162527509728243,
+  "path": 17674604391397956521,
+  "deps": [],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "aarch64-apple-ios/release/.fingerprint/either-5d9fa689683d5410/dep-lib-either",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 2069994364910194474,
+  "compile_kind": 3694122122034060669
+}

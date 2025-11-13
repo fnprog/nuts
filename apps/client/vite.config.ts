@@ -4,11 +4,13 @@ import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import tsConfigPaths from 'vite-tsconfig-paths'
+import wasm from "vite-plugin-wasm";
 
 const ReactCompilerConfig = {};
 
 export default defineConfig({
   plugins: [
+    wasm(),
     tanstackRouter({
       autoCodeSplitting: true,
     }),
@@ -110,8 +112,6 @@ export default defineConfig({
       'teller-connect-react',
       '@mono.co/connect.js'
     ],
-    // exclude: [
-    //   // These will be lazy loaded
-    // ]
+    exclude: ['wa-sqlite']
   },
 });

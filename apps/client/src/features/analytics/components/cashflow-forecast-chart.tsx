@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react"
-import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { useEffect, useState } from "react";
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 // Mock data for the chart
 const data = [
@@ -16,17 +16,17 @@ const data = [
   { month: "Oct", income: 8700, expenses: 6600, savings: 2100, projection: 2200 },
   { month: "Nov", income: 8900, expenses: 6500, savings: 2400, projection: 2350 },
   { month: "Dec", income: 8900, expenses: 6700, savings: 2200, projection: 2250 },
-]
+];
 
 export default function CashflowForecastChart() {
-  const [mounted, setMounted] = useState(false)
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   if (!mounted) {
-    return <div className="h-[350px] flex items-center justify-center">Loading chart...</div>
+    return <div className="flex h-[350px] items-center justify-center">Loading chart...</div>;
   }
 
   return (
@@ -49,6 +49,5 @@ export default function CashflowForecastChart() {
         <Bar dataKey="savings" name="Savings" fill="#3b82f6" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
-  )
+  );
 }
-

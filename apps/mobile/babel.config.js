@@ -1,34 +1,18 @@
-export default function (api) {
+module.exports = function (api) {
   api.cache(true);
+  let plugins = [];
+
+  plugins.push('react-native-worklets/plugin');
 
   return {
     presets: [
-      ["babel-preset-expo", { jsxImportSource: "nativewind" }],
-      "nativewind/babel",
-    ],
-    plugins: [
       [
-        "module-resolver",
+        'babel-preset-expo',
         {
-          root: ["./"],
-          alias: {
-            "@": "./src",
-            "@env": "./src/lib/env.js",
-          },
-          extensions: [
-            ".ios.ts",
-            ".android.ts",
-            ".ts",
-            ".ios.tsx",
-            ".android.tsx",
-            ".tsx",
-            ".jsx",
-            ".js",
-            ".json",
-          ],
+          unstable_transformImportMeta: true,
         },
       ],
-      "react-native-reanimated/plugin",
     ],
+    plugins,
   };
-}
+};

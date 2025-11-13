@@ -21,8 +21,7 @@ export function RuleActionBadge({ action }: RuleActionBadgeProps) {
 
   return (
     <Badge variant="secondary" className="text-xs">
-      {ACTION_TYPE_LABELS[action.type]}: {" "}
-      <span className="font-medium">{formatValue(action.value)}</span>
+      {ACTION_TYPE_LABELS[action.type]}: <span className="font-medium">{formatValue(action.value)}</span>
     </Badge>
   );
 }

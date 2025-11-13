@@ -3,17 +3,17 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/core/components/ui/checkbox";
 import { Avatar, AvatarFallback } from "@/core/components/ui/avatar";
 import { Badge } from "@/core/components/ui/badge";
-import { renderIcon } from "@/core/components/icon-picker/index.helper";
+import { renderIcon } from "@/core/components/ui/icon-picker/index.helper";
 import { memo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Popover, PopoverContent, PopoverTrigger } from "@/core/components/ui/popover";
 import { SearchableSelect, SearchableSelectOption } from "@/core/components/ui/search-select";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { categoryService } from "@/features/categories/services/category";
-import { bulkUpdateCategories } from "../services/transaction";
 import { toast } from "sonner";
 import { useMemo } from "react";
 import { getTransactionStatus, getTransactionStyles } from "../utils/transaction-status";
+import { transactionService } from "@/features/transactions/services/transaction.service";
+import { categoryService } from "@/features/categories/services/category.service";
 
 type TransactionRowData = TableRecordSchema & {
   groupId?: string;
@@ -80,7 +80,11 @@ const CategoryCell = memo(({ transaction }: { transaction: TableRecordSchema }) 
 
   const { data: categories } = useQuery({
     queryKey: ["categories"],
-    queryFn: categoryService.getCategories,
+    queryFn: async () => {
+      const result = await categoryService.getCategories();
+      if (result.isErr()) throw result.error;
+      return result.value;
+    },
     gcTime: 1000 * 60 * 5,
     staleTime: 1000 * 60 * 2,
     refetchOnMount: false,
@@ -89,7 +93,9 @@ const CategoryCell = memo(({ transaction }: { transaction: TableRecordSchema }) 
 
   const updateCategoryMutation = useMutation({
     mutationFn: async (categoryId: string) => {
-      await bulkUpdateCategories([transaction.id], categoryId);
+      const result = await transactionService.bulkUpdateCategories([transaction.id], categoryId);
+      if (result.isErr()) throw result.error;
+      return result.value;
     },
     onSuccess: () => {
       toast.success("Category updated successfully!");
@@ -103,11 +109,11 @@ const CategoryCell = memo(({ transaction }: { transaction: TableRecordSchema }) 
 
   const categoriesOptions: SearchableSelectOption[] = useMemo(() => {
     if (!categories) return [];
-    return categories.map(category => ({
+    return categories.map((category) => ({
       value: category.id,
       label: category.name,
       keywords: [category.name],
-      icon: renderIcon(category.icon || "")
+      icon: renderIcon(category.icon || ""),
     }));
   }, [categories]);
 
@@ -150,64 +156,48 @@ const AmountCell = memo(({ amount }: { amount: number }) => {
     style: "currency",
     currency: "USD",
   }).format(amount);
-  return <div className="font-medium text-right pr-4">{formatted}</div>;
+  return <div className="pr-4 text-right font-medium">{formatted}</div>;
 });
 
-export const getRecordsTableColumns = ({
-  onEdit,
-}: ActionColumnHandlers): ColumnDef<TransactionRowData>[] => [
-    {
-      id: "select",
-      size: 10,
-      maxSize: 10,
-      minSize: 10,
-      header: ({ table }) => (
-        <Checkbox
-          checked={table.getIsAllPageRowsSelected()}
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-          className="translate-y-[2px]"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-          className="translate-y-[2px]"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
+export const getRecordsTableColumns = ({ onEdit }: ActionColumnHandlers): ColumnDef<TransactionRowData>[] => [
+  {
+    id: "select",
+    size: 10,
+    maxSize: 10,
+    minSize: 10,
+    header: ({ table }) => (
+      <Checkbox
+        checked={table.getIsAllPageRowsSelected()}
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+        className="translate-y-[2px]"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label="Select row" className="translate-y-[2px]" />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
+    accessorKey: "description",
+    header: "Transaction",
+    size: 300,
+    cell: ({ row }) => <TransactionCell transaction={row.original} onEdit={onEdit} />,
+  },
+  {
+    accessorFn: (row) => row.category?.name,
+    id: "category.name",
+    header: "Category",
+    size: 150,
+    cell: ({ row }) => {
+      return <CategoryCell transaction={row.original} />;
     },
-    {
-      accessorKey: "description",
-      header: "Transaction",
-      size: 300,
-      cell: ({ row }) => (
-        <TransactionCell
-          transaction={row.original}
-          onEdit={onEdit}
-        />
-      ),
-    },
-    {
-      accessorFn: row => row.category?.name,
-      id: "category.name",
-      header: "Category",
-      size: 150,
-      cell: ({ row }) => {
-        return (
-          <CategoryCell transaction={row.original} />
-        )
-      }
-    },
-    {
-      accessorKey: "amount",
-      header: () => <div className="text-right">Amount</div>,
-      size: 120,
-      cell: ({ row }) => (
-        <AmountCell amount={Number.parseFloat(row.getValue("amount"))} />
-      ),
-    },
-  ];
+  },
+  {
+    accessorKey: "amount",
+    header: () => <div className="text-right">Amount</div>,
+    size: 120,
+    cell: ({ row }) => <AmountCell amount={Number.parseFloat(row.getValue("amount"))} />,
+  },
+];

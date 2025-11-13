@@ -1,4 +1,4 @@
-import { Building, CreditCard, PiggyBank, Wallet, TrendingUp } from "lucide-react"
+import { Building, CreditCard, PiggyBank, Wallet, TrendingUp } from "lucide-react";
 
 // --- Data for SearchableSelect ---
 export const accountTypeOptions = [

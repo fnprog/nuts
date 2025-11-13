@@ -1,51 +1,27 @@
-import { createFileRoute, Link, Outlet, redirect, useLocation } from "@tanstack/react-router"
-import { cn } from "@/lib/utils"
-import {
-  User,
-  Palette,
-  Tags,
-  List,
-  Store,
-  Bell,
-  MessageSquare,
-  ChevronLeft,
-  ShieldCheck,
-  Globe,
-  Coins,
-  Wrench,
-  type LucideIcon,
-} from "lucide-react"
+import { createFileRoute, Link, Outlet, redirect, useLocation } from "@tanstack/react-router";
+import { cn } from "@/lib/utils";
+import { User, Palette, Tags, List, Store, Bell, MessageSquare, ChevronLeft, ShieldCheck, Globe, Coins, Wrench, type LucideIcon } from "lucide-react";
 
-import type { ValidRoutes } from "@/routes/dashboard/route"
-import { useNavigate } from "@tanstack/react-router"
-import { useHotkeys } from "react-hotkeys-hook"
-import { Button } from "@/core/components/ui/button"
-import type { AuthNullable } from '@/features/auth/services/auth.types';
+import type { ValidRoutes } from "@/routes/dashboard/route";
+import { useNavigate } from "@tanstack/react-router";
+import { useHotkeys } from "react-hotkeys-hook";
+import { Button } from "@/core/components/ui/button";
+import type { AuthNullable } from "@/features/auth/services/auth.types";
 import { useTranslation } from "react-i18next";
 
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/core/components/ui/select"
-
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/core/components/ui/select";
 
 type NavItem = {
-  to: ValidRoutes
-  labelKey: string
-  icon: LucideIcon
-}
+  to: ValidRoutes;
+  labelKey: string;
+  icon: LucideIcon;
+};
 
 type NavCategory = {
-  titleKey: string
-  items: NavItem[]
-  condition?: (context: AuthNullable) => boolean
-}
-
+  titleKey: string;
+  items: NavItem[];
+  condition?: (context: AuthNullable) => boolean;
+};
 
 const settingsNavigation = (): NavCategory[] => [
   {
@@ -79,30 +55,28 @@ const settingsNavigation = (): NavCategory[] => [
       { to: "/dashboard/settings/feedback", labelKey: "settings.feedback", icon: MessageSquare },
     ],
   },
-]
-
+];
 
 export const Route = createFileRoute("/dashboard_/settings")({
   component: RouteComponent,
   beforeLoad: ({ context }) => {
-    if (!context.auth.isAuthenticated) {
+    if (!context.auth.isAuthenticated && !context.auth.isAnonymous) {
       throw redirect({
         to: "/login",
-      })
+      });
     }
   },
-})
-
+});
 
 function RouteComponent() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const { t } = useTranslation();
   // const user = useAuthStore((state) => state.user); // Get auth context
   const currentPath = useLocation({
     select: (location) => location.pathname,
-  })
+  });
 
-  const navigation = settingsNavigation()
+  const navigation = settingsNavigation();
   // .filter(category => !category.condition || category.condition(context)); // Filter based on condition
 
   // Handle ESC key to go back to dashboard
@@ -113,44 +87,37 @@ function RouteComponent() {
     },
     [navigate],
     { enableOnFormTags: false }
-  )
+  );
 
   const handleBack = () => {
     navigate({ to: "/dashboard/home" });
-  }
+  };
 
   const handleMobileNavigate = (value: string) => {
     if (value) {
       navigate({ to: value as ValidRoutes });
     }
-  }
-
-
+  };
 
   // Find the closest matching navigation item for the mobile select default
-  const currentMobileOption = navigation
-    .flatMap(cat => cat.items)
-    .find(item => currentPath.startsWith(item.to))?.to ?? navigation[0]?.items[0]?.to; // Default to first item if no match
+  const currentMobileOption = navigation.flatMap((cat) => cat.items).find((item) => currentPath.startsWith(item.to))?.to ?? navigation[0]?.items[0]?.to; // Default to first item if no match
 
   // Find the label for the currentMobileOption to display in SelectValue placeholder
-  const currentLabel = navigation
-    .flatMap(cat => cat.items)
-    .find(item => item.to === currentMobileOption)?.labelKey ?? 'Select Setting...'
-
+  const currentLabel = navigation.flatMap((cat) => cat.items).find((item) => item.to === currentMobileOption)?.labelKey ?? "Select Setting...";
 
   return (
-    <div className="container mx-auto px-4 py-4 md:py-8 flex flex-col flex-1 h-full ">
-      <div className="mb-6 flex items-center gap-2 flex-shrink-0">
+    <div className="container mx-auto flex h-full flex-1 flex-col px-4 py-4 md:py-8">
+      <div className="mb-6 flex shrink-0 items-center gap-2">
         <Button variant="ghost" size="sm" onClick={handleBack} className="flex items-center gap-1">
           <ChevronLeft className="h-4 w-4" />
-          <span>{t('common.back')}</span>
-          <kbd className="ml-2 px-1.5 py-0.5 text-xs bg-muted rounded">ESC</kbd>
+          <span>{t("common.back")}</span>
+          <kbd className="bg-muted ml-2 rounded px-1.5 py-0.5 text-xs">ESC</kbd>
         </Button>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-6 md:gap-10 flex-1 md:overflow-hidden">
+      <div className="flex flex-1 flex-col gap-6 md:flex-row md:gap-10 md:overflow-hidden">
         {/* Mobile navigation dropdown */}
-        <div className="md:hidden w-full mb-4 flex-shrink-0">
+        <div className="mb-4 w-full shrink-0 md:hidden">
           <Select value={currentMobileOption} onValueChange={handleMobileNavigate}>
             <SelectTrigger className="w-full">
               {/* Display the current selection label */}
@@ -175,10 +142,10 @@ function RouteComponent() {
         </div>
 
         {/* Desktop sidebar */}
-        <aside className="hidden md:block space-y-6 md:w-60 lg:w-64 shrink-0 md:overflow-y-auto md:pb-10">
+        <aside className="hidden shrink-0 space-y-6 md:block md:w-60 md:overflow-y-auto md:pb-10 lg:w-64">
           {navigation.map((category) => (
             <div key={category.titleKey} className="space-y-1">
-              <div className="px-3 text-xs font-semibold text-muted-foreground tracking-wider uppercase pb-1 mb-1 border-b">
+              <div className="text-muted-foreground mb-1 border-b px-3 pb-1 text-xs font-semibold tracking-wider uppercase">
                 {t(category.titleKey).toUpperCase()}
               </div>
               {category.items.map((link) => (
@@ -204,10 +171,12 @@ function RouteComponent() {
         </aside>
 
         {/* Main content */}
-        <div className="flex-1 min-w-0 md:overflow-y-auto md:pb-10"> {/* Added min-w-0 to prevent overflow issues */}
+        <div className="min-w-0 flex-1 md:overflow-y-auto md:pb-10">
+          {" "}
+          {/* Added min-w-0 to prevent overflow issues */}
           <Outlet />
         </div>
       </div>
     </div>
-  )
+  );
 }

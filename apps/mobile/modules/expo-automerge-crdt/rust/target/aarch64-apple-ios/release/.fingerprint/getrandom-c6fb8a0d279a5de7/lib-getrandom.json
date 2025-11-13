@@ -1,0 +1,24 @@
+{
+  "rustc": 8022303366561187541,
+  "features": "[]",
+  "declared_features": "[\"std\", \"wasm_js\"]",
+  "target": 11669924403970522481,
+  "profile": 15672127201905847078,
+  "path": 3125908574109325858,
+  "deps": [
+    [7667230146095136825, "cfg_if", false, 13199934979212032293],
+    [11499138078358568213, "libc", false, 8726812021791804257],
+    [18408407127522236545, "build_script_build", false, 2192794434969968904]
+  ],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "aarch64-apple-ios/release/.fingerprint/getrandom-c6fb8a0d279a5de7/dep-lib-getrandom",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 2069994364910194474,
+  "compile_kind": 3694122122034060669
+}

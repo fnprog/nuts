@@ -1,0 +1,18 @@
+(function () {
+  var implementors = Object.fromEntries([
+    [
+      'automerge',
+      [
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/iter/traits/collect/trait.FromIterator.html" title="trait core::iter::traits::collect::FromIterator">FromIterator</a>&lt;(<a class="struct" href="https://doc.rust-lang.org/1.91.0/alloc/string/struct.String.html" title="struct alloc::string::String">String</a>, <a class="enum" href="automerge/enum.ScalarValue.html" title="enum automerge::ScalarValue">ScalarValue</a>)&gt; for <a class="struct" href="automerge/marks/struct.MarkSet.html" title="struct automerge::marks::MarkSet">MarkSet</a>',
+        ],
+      ],
+    ],
+  ]);
+  if (window.register_implementors) {
+    window.register_implementors(implementors);
+  } else {
+    window.pending_implementors = implementors;
+  }
+})();
+//{"start":57,"fragment_lengths":[600]}

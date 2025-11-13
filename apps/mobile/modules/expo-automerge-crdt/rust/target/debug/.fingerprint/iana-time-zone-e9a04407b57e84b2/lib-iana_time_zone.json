@@ -1,0 +1,20 @@
+{
+  "rustc": 10128419115332751062,
+  "features": "[\"fallback\"]",
+  "declared_features": "[\"fallback\"]",
+  "target": 13492157405369956366,
+  "profile": 2241668132362809309,
+  "path": 15991641344783775966,
+  "deps": [],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "debug/.fingerprint/iana-time-zone-e9a04407b57e84b2/dep-lib-iana_time_zone",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 2069994364910194474,
+  "compile_kind": 0
+}

@@ -1,4 +1,5 @@
-import { api } from '@/lib/axios';
+import { api } from "@/lib/axios";
+import { ResultAsync, ServiceError } from "@/lib/result";
 
 export interface ExchangeRate {
   id: string;
@@ -19,42 +20,23 @@ export interface ConversionResult {
   effectiveDate: string;
 }
 
-/**
- * Get exchange rate between two currencies
- */
-export async function getExchangeRate(
-  fromCurrency: string, 
-  toCurrency: string, 
-  date?: string
-): Promise<ExchangeRate | null> {
-  try {
-    const params = new URLSearchParams({
-      from: fromCurrency,
-      to: toCurrency,
-    });
-    
-    if (date) {
-      params.append('date', date);
-    }
+export function getExchangeRate(fromCurrency: string, toCurrency: string, date?: string) {
+  const params = new URLSearchParams({
+    from: fromCurrency,
+    to: toCurrency,
+  });
 
-    const response = await api.get(`/exchange-rates?${params.toString()}`);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching exchange rate:', error);
-    return null;
+  if (date) {
+    params.append("date", date);
   }
+
+  return ResultAsync.fromPromise(
+    api.get(`/exchange-rates?${params.toString()}`).then((res) => res.data),
+    ServiceError.fromAxiosError
+  );
 }
 
-/**
- * Convert amount between currencies
- */
-export async function convertCurrency(
-  amount: number,
-  fromCurrency: string,
-  toCurrency: string,
-  date?: string
-): Promise<ConversionResult | null> {
-  // If currencies are the same, no conversion needed
+export async function convertCurrency(amount: number, fromCurrency: string, toCurrency: string, date?: string): Promise<ConversionResult | null> {
   if (fromCurrency === toCurrency) {
     return {
       originalAmount: amount,
@@ -62,31 +44,28 @@ export async function convertCurrency(
       convertedAmount: amount,
       convertedCurrency: toCurrency,
       exchangeRate: 1.0,
-      effectiveDate: new Date().toISOString().split('T')[0],
+      effectiveDate: new Date().toISOString().split("T")[0],
     };
   }
 
-  try {
-    const exchangeRate = await getExchangeRate(fromCurrency, toCurrency, date);
-    
-    if (!exchangeRate) {
-      throw new Error(`Exchange rate not found for ${fromCurrency} to ${toCurrency}`);
-    }
+  const result = await getExchangeRate(fromCurrency, toCurrency, date);
 
-    const convertedAmount = amount * exchangeRate.rate;
-
-    return {
-      originalAmount: amount,
-      originalCurrency: fromCurrency,
-      convertedAmount,
-      convertedCurrency: toCurrency,
-      exchangeRate: exchangeRate.rate,
-      effectiveDate: exchangeRate.effective_date,
-    };
-  } catch (error) {
-    console.error('Error converting currency:', error);
+  if (result.isErr()) {
+    console.error("Error fetching exchange rate:", result.error);
     return null;
   }
+
+  const exchangeRate = result.value;
+  const convertedAmount = amount * exchangeRate.rate;
+
+  return {
+    originalAmount: amount,
+    originalCurrency: fromCurrency,
+    convertedAmount,
+    convertedCurrency: toCurrency,
+    exchangeRate: exchangeRate.rate,
+    effectiveDate: exchangeRate.effective_date,
+  };
 }
 
 /**
@@ -98,26 +77,20 @@ export async function convertMultipleCurrencies(
   date?: string
 ): Promise<Array<ConversionResult | null>> {
   const results: Array<ConversionResult | null> = [];
-  
+
   for (const { amount, currency } of amounts) {
     const result = await convertCurrency(amount, currency, targetCurrency, date);
     results.push(result);
   }
-  
+
   return results;
 }
 
-/**
- * Get latest exchange rates for a base currency
- */
-export async function getLatestExchangeRates(baseCurrency: string): Promise<ExchangeRate[]> {
-  try {
-    const response = await api.get(`/exchange-rates/latest?base=${baseCurrency}`);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching latest exchange rates:', error);
-    return [];
-  }
+export function getLatestExchangeRates(baseCurrency: string) {
+  return ResultAsync.fromPromise(
+    api.get(`/exchange-rates/latest?base=${baseCurrency}`).then((res) => res.data),
+    ServiceError.fromAxiosError
+  );
 }
 
 /**
@@ -130,39 +103,33 @@ export class CurrencyConverter {
   /**
    * Get cached exchange rate or fetch from API
    */
-  private async getCachedExchangeRate(
-    fromCurrency: string, 
-    toCurrency: string, 
-    date?: string
-  ): Promise<ExchangeRate | null> {
-    const cacheKey = `${fromCurrency}-${toCurrency}-${date || 'latest'}`;
+  private async getCachedExchangeRate(fromCurrency: string, toCurrency: string, date?: string): Promise<ExchangeRate | null> {
+    const cacheKey = `${fromCurrency}-${toCurrency}-${date || "latest"}`;
     const cached = this.exchangeRateCache.get(cacheKey);
-    
+
     if (cached && Date.now() - cached.timestamp < this.cacheExpiry) {
       return cached.rate;
     }
 
-    const rate = await getExchangeRate(fromCurrency, toCurrency, date);
-    
-    if (rate) {
-      this.exchangeRateCache.set(cacheKey, {
-        rate,
-        timestamp: Date.now()
-      });
+    const result = await getExchangeRate(fromCurrency, toCurrency, date);
+
+    if (result.isErr()) {
+      return null;
     }
-    
+
+    const rate = result.value;
+    this.exchangeRateCache.set(cacheKey, {
+      rate,
+      timestamp: Date.now(),
+    });
+
     return rate;
   }
 
   /**
    * Convert amount with caching
    */
-  async convert(
-    amount: number,
-    fromCurrency: string,
-    toCurrency: string,
-    date?: string
-  ): Promise<ConversionResult | null> {
+  async convert(amount: number, fromCurrency: string, toCurrency: string, date?: string): Promise<ConversionResult | null> {
     if (fromCurrency === toCurrency) {
       return {
         originalAmount: amount,
@@ -170,12 +137,12 @@ export class CurrencyConverter {
         convertedAmount: amount,
         convertedCurrency: toCurrency,
         exchangeRate: 1.0,
-        effectiveDate: new Date().toISOString().split('T')[0],
+        effectiveDate: new Date().toISOString().split("T")[0],
       };
     }
 
     const exchangeRate = await this.getCachedExchangeRate(fromCurrency, toCurrency, date);
-    
+
     if (!exchangeRate) {
       return null;
     }

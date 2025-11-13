@@ -11,6 +11,7 @@ import (
 	"github.com/Fantasy-Programming/nuts/server/internal/domain/mail"
 
 	"github.com/Fantasy-Programming/nuts/server/internal/domain/meta"
+	syncHandler "github.com/Fantasy-Programming/nuts/server/internal/domain/sync/handlers"
 	"github.com/Fantasy-Programming/nuts/server/internal/domain/tags"
 	"github.com/Fantasy-Programming/nuts/server/internal/domain/webhooks"
 
@@ -19,12 +20,16 @@ import (
 	ctgHandler "github.com/Fantasy-Programming/nuts/server/internal/domain/categories/handlers"
 	ctgRepo "github.com/Fantasy-Programming/nuts/server/internal/domain/categories/repository"
 	ctgService "github.com/Fantasy-Programming/nuts/server/internal/domain/categories/service"
+	migHandler "github.com/Fantasy-Programming/nuts/server/internal/domain/migration/handlers"
+	migRepo "github.com/Fantasy-Programming/nuts/server/internal/domain/migration/repository"
+	migService "github.com/Fantasy-Programming/nuts/server/internal/domain/migration/service"
 	trcHandler "github.com/Fantasy-Programming/nuts/server/internal/domain/transactions/handlers"
 	trcRepo "github.com/Fantasy-Programming/nuts/server/internal/domain/transactions/repository"
 	trcService "github.com/Fantasy-Programming/nuts/server/internal/domain/transactions/service"
 	usrHandler "github.com/Fantasy-Programming/nuts/server/internal/domain/user/handlers"
 	usrRepo "github.com/Fantasy-Programming/nuts/server/internal/domain/user/repository"
 	usrService "github.com/Fantasy-Programming/nuts/server/internal/domain/user/service"
+	"github.com/Fantasy-Programming/nuts/server/internal/repository"
 	"github.com/Fantasy-Programming/nuts/server/internal/utils/encrypt"
 
 	"github.com/Fantasy-Programming/nuts/server/internal/utils/respond"
@@ -38,6 +43,8 @@ func (s *Server) RegisterDomain() {
 	s.initTransaction()
 	s.initCategory()
 	s.initTags()
+	s.initSync()
+	s.initMigration()
 	s.initMeta()
 	s.initWebHooks()
 	s.initMail()
@@ -107,9 +114,25 @@ func (s *Server) initCategory() {
 	s.router.Mount("/categories", CategoryDomain)
 }
 
+func (s *Server) initMigration() {
+	migrationRepo := migRepo.NewRepository(s.db)
+	accountsRepo := accRepo.NewRepository(s.db)
+	categoriesRepo := ctgRepo.NewRepository(s.db)
+	transactionsRepo := trcRepo.NewRepository(s.db)
+	migrationService := migService.New(s.db, migrationRepo, accountsRepo, categoriesRepo, transactionsRepo, s.logger)
+	MigrationDomain := migHandler.RegisterHTTPHandlers(migrationService, s.validator, s.jwt, s.logger)
+	s.router.Mount("/migrate", MigrationDomain)
+}
+
 func (s *Server) initTags() {
-	TagsDomain := tags.RegisterHTTPHandlers(s.db, s.validator, s.logger)
+	TagsDomain := tags.RegisterHTTPHandlers()
 	s.router.Mount("/tags", TagsDomain)
+}
+
+func (s *Server) initSync() {
+	queries := repository.New(s.db)
+	SyncDomain := syncHandler.RegisterHTTPHandlers(queries, s.jwt, s.logger)
+	s.router.Mount("/sync", SyncDomain)
 }
 
 func (s *Server) initWebHooks() {

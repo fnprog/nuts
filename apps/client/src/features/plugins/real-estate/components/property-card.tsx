@@ -78,15 +78,15 @@ export const PropertyCard = React.memo(({ property }: PropertyCardProps) => {
                       <h3 className="font-semibold">Property Information</h3>
                       <div className="grid gap-2">
                         <div className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4 text-muted-foreground" />
+                          <MapPin className="text-muted-foreground h-4 w-4" />
                           <span>{property.address}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Building className="h-4 w-4 text-muted-foreground" />
+                          <Building className="text-muted-foreground h-4 w-4" />
                           <span>{property.propertyType}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                          <Calendar className="text-muted-foreground h-4 w-4" />
                           <span>Purchased: {property.purchaseDate}</span>
                         </div>
                       </div>
@@ -95,15 +95,15 @@ export const PropertyCard = React.memo(({ property }: PropertyCardProps) => {
                       <h3 className="font-semibold">Features</h3>
                       <div className="grid gap-2">
                         <div className="flex items-center gap-2">
-                          <Bed className="h-4 w-4 text-muted-foreground" />
+                          <Bed className="text-muted-foreground h-4 w-4" />
                           <span>{property.bedrooms} Bedrooms</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Bath className="h-4 w-4 text-muted-foreground" />
+                          <Bath className="text-muted-foreground h-4 w-4" />
                           <span>{property.bathrooms} Bathrooms</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Square className="h-4 w-4 text-muted-foreground" />
+                          <Square className="text-muted-foreground h-4 w-4" />
                           <span>{property.squareFeet} sq ft</span>
                         </div>
                       </div>
@@ -126,8 +126,8 @@ export const PropertyCard = React.memo(({ property }: PropertyCardProps) => {
                         <div className="flex items-center justify-between">
                           <span className="text-muted-foreground">Appreciation:</span>
                           <span className="font-medium text-green-500">
-                            +${(property.currentValue - property.purchasePrice).toLocaleString()}
-                            ({((property.currentValue / property.purchasePrice - 1) * 100).toFixed(1)}%)
+                            +${(property.currentValue - property.purchasePrice).toLocaleString()}(
+                            {((property.currentValue / property.purchasePrice - 1) * 100).toFixed(1)}%)
                           </span>
                         </div>
                       </div>
@@ -150,7 +150,7 @@ export const PropertyCard = React.memo(({ property }: PropertyCardProps) => {
                       </div>
                     </div>
                   </div>
-                  {property.type === 'rental' && (
+                  {property.type === "rental" && (
                     <div className="space-y-2 pt-4">
                       <h3 className="font-semibold">Rental Information</h3>
                       <div className="grid gap-4 md:grid-cols-2">
@@ -182,9 +182,7 @@ export const PropertyCard = React.memo(({ property }: PropertyCardProps) => {
                 </TabsContent>
                 <TabsContent value="documents" className="pt-4">
                   <div className="space-y-4">
-                    <p className="text-muted-foreground">
-                      Access and manage important documents related to this property.
-                    </p>
+                    <p className="text-muted-foreground">Access and manage important documents related to this property.</p>
                     <div className="grid gap-2">
                       <Button variant="outline" className="justify-start">
                         <Calendar className="mr-2 h-4 w-4" />
@@ -202,7 +200,7 @@ export const PropertyCard = React.memo(({ property }: PropertyCardProps) => {
                         <Calendar className="mr-2 h-4 w-4" />
                         Property Tax Records
                       </Button>
-                      {property.type === 'rental' && (
+                      {property.type === "rental" && (
                         <Button variant="outline" className="justify-start">
                           <Calendar className="mr-2 h-4 w-4" />
                           Lease Agreement
@@ -217,23 +215,23 @@ export const PropertyCard = React.memo(({ property }: PropertyCardProps) => {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="text-muted-foreground flex items-center gap-2 text-sm">
           <MapPin className="h-4 w-4" />
           <span className="line-clamp-1">{property.address}</span>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
-            <div className="text-sm text-muted-foreground">Value</div>
+            <div className="text-muted-foreground text-sm">Value</div>
             <div className="font-semibold">${property.currentValue.toLocaleString()}</div>
           </div>
-          {property.type === 'rental' ? (
+          {property.type === "rental" ? (
             <div className="space-y-1">
-              <div className="text-sm text-muted-foreground">Monthly Rent</div>
+              <div className="text-muted-foreground text-sm">Monthly Rent</div>
               <div className="font-semibold">${property.rental?.monthlyRent?.toLocaleString() || 0}</div>
             </div>
           ) : (
             <div className="space-y-1">
-              <div className="text-sm text-muted-foreground">Mortgage</div>
+              <div className="text-muted-foreground text-sm">Mortgage</div>
               <div className="font-semibold">${property.mortgage?.monthlyPayment.toLocaleString()}/mo</div>
             </div>
           )}

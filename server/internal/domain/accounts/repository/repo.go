@@ -9,6 +9,7 @@ import (
 	"github.com/Fantasy-Programming/nuts/server/internal/repository"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -16,6 +17,7 @@ type Account interface {
 	WithTx(tx pgx.Tx) Account
 
 	GetAccounts(ctx context.Context, userID uuid.UUID) ([]repository.GetAccountsRow, error)
+	GetAccountsSince(ctx context.Context, userID uuid.UUID, since time.Time) ([]repository.GetAccountsSinceRow, error)
 	GetAccountByID(ctx context.Context, id uuid.UUID) (repository.GetAccountByIdRow, error)
 	CreateAccount(ctx context.Context, args repository.CreateAccountParams) (repository.Account, error)
 
@@ -65,6 +67,16 @@ func (r *repo) WithTx(tx pgx.Tx) Account {
 
 func (r *repo) GetAccounts(ctx context.Context, userID uuid.UUID) ([]repository.GetAccountsRow, error) {
 	return r.queries.GetAccounts(ctx, &userID)
+}
+
+func (r *repo) GetAccountsSince(ctx context.Context, userID uuid.UUID, since time.Time) ([]repository.GetAccountsSinceRow, error) {
+	return r.queries.GetAccountsSince(ctx, repository.GetAccountsSinceParams{
+		UserID: &userID,
+		Since: pgtype.Timestamptz{
+			Time:  since,
+			Valid: true,
+		},
+	})
 }
 
 func (r *repo) GetAccountByID(ctx context.Context, id uuid.UUID) (repository.GetAccountByIdRow, error) {

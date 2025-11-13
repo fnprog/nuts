@@ -9,6 +9,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createCategory = `-- name: CreateCategory :one
@@ -166,6 +167,55 @@ RETURNING id, name, parent_id, is_default, created_by, updated_by, created_at, u
 func (q *Queries) DeleteCategory(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, deleteCategory, id)
 	return err
+}
+
+const getCategoriesSince = `-- name: GetCategoriesSince :many
+SELECT id, name, parent_id, is_default, created_by, updated_by, created_at, updated_at, deleted_at, type, color, icon
+FROM categories
+WHERE
+    created_by = $1
+    AND (
+        updated_at > $2
+        OR (deleted_at IS NOT NULL AND deleted_at > $2)
+    )
+`
+
+type GetCategoriesSinceParams struct {
+	UserID uuid.UUID          `json:"user_id"`
+	Since  pgtype.Timestamptz `json:"since"`
+}
+
+func (q *Queries) GetCategoriesSince(ctx context.Context, arg GetCategoriesSinceParams) ([]Category, error) {
+	rows, err := q.db.Query(ctx, getCategoriesSince, arg.UserID, arg.Since)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Category{}
+	for rows.Next() {
+		var i Category
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.ParentID,
+			&i.IsDefault,
+			&i.CreatedBy,
+			&i.UpdatedBy,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.Type,
+			&i.Color,
+			&i.Icon,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getCategoryById = `-- name: GetCategoryById :one

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createDefaultPreferences = `-- name: CreateDefaultPreferences :exec
@@ -90,6 +91,56 @@ func (q *Queries) GetPreferencesByUserId(ctx context.Context, userID uuid.UUID) 
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const getPreferencesSince = `-- name: GetPreferencesSince :many
+SELECT id, user_id, locale, theme, currency, created_at, updated_at, deleted_at, timezone, time_format, date_format, start_week_on_monday, dark_sidebar
+FROM preferences
+WHERE
+    user_id = $1
+    AND (
+        updated_at > $2
+        OR (deleted_at IS NOT NULL AND deleted_at > $2)
+    )
+`
+
+type GetPreferencesSinceParams struct {
+	UserID uuid.UUID          `json:"user_id"`
+	Since  pgtype.Timestamptz `json:"since"`
+}
+
+func (q *Queries) GetPreferencesSince(ctx context.Context, arg GetPreferencesSinceParams) ([]Preference, error) {
+	rows, err := q.db.Query(ctx, getPreferencesSince, arg.UserID, arg.Since)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Preference{}
+	for rows.Next() {
+		var i Preference
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Locale,
+			&i.Theme,
+			&i.Currency,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.Timezone,
+			&i.TimeFormat,
+			&i.DateFormat,
+			&i.StartWeekOnMonday,
+			&i.DarkSidebar,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listPreferences = `-- name: ListPreferences :many

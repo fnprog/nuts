@@ -4,59 +4,46 @@ import { AccountWTrend, AccountUpdate, GroupedAccount } from "../services/accoun
 import { useFormatting } from "@/lib/formatting";
 import { useTranslation } from "react-i18next";
 
-import {
-  CreditCard,
-  Wallet,
-  TrendingUp,
-  PiggyBank,
-  Building,
-  ChevronRight,
-  ChevronDown,
-  GripVertical,
-  MoreHorizontal,
-  Pencil,
-  Trash2
-} from "lucide-react"
+import { CreditCard, Wallet, TrendingUp, PiggyBank, Building, ChevronRight, ChevronDown, GripVertical, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/core/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/core/components/ui/avatar";
 import { Area, AreaChart, ResponsiveContainer } from "recharts";
 import { closestCenter, DndContext, DragEndEvent, DragOverlay, DragStartEvent, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { timeAgo, findAccountByIdFromGroups } from "./account.utils";
 import { DropdownMenu, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuContent, DropdownMenuTrigger } from "@/core/components/ui/dropdown-menu";
-import EditAccountModal from "./account.edit-modal"
-import DeleteAccountDialog from "./account.delete-dialog"
+import EditAccountModal from "./account.edit-modal";
+import DeleteAccountDialog from "./account.delete-dialog";
 import { useBrandImage } from "../hooks/useBrand";
-import { config } from "@/lib/env"
+import { config } from "@/lib/env";
 
 interface SortedInterfaceGroup {
-  type: "group",
-  group: GroupedAccount,
+  type: "group";
+  group: GroupedAccount;
 }
 
 interface SortedInterfaceAccount {
-  type: "account",
-  account: AccountWTrend,
-  groupId: string,
+  type: "account";
+  account: AccountWTrend;
+  groupId: string;
 }
 
 interface MiniChartInterface {
-  date: Date, balance: number
+  date: Date;
+  balance: number;
 }
 
-
 const MiniChart = memo(({ data }: { data: MiniChartInterface[] }) => {
-
   if (!data || data.length === 0) {
-    return <div className="h-8 w-20" />
+    return <div className="h-8 w-20" />;
   }
 
   // Format data for Recharts
-  const chartData = data.map((value) => ({ value: value.balance }))
+  const chartData = data.map((value) => ({ value: value.balance }));
 
-  const trend = data[data.length - 1].balance - data[0].balance
-  const strokeColor = trend >= 0 ? "rgb(16, 185, 129)" : "rgb(239, 68, 68)"
+  const trend = data[data.length - 1].balance - data[0].balance;
+  const strokeColor = trend >= 0 ? "rgb(16, 185, 129)" : "rgb(239, 68, 68)";
 
   return (
     <div className="h-8 w-20">
@@ -80,238 +67,210 @@ const MiniChart = memo(({ data }: { data: MiniChartInterface[] }) => {
         </AreaChart>
       </ResponsiveContainer>
     </div>
-  )
-})
+  );
+});
 
-export const HorizontalAccountCard = memo(({
-  account,
-  onEdit,
-  onDelete,
-  groupId,
-}: {
-  account: AccountWTrend
-  onEdit: () => void
-  onDelete: () => void
-  groupId: string
-}) => {
-  const { imageUrl } = useBrandImage(account?.meta?.institution_name || "", config.VITE_BRANDFETCH_CLIENTID);
-  const { formatCurrency } = useFormatting();
-  const { t } = useTranslation();
+export const HorizontalAccountCard = memo(
+  ({ account, onEdit, onDelete, groupId }: { account: AccountWTrend; onEdit: () => void; onDelete: () => void; groupId: string }) => {
+    const { imageUrl } = useBrandImage(account?.meta?.institution_name || "", config.VITE_BRANDFETCH_CLIENTID);
+    const { formatCurrency } = useFormatting();
+    const { t } = useTranslation();
 
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: account.id,
-    data: {
-      type: "account",
-      account,
-      groupId,
-    },
-  })
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+      id: account.id,
+      data: {
+        type: "account",
+        account,
+        groupId,
+      },
+    });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  }
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+      opacity: isDragging ? 0.5 : 1,
+    };
 
-  const getAccountIcon = useCallback((type: string) => {
-    switch (type.toLowerCase()) {
-      case "checking":
-        return <Building className="h-5 w-5 text-gray-500" />;
-      case "savings":
-        return <PiggyBank className="h-5 w-5 text-gray-500" />;
-      case "investment":
-        return <TrendingUp className="h-5 w-5 text-gray-500" />;
-      case "cash":
-        return <Wallet className="h-5 w-5 text-gray-500" />;
-      default:
-        return <CreditCard className="h-5 w-5 text-gray-500" />;
-    }
-  }, []);
+    const getAccountIcon = useCallback((type: string) => {
+      switch (type.toLowerCase()) {
+        case "checking":
+          return <Building className="h-5 w-5 text-gray-500" />;
+        case "savings":
+          return <PiggyBank className="h-5 w-5 text-gray-500" />;
+        case "investment":
+          return <TrendingUp className="h-5 w-5 text-gray-500" />;
+        case "cash":
+          return <Wallet className="h-5 w-5 text-gray-500" />;
+        default:
+          return <CreditCard className="h-5 w-5 text-gray-500" />;
+      }
+    }, []);
 
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={`group bg-card relative border-b last:border-b-0 transition-colors
-                ${isDragging ? "bg-muted shadow-lg rounded-lg z-10" : "hover:bg-muted/30"
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        className={`group bg-card relative border-b transition-colors last:border-b-0 ${
+          isDragging ? "bg-muted z-10 rounded-lg shadow-lg" : "hover:bg-muted/30"
         }`}
-    >
-      {/* Grid layout for consistent column alignment - responsive for mobile */}
-      <div className="grid grid-cols-12 items-center gap-2 sm:gap-4 p-3 sm:p-4">
-        <div
-          {...attributes}
-          {...listeners}
-          className="absolute -left-2 top-1/2 -translate-y-1/2 p-2 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity touch-none"
-        >
-          <GripVertical className="h-4 w-4 text-muted-foreground" />
-        </div>
-
-        {/* Account info - col span 6 on mobile, 5 on desktop */}
-        <div className="col-span-6 sm:col-span-5 flex items-center gap-2 sm:gap-3">
-          {account?.meta?.institution_name ? (
-            <Avatar className="h-8 w-8 sm:h-10 sm:w-10 rounded-full flex-shrink-0">
-              <AvatarImage src={imageUrl || "/placeholder.svg"} alt={account?.meta?.institution_name} />
-              <AvatarFallback className="rounded-full bg-primary/10 text-primary text-xs sm:text-sm">
-                {account?.meta?.institution_name.substring(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-          ) : (
-            <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full border bg-muted flex items-center justify-center flex-shrink-0">
-              {getAccountIcon(account.type)}
-            </div>
-          )}
-          <div className="min-w-0">
-            <h3 className="font-medium truncate text-sm sm:text-base">{account.name}</h3>
-            <p className="text-xs sm:text-sm text-muted-foreground truncate">{t(`accounts.types.${account.type}`)}</p>
+      >
+        {/* Grid layout for consistent column alignment - responsive for mobile */}
+        <div className="grid grid-cols-12 items-center gap-2 p-3 sm:gap-4 sm:p-4">
+          <div
+            {...attributes}
+            {...listeners}
+            className="absolute top-1/2 -left-2 -translate-y-1/2 cursor-grab touch-none p-2 opacity-0 transition-opacity group-hover:opacity-100 active:cursor-grabbing"
+          >
+            <GripVertical className="text-muted-foreground h-4 w-4" />
           </div>
-        </div>
 
-        {/* Mini chart - hidden on mobile, col span 3 on desktop */}
-        <div className="col-span-3 hidden md:block">
-          <MiniChart data={account.balance_timeseries || []} />
-        </div>
-
-        {/* Balance and trend - col span 5 on mobile, 3 on desktop */}
-        <div className="col-span-5 sm:col-span-3 flex flex-col items-end">
-          <div className="flex items-center gap-1 sm:gap-2">
-            <span className="font-semibold text-sm sm:text-base">
-              {/* Show account balance in the account's native currency */}
-              {formatCurrency(account.balance, account.currency)}
-            </span>
-          </div>
-          <p className="text-xs text-muted-foreground">{timeAgo(account.updated_at)}</p>
-        </div>
-
-        {/* Action button - col span 1 */}
-        <div className="col-span-1 flex justify-end">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={onEdit}>
-                <Pencil className="mr-2 h-4 w-4" />
-                {t('common.edit')}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
-                <Trash2 className="mr-2 h-4 w-4" />
-                {t('common.delete')}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-    </div>
-  )
-})
-
-
-export const AccountGroup = memo(({
-  group,
-  onEdit,
-  onDelete,
-  period
-}: {
-  group: GroupedAccount
-  period?: string
-  onEdit: (id: string) => void
-  onDelete: (id: string) => void
-}) => {
-  const [isExpanded, setIsExpanded] = useState(true)
-  const { formatCurrency } = useFormatting();
-  const { t } = useTranslation();
-
-
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: group.type,
-    data: {
-      type: "group",
-      group,
-    },
-  })
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.8 : 1,
-  }
-
-
-  const toggleExpanded = useCallback(() => {
-    setIsExpanded(prev => !prev);
-  }, []);
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={`border rounded-lg overflow-hidden mb-6 ${isDragging ? "shadow-xl z-10" : ""}`}
-    >
-      <div className="group relative flex items-center justify-between p-4 bg-card/90">
-        <div
-          {...attributes}
-          {...listeners}
-          className="absolute -left-2 top-1/2 -translate-y-1/2 p-2 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity touch-none"
-        >
-          <GripVertical className="h-4 w-4 text-muted-foreground" />
-        </div>
-        <div className="flex items-center gap-2">
-          <button onClick={toggleExpanded} className="flex items-center gap-2 flex-grow text-left">
-            {isExpanded ? (
-              <ChevronDown className="h-5 w-5 text-muted-foreground" />
+          {/* Account info - col span 6 on mobile, 5 on desktop */}
+          <div className="col-span-6 flex items-center gap-2 sm:col-span-5 sm:gap-3">
+            {account?.meta?.institution_name ? (
+              <Avatar className="h-8 w-8 flex-shrink-0 rounded-full sm:h-10 sm:w-10">
+                <AvatarImage src={imageUrl || "/placeholder.svg"} alt={account?.meta?.institution_name} />
+                <AvatarFallback className="bg-primary/10 text-primary rounded-full text-xs sm:text-sm">
+                  {account?.meta?.institution_name.substring(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
             ) : (
-              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              <div className="bg-muted flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border sm:h-10 sm:w-10">
+                {getAccountIcon(account.type)}
+              </div>
             )}
-            <h2 className="font-medium">{t(`accounts.types.${group.type}`)}</h2>
-            {group.trend !== 0 && (
-              <span
-                className={group.trend > 0 ? "text-emerald-600" : "text-red-600"}
-                style={{ fontSize: "0.9rem" }}
-              >
-                {group.trend > 0 ? "↑" : "↓"} <span className="hidden md:inline">{formatCurrency(Math.abs(group.trend))} (
-                  {Math.abs((group.trend / group.total) * 100).toFixed(1)}%)</span>
+            <div className="min-w-0">
+              <h3 className="truncate text-sm font-medium sm:text-base">{account.name}</h3>
+              <p className="text-muted-foreground truncate text-xs sm:text-sm">{t(`accounts.types.${account.type}`)}</p>
+            </div>
+          </div>
+
+          {/* Mini chart - hidden on mobile, col span 3 on desktop */}
+          <div className="col-span-3 hidden md:block">
+            <MiniChart data={account.balance_timeseries || []} />
+          </div>
+
+          {/* Balance and trend - col span 5 on mobile, 3 on desktop */}
+          <div className="col-span-5 flex flex-col items-end sm:col-span-3">
+            <div className="flex items-center gap-1 sm:gap-2">
+              <span className="text-sm font-semibold sm:text-base">
+                {/* Show account balance in the account's native currency */}
+                {formatCurrency(account.balance, account.currency)}
               </span>
-            )}
-            <span className="md:text-sm text-xs text-muted-foreground">{period}</span>
-          </button>
-        </div>
-        <div className="font-semibold text-sm md:text-md">
-          {/* Show group total in app currency (converted from account currencies) */}
-          {formatCurrency(group.total)}
+            </div>
+            <p className="text-muted-foreground text-xs">{timeAgo(account.updated_at)}</p>
+          </div>
+
+          {/* Action button - col span 1 */}
+          <div className="col-span-1 flex justify-end">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={onEdit}>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  {t("common.edit")}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  {t("common.delete")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
+    );
+  }
+);
 
-      {isExpanded && (
-        <div>
-          <SortableContext items={group.accounts.map((account) => account.id)} strategy={verticalListSortingStrategy}>
-            <div className="divide-y">
-              {group.accounts.map((account) => (
-                <HorizontalAccountCard
-                  key={account.id}
-                  account={account}
-                  onEdit={() => onEdit(account.id)}
-                  onDelete={() => onDelete(account.id)}
-                  groupId={group.type}
-                />
-              ))}
-            </div>
-          </SortableContext>
+export const AccountGroup = memo(
+  ({ group, onEdit, onDelete, period }: { group: GroupedAccount; period?: string; onEdit: (id: string) => void; onDelete: (id: string) => void }) => {
+    const [isExpanded, setIsExpanded] = useState(true);
+    const { formatCurrency } = useFormatting();
+    const { t } = useTranslation();
+
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+      id: group.type,
+      data: {
+        type: "group",
+        group,
+      },
+    });
+
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+      opacity: isDragging ? 0.8 : 1,
+    };
+
+    const toggleExpanded = useCallback(() => {
+      setIsExpanded((prev) => !prev);
+    }, []);
+
+    return (
+      <div ref={setNodeRef} style={style} className={`mb-6 overflow-hidden rounded-lg border ${isDragging ? "z-10 shadow-xl" : ""}`}>
+        <div className="group bg-card/90 relative flex items-center justify-between p-4">
+          <div
+            {...attributes}
+            {...listeners}
+            className="absolute top-1/2 -left-2 -translate-y-1/2 cursor-grab touch-none p-2 opacity-0 transition-opacity group-hover:opacity-100 active:cursor-grabbing"
+          >
+            <GripVertical className="text-muted-foreground h-4 w-4" />
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={toggleExpanded} className="flex flex-grow items-center gap-2 text-left">
+              {isExpanded ? <ChevronDown className="text-muted-foreground h-5 w-5" /> : <ChevronRight className="text-muted-foreground h-5 w-5" />}
+              <h2 className="font-medium">{t(`accounts.types.${group.type}`)}</h2>
+              {group.trend !== 0 && (
+                <span className={group.trend > 0 ? "text-emerald-600" : "text-red-600"} style={{ fontSize: "0.9rem" }}>
+                  {group.trend > 0 ? "↑" : "↓"}{" "}
+                  <span className="hidden md:inline">
+                    {formatCurrency(Math.abs(group.trend))} ({Math.abs((group.trend / group.total) * 100).toFixed(1)}%)
+                  </span>
+                </span>
+              )}
+              <span className="text-muted-foreground text-xs md:text-sm">{period}</span>
+            </button>
+          </div>
+          <div className="md:text-md text-sm font-semibold">
+            {/* Show group total in app currency (converted from account currencies) */}
+            {formatCurrency(group.total)}
+          </div>
         </div>
-      )}
-    </div>
-  )
-})
+
+        {isExpanded && (
+          <div>
+            <SortableContext items={group.accounts.map((account) => account.id)} strategy={verticalListSortingStrategy}>
+              <div className="divide-y">
+                {group.accounts.map((account) => (
+                  <HorizontalAccountCard
+                    key={account.id}
+                    account={account}
+                    onEdit={() => onEdit(account.id)}
+                    onDelete={() => onDelete(account.id)}
+                    groupId={group.type}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </div>
+        )}
+      </div>
+    );
+  }
+);
 
 const AccountDragOverlay = memo(({ account }: { account: AccountWTrend }) => {
   const { formatCurrency } = useFormatting();
-  
+
   return (
-    <div className="flex items-center justify-between p-4 border rounded-lg shadow-lg bg-white opacity-95 min-w-[300px]">
+    <div className="flex min-w-[300px] items-center justify-between rounded-lg border bg-white p-4 opacity-95 shadow-lg">
       <div className="flex items-center gap-3">
-        <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100">
           <CreditCard className="h-5 w-5 text-gray-500" />
         </div>
         <div>
@@ -319,49 +278,43 @@ const AccountDragOverlay = memo(({ account }: { account: AccountWTrend }) => {
           <p className="text-sm text-gray-500">{account.type}</p>
         </div>
       </div>
-      <div className="font-semibold">
-        {formatCurrency(account.balance, account.currency)}
-      </div>
+      <div className="font-semibold">{formatCurrency(account.balance, account.currency)}</div>
     </div>
   );
 });
 
 const GroupDragOverlay = memo(({ group }: { group: GroupedAccount }) => {
   const { formatCurrency } = useFormatting();
-  
+
   return (
-    <div className="border rounded-lg overflow-hidden mb-6 shadow-xl bg-white opacity-95 min-w-[400px]">
-      <div className="flex items-center justify-between p-4 bg-gray-50">
+    <div className="mb-6 min-w-[400px] overflow-hidden rounded-lg border bg-white opacity-95 shadow-xl">
+      <div className="flex items-center justify-between bg-gray-50 p-4">
         <div className="flex items-center gap-2">
           <h2 className="font-medium">{group.type}</h2>
         </div>
-        <div className="font-semibold">
-          {formatCurrency(group.total)}
-        </div>
+        <div className="font-semibold">{formatCurrency(group.total)}</div>
       </div>
     </div>
   );
 });
 
-
-
 export const DraggableAccountGroups = ({
   initialAccounts,
   onEdit,
   onDelete,
-  period
+  period,
 }: {
-  initialAccounts: GroupedAccount[]
-  onEdit: AccountUpdate
-  onDelete: (id: string) => void
-  period?: string
+  initialAccounts: GroupedAccount[];
+  onEdit: AccountUpdate;
+  onDelete: (id: string) => void;
+  period?: string;
 }) => {
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [selectedAccount, setSelectedAccount] = useState<AccountWTrend | null>(null)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState<AccountWTrend | null>(null);
 
-  const [groups, setGroups] = useState<GroupedAccount[]>(initialAccounts)
-  const [activeItem, setActiveItem] = useState<SortedInterfaceAccount | SortedInterfaceGroup | null>(null)
+  const [groups, setGroups] = useState<GroupedAccount[]>(initialAccounts);
+  const [activeItem, setActiveItem] = useState<SortedInterfaceAccount | SortedInterfaceGroup | null>(null);
 
   // Configure sensors for drag detection
   const sensors = useSensors(
@@ -372,18 +325,15 @@ export const DraggableAccountGroups = ({
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    }),
-  )
-
+    })
+  );
 
   // For the sortable context
-  const groupIds = useMemo(() => groups.map((group) => group.type), [groups])
-
-
+  const groupIds = useMemo(() => groups.map((group) => group.type), [groups]);
 
   // Load saved order from localStorage on component mount
   useEffect(() => {
-    const savedGroups = localStorage.getItem("accountGroups")
+    const savedGroups = localStorage.getItem("accountGroups");
     if (savedGroups) {
       try {
         const savedOrder = JSON.parse(savedGroups);
@@ -404,9 +354,7 @@ export const DraggableAccountGroups = ({
           const savedAccounts = localStorage.getItem(`accounts-${groupId}`);
           if (savedAccounts) {
             const accountOrder = JSON.parse(savedAccounts);
-            const reorderedAccounts = accountOrder
-              .map((accountId: string) => group.accounts.find((a) => a.id === accountId))
-              .filter(Boolean); // filter(Boolean) removes nulls/undefined
+            const reorderedAccounts = accountOrder.map((accountId: string) => group.accounts.find((a) => a.id === accountId)).filter(Boolean); // filter(Boolean) removes nulls/undefined
 
             const newAccounts = group.accounts.filter((a) => !accountOrder.includes(a.id));
 
@@ -425,7 +373,7 @@ export const DraggableAccountGroups = ({
         // --- END OF CHANGE ---
 
         // Add any new groups that weren't in the saved order
-        const existingGroupIds = reorderedGroups.map(g => g.type);
+        const existingGroupIds = reorderedGroups.map((g) => g.type);
         const newGroups = initialAccounts.filter((g) => !existingGroupIds.includes(g.type));
 
         setGroups([...reorderedGroups, ...newGroups]);
@@ -436,95 +384,91 @@ export const DraggableAccountGroups = ({
     } else {
       setGroups(initialAccounts);
     }
-  }, [initialAccounts])
+  }, [initialAccounts]);
 
   // Handle drag start
   const handleDragStart = useCallback((event: DragStartEvent) => {
-    const { active } = event
-    setActiveItem(active.data.current as SortedInterfaceAccount | SortedInterfaceGroup)
-  }, [])
+    const { active } = event;
+    setActiveItem(active.data.current as SortedInterfaceAccount | SortedInterfaceGroup);
+  }, []);
 
   // Handle drag end
-  const handleDragEnd = useCallback((event: DragEndEvent) => {
-    const { active, over } = event
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
 
-    if (!over) return
+      if (!over) return;
 
-    // Handle group reordering
-    if (active.data.current?.type === "group" && over.data.current?.type === "group") {
-      const oldIndex = groups.findIndex((group) => group.type === active.id)
-      const newIndex = groups.findIndex((group) => group.type === over.id)
-
-      if (oldIndex !== newIndex) {
-        const newGroups = arrayMove(groups, oldIndex, newIndex)
-        setGroups(newGroups)
-
-        // Save group order to localStorage
-        const groupIds = newGroups.map((g) => g.type)
-        localStorage.setItem("accountGroups", JSON.stringify(groupIds))
-      }
-    }
-
-    // Handle account reordering within a group
-    if (active.data.current?.type === "account" && over.data.current?.type === "account") {
-      const activeGroupId = active.data.current.groupId
-      const overGroupId = over.data.current.groupId
-
-      // If moving within the same group
-      if (activeGroupId === overGroupId) {
-        const groupIndex = groups.findIndex((g) => g.type === activeGroupId)
-        const accounts = [...groups[groupIndex].accounts]
-
-        const oldIndex = accounts.findIndex((account) => account.id === active.id)
-        const newIndex = accounts.findIndex((account) => account.id === over.id)
+      // Handle group reordering
+      if (active.data.current?.type === "group" && over.data.current?.type === "group") {
+        const oldIndex = groups.findIndex((group) => group.type === active.id);
+        const newIndex = groups.findIndex((group) => group.type === over.id);
 
         if (oldIndex !== newIndex) {
-          const newAccounts = arrayMove(accounts, oldIndex, newIndex)
-          const newGroups = [...groups]
-          newGroups[groupIndex] = {
-            ...newGroups[groupIndex],
-            accounts: newAccounts,
-          }
+          const newGroups = arrayMove(groups, oldIndex, newIndex);
+          setGroups(newGroups);
 
-          setGroups(newGroups)
-
-          // Save account order to localStorage
-          const accountIds = newAccounts.map((a) => a.id)
-          localStorage.setItem(`accounts-${activeGroupId}`, JSON.stringify(accountIds))
+          // Save group order to localStorage
+          const groupIds = newGroups.map((g) => g.type);
+          localStorage.setItem("accountGroups", JSON.stringify(groupIds));
         }
       }
-    }
 
-    setActiveItem(null)
-  }, [groups]);
+      // Handle account reordering within a group
+      if (active.data.current?.type === "account" && over.data.current?.type === "account") {
+        const activeGroupId = active.data.current.groupId;
+        const overGroupId = over.data.current.groupId;
 
+        // If moving within the same group
+        if (activeGroupId === overGroupId) {
+          const groupIndex = groups.findIndex((g) => g.type === activeGroupId);
+          const accounts = [...groups[groupIndex].accounts];
+
+          const oldIndex = accounts.findIndex((account) => account.id === active.id);
+          const newIndex = accounts.findIndex((account) => account.id === over.id);
+
+          if (oldIndex !== newIndex) {
+            const newAccounts = arrayMove(accounts, oldIndex, newIndex);
+            const newGroups = [...groups];
+            newGroups[groupIndex] = {
+              ...newGroups[groupIndex],
+              accounts: newAccounts,
+            };
+
+            setGroups(newGroups);
+
+            // Save account order to localStorage
+            const accountIds = newAccounts.map((a) => a.id);
+            localStorage.setItem(`accounts-${activeGroupId}`, JSON.stringify(accountIds));
+          }
+        }
+      }
+
+      setActiveItem(null);
+    },
+    [groups]
+  );
 
   const handleEditAccount = (id: string) => {
-    const account = findAccountByIdFromGroups(initialAccounts, id)
+    const account = findAccountByIdFromGroups(initialAccounts, id);
 
     if (account) {
-      setSelectedAccount(account)
-      setIsEditModalOpen(true)
+      setSelectedAccount(account);
+      setIsEditModalOpen(true);
     }
-  }
+  };
 
   const openDeleteDialog = (id: string) => {
-    const account = findAccountByIdFromGroups(initialAccounts, id)
+    const account = findAccountByIdFromGroups(initialAccounts, id);
 
     if (account) {
-      setSelectedAccount(account)
-      setIsDeleteDialogOpen(true)
+      setSelectedAccount(account);
+      setIsDeleteDialogOpen(true);
     }
-  }
-
+  };
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <SortableContext items={groupIds} strategy={verticalListSortingStrategy}>
         <div>
           {groups.map((group, id) => (
@@ -535,36 +479,17 @@ export const DraggableAccountGroups = ({
 
       {/* Drag overlay for visual feedback during dragging */}
       <DragOverlay adjustScale={false} dropAnimation={null}>
-        {activeItem?.type === "group" && activeItem.group && (
-          <GroupDragOverlay group={activeItem.group} />
-        )}
-        {activeItem?.type === "account" && activeItem.account && (
-          <AccountDragOverlay account={activeItem.account} />
-        )}
+        {activeItem?.type === "group" && activeItem.group && <GroupDragOverlay group={activeItem.group} />}
+        {activeItem?.type === "account" && activeItem.account && <AccountDragOverlay account={activeItem.account} />}
       </DragOverlay>
 
       {selectedAccount && (
-        <EditAccountModal
-          isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
-          account={selectedAccount}
-          onUpdateAccount={onEdit}
-        />
+        <EditAccountModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} account={selectedAccount} onUpdateAccount={onEdit} />
       )}
 
-      <DeleteAccountDialog
-        isOpen={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
-        account={selectedAccount}
-        onDeleteAccount={onDelete}
-      />
+      <DeleteAccountDialog isOpen={isDeleteDialogOpen} onClose={() => setIsDeleteDialogOpen(false)} account={selectedAccount} onDeleteAccount={onDelete} />
     </DndContext>
-  )
-}
+  );
+};
 
-
-
-
-export const PortfolioSummary = () => {
-
-}
+export const PortfolioSummary = () => {};

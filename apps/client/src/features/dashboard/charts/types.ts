@@ -1,7 +1,7 @@
 // features/dashboard/charts/types.ts
 
-import type { ComponentType } from 'react';
-import type { ChartSize } from '@/features/dashboard/components/chart-card'; // Assuming ChartSize is defined here
+import type { ComponentType } from "react";
+import type { ChartSize } from "@/features/dashboard/components/chart-card"; // Assuming ChartSize is defined here
 
 // Static configuration exported by each chart module's index.ts
 export interface DashboardChartModuleConfig {

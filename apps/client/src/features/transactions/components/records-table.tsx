@@ -1,4 +1,4 @@
-import { useMemo, useState, Fragment, useCallback, memo } from "react"
+import { useMemo, useState, Fragment, useCallback, memo } from "react";
 import {
   type ColumnFiltersState,
   Row,
@@ -8,8 +8,8 @@ import {
   getFilteredRowModel,
   getSortedRowModel,
   useReactTable,
-} from "@tanstack/react-table"
-import { Link } from "@tanstack/react-router"
+} from "@tanstack/react-table";
+import { Link } from "@tanstack/react-router";
 
 import { ChevronDown, ChevronRight, Plus, Minus, Search, Loader2 } from "lucide-react"
 import { Button } from "@/core/components/ui/button"
@@ -34,12 +34,12 @@ import { logger } from "@/lib/logger"
 import { toast } from "sonner"
 import { TransactionFilterDropdown, type TransactionFilterState } from "./transaction-filter-dropdown"
 import { getTransactionStatus, getTransactionStyles } from "../utils/transaction-status"
+import { transactionService } from "@/features/transactions/services/transaction.service";
 
 interface RecordsTableProps {
   initialPage: number;
   onPageChange: (newPage: number) => void;
 }
-
 
 
 const MemoizedTransactionCard = memo(({
@@ -55,7 +55,7 @@ const MemoizedTransactionCard = memo(({
 }) => {
   const status = getTransactionStatus(transaction);
   const styles = getTransactionStyles(transaction);
-  
+
   return (
     <Card key={transaction.id} className={`${row.getIsSelected() ? "border-primary" : ""} ${styles.borderClass}`}>
       <CardContent className={`p-3 ${styles.containerClass}`}>
@@ -112,29 +112,25 @@ const MemoizedTransactionCard = memo(({
   );
 });
 
-
-export const RecordsTable = ({
-  initialPage,
-  onPageChange
-}: RecordsTableProps) => {
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [rowSelection, setRowSelection] = useState({})
-  const [openGroups, setOpenGroups] = useState<Set<string>>(new Set())
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [deletingTransactionId, setDeletingTransactionId] = useState<string | string[] | null>(null)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+export const RecordsTable = ({ initialPage, onPageChange }: RecordsTableProps) => {
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [rowSelection, setRowSelection] = useState({});
+  const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [deletingTransactionId, setDeletingTransactionId] = useState<string | string[] | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
-  const [isEditSheetOpen, setIsEditSheetOpen] = useState(false)
-  const [isBulkEditDialogOpen, setIsBulkEditDialogOpen] = useState(false)
+  const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
+  const [isBulkEditDialogOpen, setIsBulkEditDialogOpen] = useState(false);
 
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 500);
 
   // Transaction filters state
-  const [filters, setFilters] = useState<TransactionFilterState>({})
+  const [filters, setFilters] = useState<TransactionFilterState>({});
   const debouncedFilters = useDebounce(filters, 500);
 
-  const isMobile = useIsMobile()
+  const isMobile = useIsMobile();
   const queryClient = useQueryClient();
 
   // Build query parameters
@@ -173,11 +169,11 @@ export const RecordsTable = ({
     }
 
     if (debouncedFilters.start_date) {
-      params.start_date = debouncedFilters.start_date.toISOString().split('T')[0];
+      params.start_date = debouncedFilters.start_date.toISOString().split("T")[0];
     }
 
     if (debouncedFilters.end_date) {
-      params.end_date = debouncedFilters.end_date.toISOString().split('T')[0];
+      params.end_date = debouncedFilters.end_date.toISOString().split("T")[0];
     }
 
     return params;
@@ -185,14 +181,21 @@ export const RecordsTable = ({
 
   const { data: transactions, isFetching } = useSuspenseQuery({
     queryKey: ["transactions", queryParams],
-    queryFn: () => getTransactions(queryParams),
+    queryFn: async () => {
+      const result = await transactionService.getTransactions(queryParams);
+      if (result.isErr()) throw result.error;
+      return result.value;
+    },
   });
 
-
   const bulkDeleteMutation = useMutation({
-    mutationFn: (ids: string[]) => bulkDeleteTransactions(ids),
+    mutationFn: async (ids: string[]) => {
+      const result = await transactionService.bulkDeleteTransactions(ids);
+      if (result.isErr()) throw result.error;
+      return result.value;
+    },
     onSuccess: (_, ids) => {
-      toast.success(`${ids.length} transaction${ids.length > 1 ? 's' : ''} deleted successfully!`);
+      toast.success(`${ids.length} transaction${ids.length > 1 ? "s" : ""} deleted successfully!`);
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       table.resetRowSelection();
     },
@@ -202,18 +205,15 @@ export const RecordsTable = ({
     },
   });
 
-
   const groups: TableRecordsArraySchema = useMemo(() => {
     if (!transactions?.data) return [];
     return transactions.data as TableRecordsArraySchema;
-
   }, [transactions?.data]);
 
   const allTransactions = useMemo(() => {
     if (!groups.length) return [];
     return groups.flatMap((group) => group.transactions);
   }, [groups]);
-
 
   // Create a transaction ID to row index map for O(1) lookups
   const transactionRowMap = useMemo(() => {
@@ -224,15 +224,16 @@ export const RecordsTable = ({
     return map;
   }, [allTransactions]);
 
-
-
   // Stable callback handlers
-  const handleOpenEditSheet = useCallback((txn: TableRecordSchema) => {
-    queryClient.setQueryData(["transaction", txn.id], txn);
+  const handleOpenEditSheet = useCallback(
+    (txn: TableRecordSchema) => {
+      queryClient.setQueryData(["transaction", txn.id], txn);
 
-    setEditingTransactionId(txn.id);
-    setIsEditSheetOpen(true);
-  }, [queryClient]);
+      setEditingTransactionId(txn.id);
+      setIsEditSheetOpen(true);
+    },
+    [queryClient]
+  );
 
   // const handleOpenDeleteDialog = useCallback((transaction: RecordSchema) => {
   //   setDeletingTransaction(transaction);
@@ -241,9 +242,10 @@ export const RecordsTable = ({
 
   // Memoized columns with stable callbacks
   const columns = useMemo(
-    () => getRecordsTableColumns({
-      onEdit: handleOpenEditSheet,
-    }),
+    () =>
+      getRecordsTableColumns({
+        onEdit: handleOpenEditSheet,
+      }),
     [handleOpenEditSheet]
   );
 
@@ -277,25 +279,22 @@ export const RecordsTable = ({
     });
   }, []);
 
-
   const toggleAllGroups = useCallback(() => {
     if (openGroups.size === groups.length) {
-      setOpenGroups(new Set())
+      setOpenGroups(new Set());
     } else {
-      setOpenGroups(new Set(groups.map((g) => g.id)))
+      setOpenGroups(new Set(groups.map((g) => g.id)));
     }
-  }, [groups, openGroups.size])
-
-
+  }, [groups, openGroups.size]);
 
   const handleDeleteSelectedRows = useCallback(async () => {
-    const selectedRowOriginals = table.getFilteredSelectedRowModel().rows.map(row => row.original as ExtendedRecordSchema);
-    const idsToDelete = selectedRowOriginals.map(t => t.id);
+    const selectedRowOriginals = table.getFilteredSelectedRowModel().rows.map((row) => row.original as ExtendedRecordSchema);
+    const idsToDelete = selectedRowOriginals.map((t) => t.id);
     if (idsToDelete.length > 0) {
       try {
         await bulkDeleteMutation.mutateAsync(idsToDelete);
       } catch (error) {
-        logger.error("Failed to delete selected transactions:", { origianlError: error })
+        logger.error("Failed to delete selected transactions:", { origianlError: error });
       }
     }
   }, [table, bulkDeleteMutation]);
@@ -303,7 +302,6 @@ export const RecordsTable = ({
   const handleEditSelectedRows = useCallback(() => {
     setIsBulkEditDialogOpen(true);
   }, []);
-
 
   const handleClearSelection = useCallback(() => {
     table.resetRowSelection();
@@ -318,18 +316,17 @@ export const RecordsTable = ({
     setFilters({});
   }, []);
 
-
   // Optimized row finding function
-  const findRowByTransactionId = useCallback((transactionId: string) => {
-    const index = transactionRowMap.get(transactionId);
-    if (index !== undefined) {
-      return table.getRowModel().rows[index];
-    }
-    return undefined;
-  }, [transactionRowMap, table]);
-
-
-
+  const findRowByTransactionId = useCallback(
+    (transactionId: string) => {
+      const index = transactionRowMap.get(transactionId);
+      if (index !== undefined) {
+        return table.getRowModel().rows[index];
+      }
+      return undefined;
+    },
+    [transactionRowMap, table]
+  );
 
   const page = transactions?.pagination.page ?? 1;
   const totalPages = transactions?.pagination.total_pages ?? 1;
@@ -340,25 +337,19 @@ export const RecordsTable = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-1 items-center space-x-2">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
             <Input
               placeholder="Search transactions..."
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              className="max-w-full bg-card md:max-w-full pl-10"
+              className="bg-card max-w-full pl-10 md:max-w-full"
             />
-            {isFetching && (
-              <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
-            )}
+            {isFetching && <Loader2 className="text-muted-foreground absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 transform animate-spin" />}
           </div>
-          <TransactionFilterDropdown
-            filters={filters}
-            onFiltersChange={handleFiltersChange}
-            onClearAll={handleClearAllFilters}
-          />
+          <TransactionFilterDropdown filters={filters} onFiltersChange={handleFiltersChange} onClearAll={handleClearAllFilters} />
         </div>
       </div>
 
@@ -366,203 +357,177 @@ export const RecordsTable = ({
       <div>
         {/* Mobile View */}
         {isMobile ? (
-        <div className="space-y-4">
-          {groups.map((group) => (
-            <div key={group.id} className="border rounded-md overflow-hidden">
-              <div
-                className="bg-muted/50 p-3 flex items-center justify-between cursor-pointer"
-                onClick={() => toggleGroup(group.id)}
-              >
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    checked={group.transactions.every((t) => {
-                      const row = findRowByTransactionId(t.id);
-                      return row?.getIsSelected() ?? false;
-                    })}
-                    onCheckedChange={(value) => {
-                      group.transactions.forEach((t) => {
+          <div className="space-y-4">
+            {groups.map((group) => (
+              <div key={group.id} className="overflow-hidden rounded-md border">
+                <div className="bg-muted/50 flex cursor-pointer items-center justify-between p-3" onClick={() => toggleGroup(group.id)}>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={group.transactions.every((t) => {
                         const row = findRowByTransactionId(t.id);
-                        if (row) {
-                          row.toggleSelected(!!value);
-                        }
-                      });
-                    }}
-                    aria-label={`Select group ${group.id}`}
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                  <div className="font-medium">{formatDate(group.date)}</div>
+                        return row?.getIsSelected() ?? false;
+                      })}
+                      onCheckedChange={(value) => {
+                        group.transactions.forEach((t) => {
+                          const row = findRowByTransactionId(t.id);
+                          if (row) {
+                            row.toggleSelected(!!value);
+                          }
+                        });
+                      }}
+                      aria-label={`Select group ${group.id}`}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <div className="font-medium">{formatDate(group.date)}</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="font-medium">{formatCurrency(group.total)}</div>
+                    {openGroups.has(group.id) ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="font-medium">{formatCurrency(group.total)}</div>
-                  {openGroups.has(group.id) ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-                </div>
+
+                {openGroups.has(group.id) && (
+                  <div className="space-y-2 p-2">
+                    {group.transactions.map((transaction) => {
+                      const row = findRowByTransactionId(transaction.id);
+                      if (!row) return null;
+
+                      return (
+                        <MemoizedTransactionCard
+                          onEdit={handleOpenEditSheet}
+                          key={transaction.id}
+                          transaction={transaction}
+                          row={row}
+                          formatCurrency={formatCurrency}
+                        />
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-
-              {openGroups.has(group.id) && (
-                <div className="p-2 space-y-2">
-                  {group.transactions.map((transaction) => {
-                    const row = findRowByTransactionId(transaction.id);
-                    if (!row) return null;
-
-                    return (
-                      <MemoizedTransactionCard
-                        onEdit={handleOpenEditSheet}
-                        key={transaction.id}
-                        transaction={transaction}
-                        row={row}
-                        formatCurrency={formatCurrency}
-                      />
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      ) : (
-        /* Desktop View */
-        <div className="rounded-md border">
-          <Table className="bg-white">
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.slice(1).map((header) => {
-                    return header.id === "description" ? (
-                      <TableHead key={header.id} style={{ width: header.getSize() + 30 }}>
-                        <div className="flex w-[50px] items-center space-x-2 pl-4">
-                          <div className="flex items-center space-x-1">
-                            <Checkbox
-                              checked={table.getIsAllPageRowsSelected()}
-                              onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                              aria-label="Select all"
-                              className="translate-y-[2px]"
-                            />
-                            <button onClick={toggleAllGroups} className="p-1">
-                              {openGroups.size === groups.length ? (
-                                <ChevronDown className="h-4 w-4" />
-                              ) : (
-                                <ChevronRight className="h-4 w-4" />
-                              )}
-                            </button>
+            ))}
+          </div>
+        ) : (
+          /* Desktop View */
+          <div className="rounded-md border">
+            <Table className="bg-white">
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.slice(1).map((header) => {
+                      return header.id === "description" ? (
+                        <TableHead key={header.id} style={{ width: header.getSize() + 30 }}>
+                          <div className="flex w-[50px] items-center space-x-2 pl-4">
+                            <div className="flex items-center space-x-1">
+                              <Checkbox
+                                checked={table.getIsAllPageRowsSelected()}
+                                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+                                aria-label="Select all"
+                                className="translate-y-[2px]"
+                              />
+                              <button onClick={toggleAllGroups} className="p-1">
+                                {openGroups.size === groups.length ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                              </button>
+                            </div>
+                            <span className="text-muted-foreground">
+                              {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                            </span>
                           </div>
-                          <span className="text-muted-foreground">
-                            {header.isPlaceholder
-                              ? null
-                              : flexRender(header.column.columnDef.header, header.getContext())}
-                          </span>
-                        </div>
-                      </TableHead>
-                    ) : (
-                      <TableHead key={header.id} style={{ width: header.getSize() }} className="text-muted-foreground">
-                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                      </TableHead>
-                    )
-                  })}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {groups.map((group) => (
-                <Fragment key={`group-${group.id}`}>
-                  <TableRow key={`group-header-${group.id}`}>
-                    <TableCell colSpan={table.getVisibleLeafColumns().length} className="p-0">
-                      <div className="bg-white mx-2 my-1 rounded-md border">
-                        <div className="bg-muted flex items-center p-2">
-                          <div className="flex  items-center space-x-1 pl-2">
-                            <Checkbox
-                              checked={group.transactions.every((t) => {
-                                const row = findRowByTransactionId(t.id);
-                                return row?.getIsSelected() ?? false;
-                              })}
-                              onCheckedChange={(value) =>
-                                group.transactions.forEach((t) => {
+                        </TableHead>
+                      ) : (
+                        <TableHead key={header.id} style={{ width: header.getSize() }} className="text-muted-foreground">
+                          {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                        </TableHead>
+                      );
+                    })}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {groups.map((group) => (
+                  <Fragment key={`group-${group.id}`}>
+                    <TableRow key={`group-header-${group.id}`}>
+                      <TableCell colSpan={table.getVisibleLeafColumns().length} className="p-0">
+                        <div className="mx-2 my-1 rounded-md border bg-white">
+                          <div className="bg-muted flex items-center p-2">
+                            <div className="flex items-center space-x-1 pl-2">
+                              <Checkbox
+                                checked={group.transactions.every((t) => {
                                   const row = findRowByTransactionId(t.id);
-                                  if (row) {
-                                    row.toggleSelected(!!value);
-                                  }
-                                })
-                              }
-                              aria-label={`Select group ${group.id}`}
-                              className="translate-y-[2px]"
-                            />
-                            <button onClick={() => toggleGroup(group.id)} className="p-1">
-                              {openGroups.has(group.id) ? (
-                                <ChevronDown className="h-4 w-4" />
-                              ) : (
-                                <ChevronRight className="h-4 w-4" />
-                              )}
-                            </button>
+                                  return row?.getIsSelected() ?? false;
+                                })}
+                                onCheckedChange={(value) =>
+                                  group.transactions.forEach((t) => {
+                                    const row = findRowByTransactionId(t.id);
+                                    if (row) {
+                                      row.toggleSelected(!!value);
+                                    }
+                                  })
+                                }
+                                aria-label={`Select group ${group.id}`}
+                                className="translate-y-[2px]"
+                              />
+                              <button onClick={() => toggleGroup(group.id)} className="p-1">
+                                {openGroups.has(group.id) ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                              </button>
+                            </div>
+                            <div className="flex-1 font-medium">{formatDate(group.date)}</div>
+                            <div className="mr-4 text-right font-medium">{formatCurrency(group.total)}</div>
                           </div>
-                          <div className="flex-1 font-medium">{formatDate(group.date)}</div>
-                          <div className="mr-4 text-right font-medium">{formatCurrency(group.total)}</div>
+
+                          {openGroups.has(group.id) && (
+                            <Table>
+                              <TableBody>
+                                {group.transactions.map((transaction) => {
+                                  const row = findRowByTransactionId(transaction.id);
+                                  if (!row) return null;
+
+                                  return (
+                                    <TableRow key={`transaction-row-${transaction.id}`} data-state={row.getIsSelected() && "selected"}>
+                                      {row.getVisibleCells().map((cell, cellIndex) => (
+                                        <TableCell
+                                          key={`cell-${cell.id}`}
+                                          style={{
+                                            width: cell.column.getSize(),
+                                          }}
+                                          className={cellIndex === 0 ? "pl-4" : ""}
+                                        >
+                                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                        </TableCell>
+                                      ))}
+                                    </TableRow>
+                                  );
+                                })}
+                              </TableBody>
+                            </Table>
+                          )}
                         </div>
-
-                        {openGroups.has(group.id) && (
-                          <Table>
-                            <TableBody>
-                              {group.transactions.map((transaction) => {
-                                const row = findRowByTransactionId(transaction.id);
-                                if (!row) return null;
-
-                                return (
-                                  <TableRow
-                                    key={`transaction-row-${transaction.id}`}
-                                    data-state={row.getIsSelected() && "selected"}
-                                  >
-                                    {row.getVisibleCells().map((cell, cellIndex) => (
-                                      <TableCell
-                                        key={`cell-${cell.id}`}
-                                        style={{
-                                          width: cell.column.getSize(),
-                                        }}
-                                        className={cellIndex === 0 ? "pl-4" : ""}
-                                      >
-                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                      </TableCell>
-                                    ))}
-                                  </TableRow>
-                                );
-                              })}
-                            </TableBody>
-                          </Table>
-                        )}
-                      </div>
+                      </TableCell>
+                    </TableRow>
+                  </Fragment>
+                ))}
+                {groups.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={columns.length} className="h-24 text-center">
+                      No results.
                     </TableCell>
                   </TableRow>
-                </Fragment>
-              ))}
-              {groups.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={columns.length} className="h-24 text-center">
-                    No results.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2 py-4">
-        <div className="text-muted-foreground text-sm order-2 sm:order-1 sm:flex-1">
+      <div className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-end">
+        <div className="text-muted-foreground order-2 text-sm sm:order-1 sm:flex-1">
           {table.getFilteredSelectedRowModel().rows.length} of {transactions?.pagination.total_items} row(s) selected.
         </div>
-        <div className="flex justify-between sm:justify-end space-x-2 order-1 sm:order-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onPageChange(page - 1)}
-            disabled={!canPreviousPage || isFetching}
-          >
+        <div className="order-1 flex justify-between space-x-2 sm:order-2 sm:justify-end">
+          <Button variant="outline" size="sm" onClick={() => onPageChange(page - 1)} disabled={!canPreviousPage || isFetching}>
             Previous
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onPageChange(page + 1)}
-            disabled={!canNextPage || isFetching}
-          >
+          <Button variant="outline" size="sm" onClick={() => onPageChange(page + 1)} disabled={!canNextPage || isFetching}>
             Next
           </Button>
         </div>
@@ -588,7 +553,7 @@ export const RecordsTable = ({
       <BulkEditDialog
         isOpen={isBulkEditDialogOpen}
         onClose={() => setIsBulkEditDialogOpen(false)}
-        selectedTransactions={selectedRows.map(row => row.original)}
+        selectedTransactions={selectedRows.map((row) => row.original)}
       />
 
       <EditTransactionSheet
@@ -601,6 +566,6 @@ export const RecordsTable = ({
       />
     </div>
   );
-}
+};
 
-export default RecordsTable
+export default RecordsTable;

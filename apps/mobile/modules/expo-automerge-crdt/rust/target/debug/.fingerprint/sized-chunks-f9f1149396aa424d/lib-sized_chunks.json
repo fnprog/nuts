@@ -1,0 +1,23 @@
+{
+  "rustc": 8022303366561187541,
+  "features": "[\"default\", \"std\"]",
+  "declared_features": "[\"arbitrary\", \"array-ops\", \"default\", \"refpool\", \"ringbuffer\", \"std\"]",
+  "target": 9431068675454771140,
+  "profile": 2241668132362809309,
+  "path": 4883416833624983225,
+  "deps": [
+    [857979250431893282, "typenum", false, 14574296039858038522],
+    [6373866573876774927, "bitmaps", false, 2233018930403732613]
+  ],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "debug/.fingerprint/sized-chunks-f9f1149396aa424d/dep-lib-sized_chunks",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 2069994364910194474,
+  "compile_kind": 0
+}

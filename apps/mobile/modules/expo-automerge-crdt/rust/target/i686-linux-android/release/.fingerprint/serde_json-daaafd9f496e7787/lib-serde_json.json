@@ -1,0 +1,26 @@
+{
+  "rustc": 8022303366561187541,
+  "features": "[\"default\", \"std\"]",
+  "declared_features": "[\"alloc\", \"arbitrary_precision\", \"default\", \"float_roundtrip\", \"indexmap\", \"preserve_order\", \"raw_value\", \"std\", \"unbounded_depth\"]",
+  "target": 9592559880233824070,
+  "profile": 12693162527509728243,
+  "path": 17147250187841156837,
+  "deps": [
+    [198136567835728122, "memchr", false, 5503262025455799855],
+    [1216309103264968120, "ryu", false, 4416949857552158801],
+    [7695812897323945497, "itoa", false, 13943027734557884399],
+    [11899261697793765154, "serde_core", false, 10107835982377707624],
+    [12832915883349295919, "build_script_build", false, 6192943056468590118]
+  ],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "i686-linux-android/release/.fingerprint/serde_json-daaafd9f496e7787/dep-lib-serde_json",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 10255546481339591553,
+  "compile_kind": 10878095854680285812
+}

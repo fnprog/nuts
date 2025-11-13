@@ -9,7 +9,7 @@ export interface Property {
   bedrooms: number;
   bathrooms: number;
   squareFeet: number;
-  type: 'primary' | 'rental';
+  type: "primary" | "rental";
   image: string;
   mortgage?: {
     loanAmount: number;

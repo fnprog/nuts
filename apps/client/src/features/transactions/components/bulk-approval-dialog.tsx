@@ -18,15 +18,15 @@ interface BulkApprovalDialogProps {
   pendingTransactions: TableRecordSchema[];
 }
 
-export function BulkApprovalDialog({ 
-  isOpen, 
-  onClose, 
-  pendingTransactions 
+export function BulkApprovalDialog({
+  isOpen,
+  onClose,
+  pendingTransactions
 }: BulkApprovalDialogProps) {
   const [selectedTransactions, setSelectedTransactions] = useState<Set<string>>(new Set());
   const [approvalMode, setApprovalMode] = useState<"all" | "small" | "selected">("selected");
   const [smallAmountThreshold] = useState(50);
-  
+
   const queryClient = useQueryClient();
 
   const bulkApproveMutation = useMutation({
@@ -50,7 +50,7 @@ export function BulkApprovalDialog({
   });
 
   const pendingOnly = pendingTransactions.filter(t => getTransactionStatus(t).isPending);
-  
+
   const smallTransactions = pendingOnly.filter(t => Math.abs(t.amount) < smallAmountThreshold);
   // const largeTransactions = pendingOnly.filter(t => Math.abs(t.amount) >= smallAmountThreshold);
 
@@ -73,7 +73,7 @@ export function BulkApprovalDialog({
       toast.error("No transactions selected for approval");
       return;
     }
-    
+
     bulkApproveMutation.mutate(transactionsToApprove.map(t => t.id));
   };
 
@@ -121,7 +121,7 @@ export function BulkApprovalDialog({
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
@@ -133,7 +133,7 @@ export function BulkApprovalDialog({
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
@@ -202,19 +202,18 @@ export function BulkApprovalDialog({
                 {selectedTransactions.size === pendingOnly.length ? "Deselect All" : "Select All"}
               </Button>
             </div>
-            
+
             <div className="max-h-96 overflow-y-auto space-y-2">
               {pendingOnly.map((transaction) => {
                 // const status = getTransactionStatus(transaction);
                 const isSelected = selectedTransactions.has(transaction.id);
                 const willBeApproved = getTransactionsToApprove().some(t => t.id === transaction.id);
-                
+
                 return (
                   <div
                     key={transaction.id}
-                    className={`flex items-center space-x-3 p-3 border rounded-lg ${
-                      willBeApproved ? "bg-green-50 border-green-200" : "bg-orange-50 border-orange-200"
-                    }`}
+                    className={`flex items-center space-x-3 p-3 border rounded-lg ${willBeApproved ? "bg-green-50 border-green-200" : "bg-orange-50 border-orange-200"
+                      }`}
                   >
                     <Checkbox
                       checked={isSelected}
@@ -274,7 +273,7 @@ export function BulkApprovalDialog({
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button 
+          <Button
             onClick={handleApprove}
             disabled={getTransactionsToApprove().length === 0 || bulkApproveMutation.isPending}
             className="bg-green-600 hover:bg-green-700"

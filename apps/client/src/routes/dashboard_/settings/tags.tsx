@@ -1,29 +1,39 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Plus } from "lucide-react";
+import { nanoid } from "nanoid";
 import { Button } from "@/core/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/core/components/ui/dialog";
 import { Input } from "@/core/components/ui/input";
 import { Label } from "@/core/components/ui/label";
-import IconPicker from "@/core/components/icon-picker";
+import { toast } from "sonner";
+import IconPicker from "@/core/components/ui/icon-picker";
 import { TagList } from "@/routes/dashboard_/settings/-components/tag-list";
 import { useCreateTagMutation } from "@/features/preferences/services/settings.queries";
-import { logger } from "@/lib/logger";
+import { H3 } from "@/core/components/ui/typography";
 
 export const Route = createFileRoute("/dashboard_/settings/tags")({
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const createTagMutation = useCreateTagMutation();
   const [isOpen, setIsOpen] = useState(false);
   const [newTag, setNewTag] = useState({ name: "", icon: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newTag.name && newTag.icon) {
       try {
-        await createTagMutation.mutateAsync(newTag);
+        setIsSubmitting(true);
+        const createResult = await crdtService.createTag({
+          id: nanoid(),
+          name: newTag.name,
+          icon: newTag.icon,
+        });
+        if (createResult.isErr()) {
+          throw new Error(createResult.error.message);
+        }
         setNewTag({ name: "", icon: "" });
         setIsOpen(false);
       } catch (error) {
@@ -35,7 +45,7 @@ function RouteComponent() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium">Tags</h3>
+        <H3 className="font-medium">Tags</H3>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button>

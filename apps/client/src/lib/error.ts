@@ -14,7 +14,7 @@ interface ApiRawErrorResponse {
 
 export interface ParsedApiError {
   userMessage: string;
-  type: 'validation' | 'common' | 'network' | 'client' | 'unknown';
+  type: "validation" | "common" | "network" | "client" | "unknown";
   validationErrors?: ValidationFieldError[];
   originalError: unknown;
   statusCode?: number;
@@ -30,7 +30,7 @@ export interface ParsedApiError {
  */
 export function parseApiError(error: unknown): ParsedApiError {
   let userMessage: string = "An unexpected error occurred. Please try again.";
-  let type: ParsedApiError['type'] = 'unknown';
+  let type: ParsedApiError["type"] = "unknown";
   let validationErrors: ValidationFieldError[] | undefined;
   let statusCode: number | undefined;
   let axiosErrorCode: string | undefined;
@@ -45,12 +45,12 @@ export function parseApiError(error: unknown): ParsedApiError {
 
       // Prioritize specific validation errors if they exist and are an array
       if (Array.isArray(apiResponseData.error) && apiResponseData.error.length > 0) {
-        type = 'validation';
+        type = "validation";
         validationErrors = apiResponseData.error;
         // Join multiple validation messages for a single, comprehensive string for generic display
-        userMessage = apiResponseData.error.map(err => err.message).join("\n");
+        userMessage = apiResponseData.error.map((err) => err.message).join("\n");
         // Fallback if for some reason the array was empty but 'error' property existed
-        if (userMessage.length === 0 && typeof apiResponseData.message === 'string') {
+        if (userMessage.length === 0 && typeof apiResponseData.message === "string") {
           userMessage = apiResponseData.message;
         } else if (userMessage.length === 0) {
           userMessage = "Validation failed with no specific error messages provided.";
@@ -58,30 +58,31 @@ export function parseApiError(error: unknown): ParsedApiError {
       }
 
       // Fallback to the top-level 'message' property if available (e.g., "User already exists")
-      else if (typeof apiResponseData.message === 'string' && apiResponseData.message.length > 0) {
-        type = 'common';
+      else if (typeof apiResponseData.message === "string" && apiResponseData.message.length > 0) {
+        type = "common";
         userMessage = apiResponseData.message;
       }
 
       // If it's an API error, but its structure doesn't match expected patterns
       else {
-        type = 'unknown'; // Axios error with response, but unexpected data structure
+        type = "unknown"; // Axios error with response, but unexpected data structure
         userMessage = apiResponseData.message || `An unknown API error occurred with status ${statusCode}.`;
       }
     } else if (error.request) {
       // The request was made but no response was received (e.g., network issues, CORS, timeout)
-      type = 'network';
-      userMessage = error.message === 'Network Error' // Axios's default network error message
-        ? "A network error occurred. Please check your internet connection."
-        : error.message || "The server could not be reached. Please try again later.";
+      type = "network";
+      userMessage =
+        error.message === "Network Error" // Axios's default network error message
+          ? "A network error occurred. Please check your internet connection."
+          : error.message || "The server could not be reached. Please try again later.";
     } else {
       // Something happened in setting up the request that triggered an Error (client-side Axios error)
-      type = 'client';
+      type = "client";
       userMessage = error.message || "An unexpected client-side error occurred during the request setup.";
     }
   } else if (error instanceof Error) {
     // A generic JavaScript Error object (e.g., a bug in client-side code, not an API/network issue)
-    type = 'client';
+    type = "client";
     userMessage = error.message || "An unexpected client-side error occurred.";
   }
   // If 'error' is not an Error object, it remains the default message and 'unknown' type.

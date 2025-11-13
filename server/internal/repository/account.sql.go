@@ -681,6 +681,97 @@ func (q *Queries) GetAccountsByConnectionID(ctx context.Context, arg GetAccounts
 	return items, nil
 }
 
+const getAccountsSince = `-- name: GetAccountsSince :many
+SELECT
+    id,
+    name,
+    type,
+    subtype,
+    balance,
+    currency,
+    is_external,
+    last_synced_at,
+    meta,
+    created_at,
+    updated_at,
+    deleted_at,
+    connection_id,
+    provider_name,
+    provider_account_id,
+    created_by,
+    updated_by
+FROM accounts
+WHERE
+    created_by = $1
+    AND (
+        updated_at > $2
+        OR (deleted_at IS NOT NULL AND deleted_at > $2)
+    )
+`
+
+type GetAccountsSinceParams struct {
+	UserID *uuid.UUID         `json:"user_id"`
+	Since  pgtype.Timestamptz `json:"since"`
+}
+
+type GetAccountsSinceRow struct {
+	ID                uuid.UUID       `json:"id"`
+	Name              string          `json:"name"`
+	Type              ACCOUNTTYPE     `json:"type"`
+	Subtype           *string         `json:"subtype"`
+	Balance           pgtype.Numeric  `json:"balance"`
+	Currency          string          `json:"currency"`
+	IsExternal        *bool           `json:"is_external"`
+	LastSyncedAt      *time.Time      `json:"last_synced_at"`
+	Meta              dto.AccountMeta `json:"meta"`
+	CreatedAt         time.Time       `json:"created_at"`
+	UpdatedAt         time.Time       `json:"updated_at"`
+	DeletedAt         *time.Time      `json:"deleted_at"`
+	ConnectionID      *uuid.UUID      `json:"connection_id"`
+	ProviderName      *string         `json:"provider_name"`
+	ProviderAccountID *string         `json:"provider_account_id"`
+	CreatedBy         *uuid.UUID      `json:"created_by"`
+	UpdatedBy         *uuid.UUID      `json:"updated_by"`
+}
+
+func (q *Queries) GetAccountsSince(ctx context.Context, arg GetAccountsSinceParams) ([]GetAccountsSinceRow, error) {
+	rows, err := q.db.Query(ctx, getAccountsSince, arg.UserID, arg.Since)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetAccountsSinceRow{}
+	for rows.Next() {
+		var i GetAccountsSinceRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Type,
+			&i.Subtype,
+			&i.Balance,
+			&i.Currency,
+			&i.IsExternal,
+			&i.LastSyncedAt,
+			&i.Meta,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.ConnectionID,
+			&i.ProviderName,
+			&i.ProviderAccountID,
+			&i.CreatedBy,
+			&i.UpdatedBy,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getAccountsWithTrend = `-- name: GetAccountsWithTrend :many
 WITH period AS (
     SELECT

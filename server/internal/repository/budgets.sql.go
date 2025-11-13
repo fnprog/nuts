@@ -63,6 +63,51 @@ func (q *Queries) CreateBudget(ctx context.Context, arg CreateBudgetParams) (Cre
 	return i, err
 }
 
+const getBudgetsSince = `-- name: GetBudgetsSince :many
+SELECT id, user_id, category_id, amount, start_date, end_date, frequency, created_at, updated_at, shared_finance_id, name
+FROM budgets
+WHERE
+    user_id = $1
+    AND updated_at > $2
+`
+
+type GetBudgetsSinceParams struct {
+	UserID uuid.UUID          `json:"user_id"`
+	Since  pgtype.Timestamptz `json:"since"`
+}
+
+func (q *Queries) GetBudgetsSince(ctx context.Context, arg GetBudgetsSinceParams) ([]Budget, error) {
+	rows, err := q.db.Query(ctx, getBudgetsSince, arg.UserID, arg.Since)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Budget{}
+	for rows.Next() {
+		var i Budget
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.CategoryID,
+			&i.Amount,
+			&i.StartDate,
+			&i.EndDate,
+			&i.Frequency,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.SharedFinanceID,
+			&i.Name,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateBudget = `-- name: UpdateBudget :exec
 UPDATE budgets
 SET

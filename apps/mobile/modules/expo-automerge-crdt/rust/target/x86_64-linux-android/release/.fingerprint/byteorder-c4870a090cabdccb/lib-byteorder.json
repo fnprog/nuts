@@ -1,0 +1,20 @@
+{
+  "rustc": 8022303366561187541,
+  "features": "[\"default\", \"std\"]",
+  "declared_features": "[\"default\", \"i128\", \"std\"]",
+  "target": 8344828840634961491,
+  "profile": 12693162527509728243,
+  "path": 17472321814162623442,
+  "deps": [],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "x86_64-linux-android/release/.fingerprint/byteorder-c4870a090cabdccb/dep-lib-byteorder",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 10255546481339591553,
+  "compile_kind": 13862352012247744383
+}

@@ -14,6 +14,11 @@
   };
 
 
+
+  languages.rust = {
+    enable = true;
+  };
+
   processes = {
     web-client.exec = "cd apps/client && pnpm run dev";
     web-marketing.exec = "cd apps/marketing && pnpm run dev";

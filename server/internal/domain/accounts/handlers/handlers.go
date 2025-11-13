@@ -374,19 +374,6 @@ func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) GetTrends(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	u, err := url.ParseQuery(r.URL.RawQuery)
-	if err != nil {
-		respond.Error(respond.ErrorOptions{
-			W:          w,
-			R:          r,
-			StatusCode: http.StatusBadRequest,
-			ClientErr:  message.ErrBadRequest,
-			ActualErr:  err,
-			Logger:     h.logger,
-			Details:    u,
-		})
-		return
-	}
 
 	userID, err := jwt.GetUserID(r)
 	if err != nil {
@@ -402,52 +389,9 @@ func (h *Handler) GetTrends(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	startDateStr := u.Get("start")
-	endDateStr := u.Get("end")
-
-	var startDate, endDate time.Time
-
-	if startDateStr != "" && endDateStr != "" {
-		startDate, err = time.Parse("2006-01-02", startDateStr)
-		if err != nil {
-			respond.Error(respond.ErrorOptions{
-				W:          w,
-				R:          r,
-				StatusCode: http.StatusBadRequest,
-				ClientErr:  accounts.ErrAccountQueryParamInvalid,
-				ActualErr:  err,
-				Logger:     h.logger,
-			})
-			return
-		}
-
-		endDate, err = time.Parse("2006-01-02", endDateStr)
-		if err != nil {
-			respond.Error(respond.ErrorOptions{
-				W:          w,
-				R:          r,
-				StatusCode: http.StatusBadRequest,
-				ClientErr:  accounts.ErrAccountQueryParamInvalid,
-				ActualErr:  err,
-				Logger:     h.logger,
-			})
-			return
-		}
-
-		// Ensure startDate is before endDate
-		if startDate.After(endDate) {
-			respond.Error(respond.ErrorOptions{
-				W:          w,
-				R:          r,
-				StatusCode: http.StatusBadRequest,
-				ClientErr:  accounts.ErrEndDateBeforeStart,
-				Logger:     h.logger,
-			})
-			return
-		}
-	} else {
-		endDate = time.Now().Add(24 * time.Hour) // Include today fully
-		startDate = endDate.AddDate(-1, 0, 0)    // 1 year before endDate
+	startDate, endDate, err := h.parseTrendDateRange(w, r)
+	if err != nil {
+		return
 	}
 
 	account, err := h.service.GetAccountsTrends(ctx, &userID, startDate, endDate)
@@ -465,6 +409,69 @@ func (h *Handler) GetTrends(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respond.Json(w, http.StatusOK, account, h.logger)
+}
+
+func (h *Handler) parseTrendDateRange(w http.ResponseWriter, r *http.Request) (startDate, endDate time.Time, err error) {
+	u, err := url.ParseQuery(r.URL.RawQuery)
+	if err != nil {
+		respond.Error(respond.ErrorOptions{
+			W:          w,
+			R:          r,
+			StatusCode: http.StatusBadRequest,
+			ClientErr:  message.ErrBadRequest,
+			ActualErr:  err,
+			Logger:     h.logger,
+			Details:    u,
+		})
+		return time.Time{}, time.Time{}, err
+	}
+
+	startDateStr := u.Get("start")
+	endDateStr := u.Get("end")
+
+	if startDateStr != "" && endDateStr != "" {
+		startDate, err = time.Parse("2006-01-02", startDateStr)
+		if err != nil {
+			respond.Error(respond.ErrorOptions{
+				W:          w,
+				R:          r,
+				StatusCode: http.StatusBadRequest,
+				ClientErr:  accounts.ErrAccountQueryParamInvalid,
+				ActualErr:  err,
+				Logger:     h.logger,
+			})
+			return time.Time{}, time.Time{}, err
+		}
+
+		endDate, err = time.Parse("2006-01-02", endDateStr)
+		if err != nil {
+			respond.Error(respond.ErrorOptions{
+				W:          w,
+				R:          r,
+				StatusCode: http.StatusBadRequest,
+				ClientErr:  accounts.ErrAccountQueryParamInvalid,
+				ActualErr:  err,
+				Logger:     h.logger,
+			})
+			return time.Time{}, time.Time{}, err
+		}
+
+		if startDate.After(endDate) {
+			respond.Error(respond.ErrorOptions{
+				W:          w,
+				R:          r,
+				StatusCode: http.StatusBadRequest,
+				ClientErr:  accounts.ErrEndDateBeforeStart,
+				Logger:     h.logger,
+			})
+			return time.Time{}, time.Time{}, accounts.ErrEndDateBeforeStart
+		}
+	} else {
+		endDate = time.Now().Add(24 * time.Hour)
+		startDate = endDate.AddDate(-1, 0, 0)
+	}
+
+	return startDate, endDate, nil
 }
 
 func (h *Handler) GetBalanceTimeline(w http.ResponseWriter, r *http.Request) {

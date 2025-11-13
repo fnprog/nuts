@@ -1,7 +1,7 @@
 import { createFileRoute, redirect, Outlet } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { userService } from "@/features/preferences/services/user";
 import { isOnboardingRequired } from "@/features/onboarding/services/onboarding";
+import { useAuthStore } from "@/features/auth/stores/auth.store";
 
 export const Route = createFileRoute("/onboarding")({
   beforeLoad: async ({ context, location }) => {
@@ -12,25 +12,18 @@ export const Route = createFileRoute("/onboarding")({
       });
     }
 
-    // Check if user has already completed onboarding
     try {
-      const queryClient = context.queryClient;
-      const user = await queryClient.fetchQuery({
-        queryKey: ["user"],
-        queryFn: userService.getMe,
-      });
+      const user = useAuthStore.getState().user;
 
-      if (!isOnboardingRequired(user)) {
+      if (user && !isOnboardingRequired(user)) {
         throw redirect({
           to: "/dashboard/home",
         });
       }
     } catch (redirectError) {
-      // Re-throw redirect errors
-      if (redirectError && typeof redirectError === 'object' && 'type' in redirectError) {
+      if (redirectError && typeof redirectError === "object" && "type" in redirectError) {
         throw redirectError;
       }
-      // If we can't fetch user data, let them continue to onboarding
       console.error("Failed to check onboarding completion status:", redirectError);
     }
   },
@@ -39,13 +32,8 @@ export const Route = createFileRoute("/onboarding")({
 
 function OnboardingLayout() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center overflow-hidden p-4 bg-neutral-50">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="relative z-10 w-full max-w-lg"
-      >
+    <div className="flex min-h-screen flex-col items-center justify-center overflow-hidden bg-neutral-50 p-4">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="relative z-10 w-full max-w-lg">
         <main className="w-full">
           <Outlet />
         </main>

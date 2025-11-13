@@ -1,0 +1,27 @@
+{
+  "rustc": 8022303366561187541,
+  "features": "[\"default\"]",
+  "declared_features": "[\"default\", \"invocation\", \"java-locator\", \"libloading\"]",
+  "target": 1317426672356854080,
+  "profile": 12693162527509728243,
+  "path": 4846473727642099242,
+  "deps": [
+    [724965096473487134, "cesu8", false, 1000381398489449674],
+    [7667230146095136825, "cfg_if", false, 16713595672462719887],
+    [8008191657135824715, "thiserror", false, 8749643520446176873],
+    [13066042571740262168, "log", false, 18347765883763962660],
+    [15987728108628015046, "jni_sys", false, 11301554846675448499],
+    [17915660048393766120, "combine", false, 1368831053790035404]
+  ],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "aarch64-linux-android/release/.fingerprint/jni-8b81a911098945c7/dep-lib-jni",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 10255546481339591553,
+  "compile_kind": 6373778340919622063
+}

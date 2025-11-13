@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { userService } from "@/features/preferences/services/user";
-import { authService } from "@/features/auth/services/auth"
+import { userService } from "@/features/preferences/services/user.service";
+import { authApi } from "@/features/auth/api";
 import { Button } from "@/core/components/ui/button";
 import { Input } from "@/core/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/core/components/ui/card";
@@ -16,44 +16,54 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/core/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/core/components/ui/dialog"; // Using Dialog for MFA setup
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/core/components/ui/dialog";
 import { Label } from "@/core/components/ui/label";
 import { useState, Suspense } from "react";
-import { z } from "zod";
+import { arktypeResolver } from "@hookform/resolvers/arktype";
+import { type } from "@nuts/validation";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/core/components/ui/form";
 import { toast } from "sonner";
 import { Icon } from "@iconify/react";
 import { InitMFASchema } from "@/features/auth/services/auth.types";
+import { useAuthStore } from "@/features/auth/stores/auth.store";
+import { H2, H3, P, Small } from "@/core/components/ui/typography";
 
-// --- Form Schemas ---
-const changePasswordFormSchema = z.object({
-  currentPassword: z.string().min(1, "Current password is required"),
-  newPassword: z.string().min(8, "New password must be at least 8 characters"),
-  confirmPassword: z.string(),
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"], // Set error on confirmPassword field
+const changePasswordFormSchema = type({
+  currentPassword: "string>=1",
+  newPassword: "string>=8",
+  confirmPassword: "string",
+}).narrow((data, ctx) => {
+  if (data.newPassword !== data.confirmPassword) {
+    return ctx.reject({ path: ["confirmPassword"], message: "Passwords don't match" });
+  }
+  return true;
 });
 
-type ChangePasswordFormValues = z.infer<typeof changePasswordFormSchema>;
+type ChangePasswordFormValues = typeof changePasswordFormSchema.infer;
 
-const createPasswordFormSchema = z.object({
-  newPassword: z.string().min(8, "Password must be at least 8 characters"),
-  confirmPassword: z.string(),
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
+const createPasswordFormSchema = type({
+  newPassword: "string>=8",
+  confirmPassword: "string",
+}).narrow((data, ctx) => {
+  if (data.newPassword !== data.confirmPassword) {
+    return ctx.reject({ path: ["confirmPassword"], message: "Passwords don't match" });
+  }
+  return true;
 });
 
-type CreatePasswordFormValues = z.infer<typeof createPasswordFormSchema>;
+type CreatePasswordFormValues = typeof createPasswordFormSchema.infer;
 
-const mfaVerifySchema = z.object({
-  otp: z.string().length(6, "OTP must be 6 digits"),
+const mfaVerifySchema = type({
+  otp: "string>=6",
+}).narrow((data, ctx) => {
+  if (data.otp.length !== 6) {
+    return ctx.reject({ path: ["otp"], message: "OTP must be exactly 6 characters" });
+  }
+  return true;
 });
 
-type MfaVerifyFormValues = z.infer<typeof mfaVerifySchema>;
+type MfaVerifyFormValues = typeof mfaVerifySchema.infer;
 
 // --- Password Modal Components ---
 
@@ -67,16 +77,17 @@ interface CreatePasswordModalProps {
 
 function CreatePasswordModal({ isOpen, onOpenChange, form, onSubmit, isPending }: CreatePasswordModalProps) {
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => {
-      onOpenChange(open);
-      if (!open) form.reset(); // Reset form when modal closes
-    }}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        onOpenChange(open);
+        if (!open) form.reset(); // Reset form when modal closes
+      }}
+    >
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Create Password</DialogTitle>
-          <DialogDescription>
-            Create a new password for your account. Make sure it's at least 8 characters long.
-          </DialogDescription>
+          <DialogDescription>Create a new password for your account. Make sure it's at least 8 characters long.</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
@@ -89,9 +100,7 @@ function CreatePasswordModal({ isOpen, onOpenChange, form, onSubmit, isPending }
                   <FormControl>
                     <Input type="password" {...field} />
                   </FormControl>
-                  <FormDescription>
-                    Must be at least 8 characters long.
-                  </FormDescription>
+                  <FormDescription>Must be at least 8 characters long.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -111,7 +120,9 @@ function CreatePasswordModal({ isOpen, onOpenChange, form, onSubmit, isPending }
             />
             <DialogFooter>
               <DialogClose asChild>
-                <Button type="button" variant="outline">Cancel</Button>
+                <Button type="button" variant="outline">
+                  Cancel
+                </Button>
               </DialogClose>
               <Button type="submit" disabled={isPending}>
                 {isPending ? "Creating..." : "Create Password"}
@@ -134,16 +145,17 @@ interface UpdatePasswordModalProps {
 
 function UpdatePasswordModal({ isOpen, onOpenChange, form, onSubmit, isPending }: UpdatePasswordModalProps) {
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => {
-      onOpenChange(open);
-      if (!open) form.reset(); // Reset form when modal closes
-    }}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        onOpenChange(open);
+        if (!open) form.reset(); // Reset form when modal closes
+      }}
+    >
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Update Password</DialogTitle>
-          <DialogDescription>
-            Enter your current password and set a new one.
-          </DialogDescription>
+          <DialogDescription>Enter your current password and set a new one.</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
@@ -169,9 +181,7 @@ function UpdatePasswordModal({ isOpen, onOpenChange, form, onSubmit, isPending }
                   <FormControl>
                     <Input type="password" {...field} />
                   </FormControl>
-                  <FormDescription>
-                    Must be at least 8 characters long.
-                  </FormDescription>
+                  <FormDescription>Must be at least 8 characters long.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -191,7 +201,9 @@ function UpdatePasswordModal({ isOpen, onOpenChange, form, onSubmit, isPending }
             />
             <DialogFooter>
               <DialogClose asChild>
-                <Button type="button" variant="outline">Cancel</Button>
+                <Button type="button" variant="outline">
+                  Cancel
+                </Button>
               </DialogClose>
               <Button type="submit" disabled={isPending}>
                 {isPending ? "Changing..." : "Change Password"}
@@ -212,14 +224,12 @@ export const Route = createFileRoute("/dashboard_/settings/security")({
     queryClient.prefetchQuery({
       queryKey: ["user"],
       queryFn: userService.getMe,
-    })
+    });
 
     queryClient.prefetchQuery({
       queryKey: ["user", "sessions"],
-      queryFn: authService.getSessions,
-    })
-
-
+      queryFn: userService.getSessions,
+    });
   },
   gcTime: 1000 * 60 * 5,
   pendingComponent: () => <div>Loading security settings...</div>,
@@ -227,9 +237,9 @@ export const Route = createFileRoute("/dashboard_/settings/security")({
   pendingMinMs: 200,
 });
 
-
 function SecuritySettingsComponent() {
   const queryClient = useQueryClient();
+  const isAnonymous = useAuthStore((s) => s.isAnonymous);
 
   // --- State ---
   const [isMfaSetupModalOpen, setIsMfaSetupModalOpen] = useState(false);
@@ -237,22 +247,16 @@ function SecuritySettingsComponent() {
   const [isUpdatePasswordModalOpen, setIsUpdatePasswordModalOpen] = useState(false);
   const [isCreatePasswordModalOpen, setIsCreatePasswordModalOpen] = useState(false);
 
-
   // --- Queries ---
-  const {
-    data: sessions
-  } = useSuspenseQuery({
+  const { data: sessions } = useSuspenseQuery({
     queryKey: ["user", "sessions"],
-    queryFn: authService.getSessions,
+    queryFn: userService.getSessions,
   });
 
-  const {
-    data: user
-  } = useSuspenseQuery({
+  const { data: user } = useSuspenseQuery({
     queryKey: ["user"],
     queryFn: userService.getMe,
   });
-
 
   // --- Mutations ---
   const invalidateSecuritySettings = () => {
@@ -261,11 +265,15 @@ function SecuritySettingsComponent() {
   };
 
   const changePasswordMutation = useMutation({
-    mutationFn: userService.updatePassword,
+    mutationFn: async (data: { current_password: string; password: string }) => {
+      const result = await userService.updatePassword(data);
+      if (result.isErr()) throw result.error;
+      return result.value;
+    },
     onSuccess: () => {
       toast.success("Password changed successfully.");
       changePasswordForm.reset();
-      setIsUpdatePasswordModalOpen(false); // Close modal on success
+      setIsUpdatePasswordModalOpen(false);
       invalidateSecuritySettings();
     },
     onError: (error: Error) => {
@@ -274,11 +282,15 @@ function SecuritySettingsComponent() {
   });
 
   const createPasswordMutation = useMutation({
-    mutationFn: userService.createPassword,
+    mutationFn: async (password: string) => {
+      const result = await userService.createPassword(password);
+      if (result.isErr()) throw result.error;
+      return result.value;
+    },
     onSuccess: () => {
       toast.success("Password created successfully.");
       createPasswordForm.reset();
-      setIsCreatePasswordModalOpen(false); // Close modal on success
+      setIsCreatePasswordModalOpen(false);
       invalidateSecuritySettings();
     },
     onError: (error: Error) => {
@@ -288,7 +300,7 @@ function SecuritySettingsComponent() {
 
   // MFA Mutations
   const initiateMfaMutation = useMutation({
-    mutationFn: authService.initiateMfaSetup,
+    mutationFn: authApi.initiateMfaSetup,
     onSuccess: (data) => {
       setMfaSetupData(data);
       setIsMfaSetupModalOpen(true);
@@ -300,7 +312,7 @@ function SecuritySettingsComponent() {
   });
 
   const verifyMfaMutation = useMutation({
-    mutationFn: authService.verifyMfaSetup,
+    mutationFn: authApi.verifyMfaSetup,
     onSuccess: () => {
       toast.success("MFA enabled successfully!");
       setIsMfaSetupModalOpen(false);
@@ -315,7 +327,7 @@ function SecuritySettingsComponent() {
   });
 
   const disableMfaMutation = useMutation({
-    mutationFn: authService.disableMfa,
+    mutationFn: authApi.disableMfa,
     onSuccess: () => {
       toast.success("MFA disabled.");
       invalidateSecuritySettings();
@@ -325,10 +337,9 @@ function SecuritySettingsComponent() {
     },
   });
 
-
   // Social Link Mutation
   const unlinkSocialMutation = useMutation({
-    mutationFn: authService.unlinkSocialAccount,
+    mutationFn: authApi.unlinkSocialAccount,
     onSuccess: () => {
       // toast.success(`${provider.charAt(0).toUpperCase() + provider.slice(1)} account unlinked.`);
       invalidateSecuritySettings();
@@ -340,7 +351,7 @@ function SecuritySettingsComponent() {
 
   // Session Mutations
   const revokeSessionMutation = useMutation({
-    mutationFn: authService.revokeSession,
+    mutationFn: authApi.revokeSession,
     onSuccess: () => {
       toast.success("Session revoked.");
       invalidateSecuritySettings();
@@ -361,20 +372,19 @@ function SecuritySettingsComponent() {
   //   },
   // });
 
-
   // --- Forms ---
   const changePasswordForm = useForm<ChangePasswordFormValues>({
-    resolver: zodResolver(changePasswordFormSchema),
+    resolver: arktypeResolver(changePasswordFormSchema),
     defaultValues: { currentPassword: "", newPassword: "", confirmPassword: "" },
   });
 
   const createPasswordForm = useForm<CreatePasswordFormValues>({
-    resolver: zodResolver(createPasswordFormSchema),
+    resolver: arktypeResolver(createPasswordFormSchema),
     defaultValues: { newPassword: "", confirmPassword: "" },
   });
 
   const mfaVerifyForm = useForm<MfaVerifyFormValues>({
-    resolver: zodResolver(mfaVerifySchema),
+    resolver: arktypeResolver(mfaVerifySchema),
     defaultValues: { otp: "" },
   });
 
@@ -387,58 +397,76 @@ function SecuritySettingsComponent() {
     createPasswordMutation.mutate(data.newPassword);
   };
 
-
   const onSubmitMfaVerify = (data: MfaVerifyFormValues) => {
     verifyMfaMutation.mutate(data.otp);
   };
 
   const getSocialIcon = (provider: string) => {
     switch (provider.toLowerCase()) {
-      case 'google': return 'logos:google-icon';
-      case 'reddit': return 'logos:reddit-icon';
-      case 'github': return 'logos:github-icon';
-      default: return 'ph:question-fill'; // Default icon
+      case "google":
+        return "logos:google-icon";
+      case "reddit":
+        return "logos:reddit-icon";
+      case "github":
+        return "logos:github-icon";
+      default:
+        return "ph:question-fill"; // Default icon
     }
-  }
+  };
 
   const formatSessionDate = (dateString: string) => {
     try {
       return new Date(dateString).toLocaleString();
     } catch (e) {
-      console.error(e)
+      console.error(e);
       return dateString; // Return original if parsing fails
     }
-  }
-
-
+  };
 
   return (
     <div className="space-y-6">
       <Suspense fallback={<div>Loading security details...</div>}>
+        {isAnonymous && (
+          <Card className="border-primary">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Icon icon="ph:shield-warning" className="size-5" />
+                Sign In to Manage Security Settings
+              </CardTitle>
+              <CardDescription>
+                You're currently using Nuts in local-only mode. Sign in to unlock security features like password management, MFA, and session control.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button onClick={() => (window.location.href = "/login")}>Sign In to Nuts</Button>
+            </CardContent>
+          </Card>
+        )}
         {/* --- Password Management --- */}
         <Card>
           <CardHeader className="mb-4">
             <CardTitle>Email & Password</CardTitle>
           </CardHeader>
           <CardContent className="space-y-10">
-
             <div className="flex w-full justify-between">
               <div>
-                <h2 className="font-medium">Email</h2>
-                <span>{user.email}</span>
+                <H2 className="font-medium">Email</H2>
+                <Small>{user.email}</Small>
               </div>
               <div className="flex items-center gap-3">
-                <Button>Edit email</Button>
-                {user?.linked_accounts?.map(account => (
-                  <div key={account.provider} className="flex items-center gap-2 justify-between h-9 py-2 px-3 bg-secondary rounded">
+                <Button disabled={isAnonymous}>Edit email</Button>
+                {user?.linked_accounts?.map((account) => (
+                  <div key={account.provider} className="bg-secondary flex h-9 items-center justify-between gap-2 rounded px-3 py-2">
                     <div className="flex items-center gap-3">
-                      <Icon icon={getSocialIcon(account.provider)} className="w-4 h-4" />
-                      <span className="font-medium">{account.provider.charAt(0).toUpperCase() + account.provider.slice(1)} is linked</span>
+                      <Icon icon={getSocialIcon(account.provider)} className="h-4 w-4" />
+                      <Small className="font-medium">{account.provider.charAt(0).toUpperCase() + account.provider.slice(1)} is linked</Small>
                     </div>
                     {/* Add check: Don't allow unlinking the *only* auth method if no password exists */}
                     <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Icon className="w-4 h-4" icon="pixelarticons:close" />
+                      <AlertDialogTrigger asChild disabled={isAnonymous}>
+                        <button disabled={isAnonymous} className="disabled:cursor-not-allowed disabled:opacity-50">
+                          <Icon className="h-4 w-4" icon="pixelarticons:close" />
+                        </button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
@@ -447,7 +475,10 @@ function SecuritySettingsComponent() {
                             Are you sure you want to unlink your {account.provider} account? You will no longer be able to log in using it.
                             {/* Add warning if it's the only login method */}
                             {user?.linked_accounts?.length === 1 && !user.has_password && (
-                              <span className="mt-2 block font-semibold text-destructive"> Warning: This is your only login method. Please create a password first before unlinking.</span>
+                              <Small className="text-destructive mt-2 block font-semibold">
+                                {" "}
+                                Warning: This is your only login method. Please create a password first before unlinking.
+                              </Small>
                             )}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
@@ -471,16 +502,22 @@ function SecuritySettingsComponent() {
 
             <div className="flex w-full justify-between">
               <div>
-                <h3 className="font-medium">Password</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {user.has_password ? "Change your existing password." : "You currently don't have a password set up. Create one for an alternative login method."}
-                </p>
+                <H3 className="font-medium">Password</H3>
+                <Small variant="muted" className="mt-1">
+                  {user.has_password
+                    ? "Change your existing password."
+                    : "You currently don't have a password set up. Create one for an alternative login method."}
+                </Small>
               </div>
               <div className="flex items-center gap-3">
                 {user.has_password ? (
-                  <Button variant="outline" onClick={() => setIsUpdatePasswordModalOpen(true)}>Update Password</Button>
+                  <Button variant="outline" onClick={() => setIsUpdatePasswordModalOpen(true)} disabled={isAnonymous}>
+                    Update Password
+                  </Button>
                 ) : (
-                  <Button variant="outline" onClick={() => setIsCreatePasswordModalOpen(true)} >Create Password</Button>
+                  <Button variant="outline" onClick={() => setIsCreatePasswordModalOpen(true)} disabled={isAnonymous}>
+                    Create Password
+                  </Button>
                 )}
               </div>
             </div>
@@ -488,26 +525,27 @@ function SecuritySettingsComponent() {
         </Card>
 
         {/* --- Multi-Factor Authentication (MFA) --- */}
-        <Card className="flex justify-between items-center">
+        <Card className="flex items-center justify-between">
           <CardHeader>
             <CardTitle>Multi-Factor Authentication (MFA)</CardTitle>
             <CardDescription>Add an extra layer of security to your account.</CardDescription>
           </CardHeader>
-          <CardContent className=" p-0 pr-6">
+          <CardContent className="p-0 pr-6">
             {!user.mfa_enabled ? (
-              <Button onClick={() => initiateMfaMutation.mutate()} disabled={initiateMfaMutation.isPending}>
+              <Button onClick={() => initiateMfaMutation.mutate()} disabled={initiateMfaMutation.isPending || isAnonymous}>
                 {initiateMfaMutation.isPending ? "Starting..." : "Enable MFA"}
-              </Button>) : (
+              </Button>
+            ) : (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="secondary" disabled={disableMfaMutation.isPending}>Disable MFA</Button>
+                  <Button variant="secondary" disabled={disableMfaMutation.isPending || isAnonymous}>
+                    Disable MFA
+                  </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>Disable Multi-Factor Authentication?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Disabling MFA will reduce your account security. Are you sure you want to proceed?
-                    </AlertDialogDescription>
+                    <AlertDialogDescription>Disabling MFA will reduce your account security. Are you sure you want to proceed?</AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -521,11 +559,9 @@ function SecuritySettingsComponent() {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-            )
-            }
+            )}
           </CardContent>
         </Card>
-
 
         {/* --- Active Sessions --- */}
         <Card>
@@ -536,18 +572,24 @@ function SecuritySettingsComponent() {
           <CardContent>
             {sessions.length > 0 ? (
               <ul className="space-y-3">
-                {sessions.map(session => (
-                  <li key={session.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border rounded gap-2">
+                {sessions.map((session) => (
+                  <li key={session.id} className="flex flex-col items-start justify-between gap-2 rounded border p-3 sm:flex-row sm:items-center">
                     <div>
-                      <span className="font-medium">{session.device_name} on {session.browser_name}</span>
-                      <p className="text-sm text-muted-foreground">
-                        Location: {session.location || 'Unknown'} | Last Active: {formatSessionDate(session.last_used_at)}
-                      </p>
+                      <Small className="font-medium">
+                        {session.device_name} on {session.browser_name}
+                      </Small>
+                      <Small variant="muted">
+                        Location: {session.location || "Unknown"} | Last Active: {formatSessionDate(session.last_used_at)}
+                      </Small>
                     </div>
                     {/* {!session.isCurrent && ( */}
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="outline" size="sm" disabled={revokeSessionMutation.isPending && revokeSessionMutation.variables === session.id}>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={(revokeSessionMutation.isPending && revokeSessionMutation.variables === session.id) || isAnonymous}
+                        >
                           Revoke
                         </Button>
                       </AlertDialogTrigger>
@@ -575,7 +617,7 @@ function SecuritySettingsComponent() {
                 ))}
               </ul>
             ) : (
-              <p className="text-muted-foreground">No active sessions found.</p>
+              <P variant="muted">No active sessions found.</P>
             )}
           </CardContent>
           {/* {securityData.sessions.filter(s => !s.isCurrent).length > 0 && ( */}
@@ -614,19 +656,24 @@ function SecuritySettingsComponent() {
           <DialogHeader>
             <DialogTitle>Set up Multi-Factor Authentication</DialogTitle>
             <DialogDescription>
-              Scan the QR code with your authenticator app (e.g., Google Authenticator, Authy) or manually enter the secret key. Then enter the generated OTP below.
+              Scan the QR code with your authenticator app (e.g., Google Authenticator, Authy) or manually enter the secret key. Then enter the generated OTP
+              below.
             </DialogDescription>
           </DialogHeader>
           {mfaSetupData && (
-            <div className="py-4 space-y-4">
+            <div className="space-y-4 py-4">
               {/* Display QR Code - Replace with actual QR component if you have one */}
               <div className="flex justify-center">
-                <img src={mfaSetupData.qr_code_url} alt="MFA QR Code" className="border p-2 bg-white" />
+                <img src={mfaSetupData.qr_code_url} alt="MFA QR Code" className="border bg-white p-2" />
               </div>
               <div>
-                <Label htmlFor="mfa-secret" className="text-sm font-medium">Manual Setup Key:</Label>
+                <Label htmlFor="mfa-secret" className="text-sm font-medium">
+                  Manual Setup Key:
+                </Label>
                 <Input id="mfa-secret" readOnly value={mfaSetupData.secret} className="mt-1 font-mono text-sm" />
-                <p className="text-xs text-muted-foreground mt-1">Enter this key into your authenticator app if you cannot scan the QR code.</p>
+                <Small variant="muted" className="mt-1 text-xs">
+                  Enter this key into your authenticator app if you cannot scan the QR code.
+                </Small>
               </div>
 
               <Form {...mfaVerifyForm}>
@@ -646,7 +693,9 @@ function SecuritySettingsComponent() {
                   />
                   <DialogFooter>
                     <DialogClose asChild>
-                      <Button type="button" variant="outline">Cancel</Button>
+                      <Button type="button" variant="outline">
+                        Cancel
+                      </Button>
                     </DialogClose>
                     <Button type="submit" disabled={verifyMfaMutation.isPending}>
                       {verifyMfaMutation.isPending ? "Verifying..." : "Verify & Enable"}

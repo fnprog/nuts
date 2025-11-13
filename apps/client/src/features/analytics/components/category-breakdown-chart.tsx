@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react"
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip, Legend } from "recharts"
+import { useEffect, useState } from "react";
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip, Legend } from "recharts";
 
 // Mock data for the chart
 const data = [
@@ -11,17 +11,17 @@ const data = [
   { name: "Utilities", value: 320, color: "#64748b" },
   { name: "Healthcare", value: 280, color: "#06b6d4" },
   { name: "Other", value: 210, color: "#94a3b8" },
-]
+];
 
 export default function CategoryBreakdownChart() {
-  const [mounted, setMounted] = useState(false)
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   if (!mounted) {
-    return <div className="h-[300px] flex items-center justify-center">Loading chart...</div>
+    return <div className="flex h-[300px] items-center justify-center">Loading chart...</div>;
   }
 
   return (
@@ -53,6 +53,5 @@ export default function CategoryBreakdownChart() {
         <Legend />
       </PieChart>
     </ResponsiveContainer>
-  )
+  );
 }
-

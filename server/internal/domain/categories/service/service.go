@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"time"
 
 	catRepo "github.com/Fantasy-Programming/nuts/server/internal/domain/categories/repository"
 	"github.com/Fantasy-Programming/nuts/server/internal/repository"
@@ -13,6 +14,7 @@ import (
 
 type Category interface {
 	ListCategories(ctx context.Context, userID uuid.UUID) ([]repository.Category, error)
+	ListCategoriesSince(ctx context.Context, userID uuid.UUID, since time.Time) ([]repository.Category, error)
 	CreateCategory(ctx context.Context, params repository.CreateCategoryParams) (repository.Category, error)
 	UpdateCategory(ctx context.Context, params repository.UpdateCategoryParams) (repository.Category, error)
 	DeleteCategory(ctx context.Context, id uuid.UUID) error
@@ -40,6 +42,10 @@ func (r *CategoryService) ListCategories(ctx context.Context, userID uuid.UUID) 
 	}
 
 	return categories, nil
+}
+
+func (r *CategoryService) ListCategoriesSince(ctx context.Context, userID uuid.UUID, since time.Time) ([]repository.Category, error) {
+	return r.repo.GetCategoriesSince(ctx, userID, since)
 }
 
 func (r *CategoryService) CreateCategory(ctx context.Context, params repository.CreateCategoryParams) (repository.Category, error) {

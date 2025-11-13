@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react"
-import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { useEffect, useState } from "react";
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 // Mock data for the chart
 const data = [
@@ -9,17 +9,17 @@ const data = [
   { month: "Apr", groceries: 520, dining: 480, entertainment: 300, shopping: 420, utilities: 280 },
   { month: "May", groceries: 490, dining: 520, entertainment: 350, shopping: 390, utilities: 290 },
   { month: "Jun", groceries: 550, dining: 540, entertainment: 380, shopping: 430, utilities: 310 },
-]
+];
 
 export default function SpendingOverviewChart() {
-  const [mounted, setMounted] = useState(false)
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   if (!mounted) {
-    return <div className="h-[350px] flex items-center justify-center">Loading chart...</div>
+    return <div className="flex h-[350px] items-center justify-center">Loading chart...</div>;
   }
 
   return (
@@ -44,6 +44,5 @@ export default function SpendingOverviewChart() {
         <Bar dataKey="utilities" name="Utilities" fill="#f59e0b" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
-  )
+  );
 }
-

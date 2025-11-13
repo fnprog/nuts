@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react"
-import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { useEffect, useState } from "react";
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 // Mock data for the chart
 const data = [
@@ -11,17 +11,17 @@ const data = [
   { category: "Utilities", budget: 350, actual: 320 },
   { category: "Healthcare", budget: 300, actual: 280 },
   { category: "Other", budget: 250, actual: 210 },
-]
+];
 
 export default function BudgetComparisonChart() {
-  const [mounted, setMounted] = useState(false)
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   if (!mounted) {
-    return <div className="h-[350px] flex items-center justify-center">Loading chart...</div>
+    return <div className="flex h-[350px] items-center justify-center">Loading chart...</div>;
   }
 
   return (
@@ -43,6 +43,5 @@ export default function BudgetComparisonChart() {
         <Bar dataKey="actual" name="Actual" fill="#f59e0b" radius={[0, 4, 4, 0]} />
       </BarChart>
     </ResponsiveContainer>
-  )
+  );
 }
-

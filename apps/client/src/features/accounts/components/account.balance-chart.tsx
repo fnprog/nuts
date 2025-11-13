@@ -1,20 +1,12 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import {
-  AreaChart,
-  Area,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-  Dot,
-} from "recharts";
+import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, YAxis, Dot } from "recharts";
 import { getAllAccountsBalanceTimeline } from "../services/account.queries";
 
 export function AccountBalanceChart() {
   const { data, isError } = useSuspenseQuery(getAllAccountsBalanceTimeline());
 
   if (isError) {
-    return <div className="h-[180px] flex items-center justify-center">Failed to load...</div>;
+    return <div className="flex h-[180px] items-center justify-center">Failed to load...</div>;
   }
 
   const formattedData = data.map(({ balance, month }) => ({
@@ -57,14 +49,7 @@ export function AccountBalanceChart() {
             <stop offset={off} stopColor={negativeColor} stopOpacity={0.2} />
           </linearGradient>
         </defs>
-        <XAxis
-          padding="no-gap"
-          dataKey="date"
-          tickLine={false}
-          axisLine={false}
-          tick={{ fontSize: 12 }}
-          tickMargin={10}
-        />
+        <XAxis padding="no-gap" dataKey="date" tickLine={false} axisLine={false} tick={{ fontSize: 12 }} tickMargin={10} />
         <YAxis
           hide={true}
           tickFormatter={(value) => `$${value / 1000}k`}
@@ -76,23 +61,21 @@ export function AccountBalanceChart() {
         />
         <Tooltip
           content={({ active, payload }) => {
-            if (active && payload && payload.length && typeof payload[0].value === 'number') {
+            if (active && payload && payload.length && typeof payload[0].value === "number") {
               const balance = payload[0].value;
               const balanceColor = balance >= 0 ? "text-primary" : "text-destructive"; // Using semantic colors is good practice
 
               return (
-                <div className="rounded-lg border bg-background p-2 shadow-sm">
+                <div className="bg-background rounded-lg border p-2 shadow-sm">
                   <div className="grid grid-cols-2 gap-2">
                     <div className="flex flex-col">
-                      <span className="text-[0.70rem] uppercase text-muted-foreground">Date</span>
-                      <span className="font-bold text-sm">{payload[0].payload.date}</span>
+                      <span className="text-muted-foreground text-[0.70rem] uppercase">Date</span>
+                      <span className="text-sm font-bold">{payload[0].payload.date}</span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-[0.70rem] uppercase text-muted-foreground">Balance</span>
+                      <span className="text-muted-foreground text-[0.70rem] uppercase">Balance</span>
                       {/* 5. Conditional coloring in the tooltip */}
-                      <span className={`font-bold text-sm ${balanceColor}`}>
-                        {balance.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
-                      </span>
+                      <span className={`text-sm font-bold ${balanceColor}`}>{balance.toLocaleString("en-US", { style: "currency", currency: "USD" })}</span>
                     </div>
                   </div>
                 </div>
@@ -112,7 +95,7 @@ export function AccountBalanceChart() {
           // 4. Make the active dot color conditional
           activeDot={(props) => {
             const { cx, cy, payload } = props;
-            if (typeof payload.balance !== 'number') {
+            if (typeof payload.balance !== "number") {
               return <></>;
             }
             return (

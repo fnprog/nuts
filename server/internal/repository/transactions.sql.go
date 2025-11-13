@@ -425,6 +425,131 @@ func (q *Queries) GetTransactionStats(ctx context.Context, arg GetTransactionSta
 	return i, err
 }
 
+const getTransactionsSince = `-- name: GetTransactionsSince :many
+SELECT
+    t.id,
+    t.amount,
+    t.type,
+    t.destination_account_id,
+    t.transaction_datetime,
+    t.description,
+    t.details,
+    t.is_external,
+    t.updated_at,
+    t.deleted_at,
+    source_acct.id, source_acct.name, source_acct.type, source_acct.balance, source_acct.currency, source_acct.meta, source_acct.created_by, source_acct.updated_by, source_acct.created_at, source_acct.updated_at, source_acct.deleted_at, source_acct.is_external, source_acct.provider_account_id, source_acct.provider_name, source_acct.sync_status, source_acct.last_synced_at, source_acct.connection_id, source_acct.subtype, source_acct.shared_finance_id,
+    dest_acct.id AS destination_account_id_alias,
+    dest_acct.name AS destination_account_name,
+    dest_acct.type AS destination_account_type,
+    dest_acct.currency AS destination_account_currency,
+    cat.id, cat.name, cat.parent_id, cat.is_default, cat.created_by, cat.updated_by, cat.created_at, cat.updated_at, cat.deleted_at, cat.type, cat.color, cat.icon
+FROM
+    transactions AS t
+JOIN
+    accounts AS source_acct ON t.account_id = source_acct.id
+JOIN
+    categories AS cat ON t.category_id = cat.id
+LEFT JOIN
+    accounts AS dest_acct ON t.destination_account_id = dest_acct.id
+WHERE
+    t.created_by = $1
+    AND (
+        t.updated_at > $2
+        OR (t.deleted_at IS NOT NULL AND t.deleted_at > $2)
+    )
+ORDER BY t.transaction_datetime DESC
+`
+
+type GetTransactionsSinceParams struct {
+	UserID *uuid.UUID         `json:"user_id"`
+	Since  pgtype.Timestamptz `json:"since"`
+}
+
+type GetTransactionsSinceRow struct {
+	ID                         uuid.UUID       `json:"id"`
+	Amount                     pgtype.Numeric  `json:"amount"`
+	Type                       string          `json:"type"`
+	DestinationAccountID       *uuid.UUID      `json:"destination_account_id"`
+	TransactionDatetime        time.Time       `json:"transaction_datetime"`
+	Description                *string         `json:"description"`
+	Details                    *dto.Details    `json:"details"`
+	IsExternal                 *bool           `json:"is_external"`
+	UpdatedAt                  time.Time       `json:"updated_at"`
+	DeletedAt                  *time.Time      `json:"deleted_at"`
+	Account                    Account         `json:"account"`
+	DestinationAccountIDAlias  *uuid.UUID      `json:"destination_account_id_alias"`
+	DestinationAccountName     *string         `json:"destination_account_name"`
+	DestinationAccountType     NullACCOUNTTYPE `json:"destination_account_type"`
+	DestinationAccountCurrency *string         `json:"destination_account_currency"`
+	Category                   Category        `json:"category"`
+}
+
+func (q *Queries) GetTransactionsSince(ctx context.Context, arg GetTransactionsSinceParams) ([]GetTransactionsSinceRow, error) {
+	rows, err := q.db.Query(ctx, getTransactionsSince, arg.UserID, arg.Since)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetTransactionsSinceRow{}
+	for rows.Next() {
+		var i GetTransactionsSinceRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Amount,
+			&i.Type,
+			&i.DestinationAccountID,
+			&i.TransactionDatetime,
+			&i.Description,
+			&i.Details,
+			&i.IsExternal,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.Account.ID,
+			&i.Account.Name,
+			&i.Account.Type,
+			&i.Account.Balance,
+			&i.Account.Currency,
+			&i.Account.Meta,
+			&i.Account.CreatedBy,
+			&i.Account.UpdatedBy,
+			&i.Account.CreatedAt,
+			&i.Account.UpdatedAt,
+			&i.Account.DeletedAt,
+			&i.Account.IsExternal,
+			&i.Account.ProviderAccountID,
+			&i.Account.ProviderName,
+			&i.Account.SyncStatus,
+			&i.Account.LastSyncedAt,
+			&i.Account.ConnectionID,
+			&i.Account.Subtype,
+			&i.Account.SharedFinanceID,
+			&i.DestinationAccountIDAlias,
+			&i.DestinationAccountName,
+			&i.DestinationAccountType,
+			&i.DestinationAccountCurrency,
+			&i.Category.ID,
+			&i.Category.Name,
+			&i.Category.ParentID,
+			&i.Category.IsDefault,
+			&i.Category.CreatedBy,
+			&i.Category.UpdatedBy,
+			&i.Category.CreatedAt,
+			&i.Category.UpdatedAt,
+			&i.Category.DeletedAt,
+			&i.Category.Type,
+			&i.Category.Color,
+			&i.Category.Icon,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listTransactions = `-- name: ListTransactions :many
 SELECT
     t.id,

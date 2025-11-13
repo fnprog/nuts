@@ -1,1 +1,1 @@
-declare module '@mono.co/connect.js';
+declare module "@mono.co/connect.js";

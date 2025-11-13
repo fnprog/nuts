@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react"
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { useEffect, useState } from "react";
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 // Mock data for the chart
 const data = [
@@ -15,23 +15,23 @@ const data = [
   { month: "Oct", assets: 148000, liabilities: 78200 },
   { month: "Nov", assets: 152000, liabilities: 77500 },
   { month: "Dec", assets: 156000, liabilities: 76800 },
-]
+];
 
 // Add net worth calculation
 const dataWithNetWorth = data.map((item) => ({
   ...item,
   netWorth: item.assets - item.liabilities,
-}))
+}));
 
 export default function NetWorthChart() {
-  const [mounted, setMounted] = useState(false)
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   if (!mounted) {
-    return <div className="h-[300px] flex items-center justify-center">Loading chart...</div>
+    return <div className="flex h-[300px] items-center justify-center">Loading chart...</div>;
   }
 
   return (
@@ -53,6 +53,5 @@ export default function NetWorthChart() {
         <Area type="monotone" dataKey="netWorth" name="Net Worth" stroke="#3b82f6" fill="#3b82f620" />
       </AreaChart>
     </ResponsiveContainer>
-  )
+  );
 }
-

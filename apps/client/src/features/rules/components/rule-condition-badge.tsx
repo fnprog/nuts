@@ -18,8 +18,7 @@ export function RuleConditionBadge({ condition }: RuleConditionBadgeProps) {
 
   return (
     <Badge variant="outline" className="text-xs">
-      {CONDITION_TYPE_LABELS[condition.type]} {" "}
-      {CONDITION_OPERATOR_LABELS[condition.operator]} {" "}
+      {CONDITION_TYPE_LABELS[condition.type]} {CONDITION_OPERATOR_LABELS[condition.operator]}{" "}
       <span className="font-medium">{formatValue(condition.value)}</span>
     </Badge>
   );

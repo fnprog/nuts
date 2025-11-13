@@ -1,57 +1,66 @@
-import React from 'react';
-import MonoConnect from '@mono.co/connect.js';
-import { logger } from '@/lib/logger';
+import React from "react";
+import MonoConnect from "@mono.co/connect.js";
+import { logger } from "@/lib/logger";
+
+interface MonoCustomer {
+  id?: string;
+  name?: string;
+  email?: string;
+  identity?: {
+    type: string;
+    number: string;
+  };
+}
 
 interface UseMomoProps {
-  key: string,
-  onSuccess?: (payload: { code: string }) => void
-  onLoad?: () => void
-  onClose?: () => void
-  onEvent?: (eventName: string, eventData: unknown) => void
+  key: string;
+  customer?: MonoCustomer;
+  onSuccess?: (payload: { code: string }) => void;
+  onLoad?: () => void;
+  onClose?: () => void;
+  onEvent?: (eventName: string, eventData: unknown) => void;
 }
 
 interface MonoContext {
-  authMethod: string,
+  authMethod: string;
   institution: {
-    id: string,
-    name: string
-  },
-  reference: string,
-  timestamp: number
+    id: string;
+    name: string;
+  };
+  reference: string;
+  timestamp: number;
 }
 
 interface useMonoReturn {
-  openMono: () => void
-  reauthoriseAccount: (accountId: string) => void
-  isWidgetLoading: boolean
-  isMonoReady: boolean
-  context: MonoContext
+  openMono: () => void;
+  reauthoriseAccount: (accountId: string) => void;
+  isWidgetLoading: boolean;
+  isMonoReady: boolean;
+  context: MonoContext;
 }
 
-export function useMono({ key, onSuccess, onLoad, onClose, onEvent }: UseMomoProps): useMonoReturn {
+export function useMono({ key, customer, onSuccess, onLoad, onClose, onEvent }: UseMomoProps): useMonoReturn {
   const [isWidgetLoading, setIsWidgetLoading] = React.useState(false);
   const [context, setContext] = React.useState<MonoContext>({
     authMethod: "",
     institution: {
       id: "",
-      name: ""
+      name: "",
     },
     reference: "",
-    timestamp: 0
-  })
+    timestamp: 0,
+  });
 
   const monoInstance = React.useMemo(() => {
     if (!key) return null;
 
-    const connectInstance = new MonoConnect({
+    const config: any = {
       key: key,
       onSuccess: (payload: { code: string }) => {
         setIsWidgetLoading(false);
         if (onSuccess) onSuccess(payload);
       },
       onLoad: () => {
-        // Widget is ready to be opened, but not necessarily visible yet
-        // setIsWidgetLoading(true) might be premature here, better on open()
         if (onLoad) onLoad();
       },
       onClose: () => {
@@ -60,21 +69,24 @@ export function useMono({ key, onSuccess, onLoad, onClose, onEvent }: UseMomoPro
       },
       onEvent: (eventName: string, eventData: unknown) => {
         logger.debug(`Mono event: ${eventName}`, {
-          data: eventData
+          data: eventData,
         });
 
         if (eventName === "INSTITUTION_SELECTED") {
-          setContext(eventData as MonoContext)
+          setContext(eventData as MonoContext);
         }
-
 
         if (onEvent) onEvent(eventName, eventData);
       },
-    });
-    // IMPORTANT: Do not call setup() or reauthorise() here in useMemo
-    // Call them right before open() in the respective functions.
+    };
+
+    if (customer) {
+      config.data = { customer };
+    }
+
+    const connectInstance = new MonoConnect(config);
     return connectInstance;
-  }, [onSuccess, onLoad, onClose, onEvent, key]); // Dependencies for callbacks
+  }, [onSuccess, onLoad, onClose, onEvent, key, customer]); // Dependencies for callbacks
 
   const openMono = React.useCallback(() => {
     if (!monoInstance) {
@@ -87,20 +99,23 @@ export function useMono({ key, onSuccess, onLoad, onClose, onEvent }: UseMomoPro
     monoInstance.open();
   }, [monoInstance]);
 
-  const reauthoriseAccount = React.useCallback((accountId: string) => {
-    if (!monoInstance) {
-      console.error("Mono instance not initialized. Check public key.");
-      return;
-    }
-    if (!accountId) {
-      console.error("Account ID is required for re-authorisation.");
-      return;
-    }
-    setIsWidgetLoading(true);
+  const reauthoriseAccount = React.useCallback(
+    (accountId: string) => {
+      if (!monoInstance) {
+        console.error("Mono instance not initialized. Check public key.");
+        return;
+      }
+      if (!accountId) {
+        console.error("Account ID is required for re-authorisation.");
+        return;
+      }
+      setIsWidgetLoading(true);
 
-    monoInstance.reauthorise(accountId); // Call reauthorise for existing accounts
-    monoInstance.open();
-  }, [monoInstance]);
+      monoInstance.reauthorise(accountId); // Call reauthorise for existing accounts
+      monoInstance.open();
+    },
+    [monoInstance]
+  );
 
   return {
     openMono,

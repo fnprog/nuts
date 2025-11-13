@@ -1,13 +1,8 @@
-import type { DashboardChartModule, DashboardChartModuleConfig } from './types';
+import type { DashboardChartModule, DashboardChartModuleConfig } from "./types";
 
-const chartManifests = import.meta.glob<DashboardChartModule>(
-  './*/index.ts'
-);
+const chartManifests = import.meta.glob<DashboardChartModule>("./*/index.ts");
 
-const chartModules = import.meta.glob<{ default: DashboardChartModule }>(
-  "./*/index.ts"
-);
-
+const chartModules = import.meta.glob<{ default: DashboardChartModule }>("./*/index.ts");
 
 // Cache for loaded configs to avoid redundant loads
 let availableChartConfigs: DashboardChartModuleConfig[] | null = null;
@@ -39,7 +34,6 @@ export async function getAvailableChartConfigs(): Promise<DashboardChartModuleCo
   availableChartConfigs = configs.sort((a, b) => a.title.localeCompare(b.title)); // Sort alphabetically
   return availableChartConfigs;
 }
-
 
 /**
  * Dynamically loads the full chart module including the component.

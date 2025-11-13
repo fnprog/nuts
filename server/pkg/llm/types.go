@@ -34,7 +34,7 @@ type NeuralInputRequest struct {
 type NeuralInputResponse struct {
 	Transactions []TransactionData `json:"transactions"`
 	ParsedAt     time.Time         `json:"parsed_at"`
-	Model        string            `json:"model"` // Which model was used
+	Model        string            `json:"model"`    // Which model was used
 	Provider     string            `json:"provider"` // local or remote
 }
 
@@ -42,7 +42,7 @@ type NeuralInputResponse struct {
 type Provider interface {
 	// GenerateCompletion sends a prompt to the LLM and returns the response
 	GenerateCompletion(ctx context.Context, prompt string) (string, error)
-	
+
 	// GetModelInfo returns information about the current model
 	GetModelInfo() ModelInfo
 }

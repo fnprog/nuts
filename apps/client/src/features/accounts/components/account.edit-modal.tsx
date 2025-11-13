@@ -1,41 +1,49 @@
-import { useCallback, useId, useEffect } from "react"
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useCallback, useId, useEffect, useRef, useState } from "react";
+import { arktypeResolver } from "@/lib/arktype-resolver";
 import { useForm } from "react-hook-form";
 import { accountTypeOptions } from "./account.constants";
 
-import { Button } from "@/core/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/core/components/ui/dialog"
-import { Input } from "@/core/components/ui/input"
-import { SearchableSelect } from "@/core/components/ui/search-select"
-import { Avatar, AvatarFallback, AvatarImage } from "@/core/components/ui/avatar"
-import { AccountWTrend, accountFormSchema, AccountFormSchema } from "../services/account.types"
-import { AccountUpdate } from "../services/account.types"
+import { Button } from "@/core/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/core/components/ui/dialog";
+import { Input } from "@/core/components/ui/input";
+import { SearchableSelect } from "@/core/components/ui/search-select";
+import { Avatar, AvatarFallback, AvatarImage } from "@/core/components/ui/avatar";
+import { AccountWTrend, accountFormSchema, AccountFormSchema } from "../services/account.types";
+import { AccountUpdate } from "../services/account.types";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/core/components/ui/form";
+import { getCurrencySymbol } from "@/lib/formatting";
 
-//TODO: Make the currency label reflect the account label + use a hook for the input sizing
+const useDynamicCurrencyWidth = (currency: string) => {
+  const [width, setWidth] = useState(0);
+  const spanRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    if (spanRef.current) {
+      const symbol = getCurrencySymbol(currency);
+      spanRef.current.textContent = symbol;
+      setWidth(spanRef.current.offsetWidth);
+    }
+  }, [currency]);
+
+  return { width, spanRef };
+};
+
 export default function EditAccountModal({
   isOpen,
   onClose,
   account,
   onUpdateAccount,
 }: {
-  isOpen: boolean
-  onClose: () => void
-  account: AccountWTrend
-  onUpdateAccount: AccountUpdate
+  isOpen: boolean;
+  onClose: () => void;
+  account: AccountWTrend;
+  onUpdateAccount: AccountUpdate;
 }) {
-
   const typeFieldId = useId();
+  const { width: currencyWidth, spanRef } = useDynamicCurrencyWidth(account.currency);
 
   const form = useForm<AccountFormSchema>({
-    resolver: zodResolver(accountFormSchema),
+    resolver: arktypeResolver(accountFormSchema),
     defaultValues: {
       name: account.name,
       type: account.type,
@@ -45,10 +53,10 @@ export default function EditAccountModal({
     },
   });
 
-
   useEffect(() => {
     if (account) {
-      form.reset({ // Call reset with the new account's data
+      form.reset({
+        // Call reset with the new account's data
         name: account.name,
         type: account.type,
         currency: account.currency,
@@ -63,8 +71,7 @@ export default function EditAccountModal({
       if (account?.id) {
         onUpdateAccount(account.id, values);
       }
-      form.reset();
-      onClose()
+      onClose();
     },
     [onUpdateAccount, form, onClose, account?.id]
   );
@@ -80,25 +87,22 @@ export default function EditAccountModal({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 mt-4" id="updateAccount">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="mt-4 space-y-4" id="updateAccount">
             {account.is_external && (
-              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+              <div className="bg-muted/50 flex items-center gap-3 rounded-lg p-3">
                 <Avatar className="h-10 w-10 rounded-md">
                   <AvatarImage src={account?.meta?.logo} alt={account?.meta?.institution_name} />
-                  <AvatarFallback className="rounded-md bg-primary/10 text-primary">
-                    {account?.meta?.institution?.substring(0, 2).toUpperCase()}
-                  </AvatarFallback>
+                  <AvatarFallback className="bg-primary/10 text-primary rounded-md">{account?.meta?.institution?.substring(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <div>
                   <div className="font-medium">{account?.meta?.institution}</div>
-                  <div className="text-sm text-muted-foreground">Bank-linked account</div>
+                  <div className="text-muted-foreground text-sm">Bank-linked account</div>
                 </div>
               </div>
             )}
 
             <div className="grid gap-4">
               <div className="grid gap-2">
-
                 <FormField
                   control={form.control}
                   name="name"
@@ -147,26 +151,28 @@ export default function EditAccountModal({
                       <FormLabel>Current Balance</FormLabel>
                       <FormControl>
                         <>
+                          <span ref={spanRef} className="sr-only" aria-hidden="true" />
                           <div className="relative">
-                            <span
-                              className="
-                              pointer-events-none  flex items-center justify-center   peer-disabled:opacity-50
-                              absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground
-                              ">
-
-                              $</span>
-                            <Input type="number"
+                            <span 
+                              className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 flex -translate-y-1/2 items-center justify-center text-sm peer-disabled:opacity-50"
+                            >
+                              {getCurrencySymbol(account.currency)}
+                            </span>
+                            <Input
+                              type="number"
                               disabled={account.is_external}
                               step="0.01"
                               min="0"
                               placeholder="0.00"
-                              className="peer pl-8"
-                              {...field} onChange={(e) => field.onChange(Number.parseFloat(e.target.value))} />
+                              className="peer"
+                              style={{ paddingLeft: `${currencyWidth + 24}px` }}
+                              {...field}
+                              onChange={(e) => field.onChange(Number.parseFloat(e.target.value))}
+                            />
                           </div>
 
-                          {account.is_external && (
-                            <p className="text-xs text-muted-foreground mt-1">Balance is automatically updated from your bank.</p>
-                          )}</>
+                          {account.is_external && <p className="text-muted-foreground mt-1 text-xs">Balance is automatically updated from your bank.</p>}
+                        </>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -186,6 +192,5 @@ export default function EditAccountModal({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
-

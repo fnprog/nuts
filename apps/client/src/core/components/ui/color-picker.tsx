@@ -33,23 +33,15 @@ export function ColorPicker({ value, onChange, colors = DEFAULT_COLORS, classNam
 
   return (
     <div className="relative">
-      <Button
-        type="button"
-        variant="outline"
-        className={cn("w-full justify-start text-left font-normal", className)}
-        onClick={() => setIsOpen(!isOpen)}
-      >
+      <Button type="button" variant="outline" className={cn("w-full justify-start text-left font-normal", className)} onClick={() => setIsOpen(!isOpen)}>
         <div className="flex items-center gap-2">
-          <div
-            className="h-4 w-4 rounded border border-gray-300"
-            style={{ backgroundColor: value || "#6b7280" }}
-          />
+          <div className="h-4 w-4 rounded border border-gray-300" style={{ backgroundColor: value || "#6b7280" }} />
           <span>{value || "Choose a color"}</span>
         </div>
       </Button>
-      
+
       {isOpen && (
-        <div className="absolute top-full left-0 z-50 mt-1 w-auto p-3 bg-white border rounded-md shadow-md">
+        <div className="absolute top-full left-0 z-50 mt-1 w-auto rounded-md border bg-white p-3 shadow-md">
           <div className="grid grid-cols-4 gap-2">
             {colors.map((color) => (
               <button

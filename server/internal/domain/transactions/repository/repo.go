@@ -8,6 +8,7 @@ import (
 	"github.com/Fantasy-Programming/nuts/server/internal/repository"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -17,6 +18,7 @@ type Transactions interface {
 	// Transaction operations
 	CountTransactions(ctx context.Context, params repository.CountTransactionsParams) (int64, error)
 	ListTransactions(ctx context.Context, arg repository.ListTransactionsParams) ([]repository.ListTransactionsRow, error)
+	GetTransactionsSince(ctx context.Context, userID uuid.UUID, since time.Time) ([]repository.GetTransactionsSinceRow, error)
 
 	GetTransaction(ctx context.Context, id uuid.UUID) (repository.Transaction, error)
 	CreateTransaction(ctx context.Context, params repository.CreateTransactionParams) (repository.Transaction, error)
@@ -101,4 +103,14 @@ func (r *repo) BulkUpdateTransactionCategories(ctx context.Context, params repos
 
 func (r *repo) BulkUpdateManualTransactions(ctx context.Context, params repository.BulkUpdateManualTransactionsParams) error {
 	return r.Queries.BulkUpdateManualTransactions(ctx, params)
+}
+
+func (r *repo) GetTransactionsSince(ctx context.Context, userID uuid.UUID, since time.Time) ([]repository.GetTransactionsSinceRow, error) {
+	return r.Queries.GetTransactionsSince(ctx, repository.GetTransactionsSinceParams{
+		UserID: &userID,
+		Since: pgtype.Timestamptz{
+			Time:  since,
+			Valid: true,
+		},
+	})
 }

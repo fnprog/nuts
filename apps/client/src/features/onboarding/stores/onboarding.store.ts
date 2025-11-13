@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import { devtools, persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { devtools, persist } from "zustand/middleware";
 
 export interface OnboardingState {
   // Current step (0-6)
@@ -27,8 +27,8 @@ export interface OnboardingState {
 
 const initialState = {
   currentStep: 0,
-  firstName: '',
-  lastName: '',
+  firstName: "",
+  lastName: "",
   wantsBetterFinance: null,
   selectedGoals: [],
   feelsComplexFinance: null,
@@ -62,7 +62,7 @@ export const useOnboardingStore = create<OnboardingState>()(
           set({ ...initialState }, false, 'onboarding/reset'),
       }),
       {
-        name: 'onboarding-storage',
+        name: "onboarding-storage",
         partialize: (state) => ({
           currentStep: state.currentStep,
           firstName: state.firstName,

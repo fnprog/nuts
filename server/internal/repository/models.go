@@ -390,6 +390,20 @@ type TransactionRule struct {
 	DeletedAt  *time.Time `json:"deleted_at"`
 }
 
+type TransactionRule struct {
+	ID         uuid.UUID  `json:"id"`
+	Name       string     `json:"name"`
+	IsActive   *bool      `json:"is_active"`
+	Priority   *int32     `json:"priority"`
+	Conditions []byte     `json:"conditions"`
+	Actions    []byte     `json:"actions"`
+	CreatedBy  uuid.UUID  `json:"created_by"`
+	UpdatedBy  *uuid.UUID `json:"updated_by"`
+	CreatedAt  time.Time  `json:"created_at"`
+	UpdatedAt  time.Time  `json:"updated_at"`
+	DeletedAt  *time.Time `json:"deleted_at"`
+}
+
 type User struct {
 	ID            uuid.UUID  `json:"id"`
 	Email         string     `json:"email"`
@@ -457,4 +471,22 @@ type WebhookSubscription struct {
 	EndpointUrl string           `json:"endpoint_url"`
 	Secret      string           `json:"secret"`
 	CreatedAt   pgtype.Timestamp `json:"created_at"`
+}
+
+type DataMigration struct {
+	MigrationID          uuid.UUID  `json:"migration_id"`
+	UserID               uuid.UUID  `json:"user_id"`
+	AnonymousUserID      string     `json:"anonymous_user_id"`
+	Status               string     `json:"status"`
+	ChunkIndex           int32      `json:"chunk_index"`
+	TotalChunks          int32      `json:"total_chunks"`
+	CategoriesMigrated   int32      `json:"categories_migrated"`
+	AccountsMigrated     int32      `json:"accounts_migrated"`
+	TransactionsMigrated int32      `json:"transactions_migrated"`
+	CategoriesFailed     int32      `json:"categories_failed"`
+	AccountsFailed       int32      `json:"accounts_failed"`
+	TransactionsFailed   int32      `json:"transactions_failed"`
+	ErrorMessage         *string    `json:"error_message"`
+	CreatedAt            time.Time  `json:"created_at"`
+	CompletedAt          *time.Time `json:"completed_at"`
 }

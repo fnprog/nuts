@@ -296,4 +296,3 @@ func (re *RuleEvaluator) EvaluateRules(rules []transactions.TransactionRule, tra
 
 	return matches, nil
 }
-

@@ -1,0 +1,20 @@
+{
+  "rustc": 8022303366561187541,
+  "features": "[]",
+  "declared_features": "[\"serde\", \"serde1\"]",
+  "target": 8693846537396281209,
+  "profile": 2241668132362809309,
+  "path": 13356558503359365608,
+  "deps": [[18130209639506977569, "rand_core", false, 15752352582958475321]],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "debug/.fingerprint/rand_xoshiro-dd4ccd4c0cc76922/dep-lib-rand_xoshiro",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 2069994364910194474,
+  "compile_kind": 0
+}

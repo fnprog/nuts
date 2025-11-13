@@ -554,3 +554,30 @@ WHERE
     connection_id = $1
     AND created_by = $2 -- user_id
     AND deleted_at IS NULL;
+
+-- name: GetAccountsSince :many
+SELECT
+    id,
+    name,
+    type,
+    subtype,
+    balance,
+    currency,
+    is_external,
+    last_synced_at,
+    meta,
+    created_at,
+    updated_at,
+    deleted_at,
+    connection_id,
+    provider_name,
+    provider_account_id,
+    created_by,
+    updated_by
+FROM accounts
+WHERE
+    created_by = sqlc.arg('user_id')
+    AND (
+        updated_at > sqlc.arg('since')
+        OR (deleted_at IS NOT NULL AND deleted_at > sqlc.arg('since'))
+    );

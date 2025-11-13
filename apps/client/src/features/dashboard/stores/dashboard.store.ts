@@ -1,16 +1,14 @@
 import { create } from "zustand";
-import { ChartSize } from '@/features/dashboard/components/chart-card';
+import { ChartSize } from "@/features/dashboard/components/chart-card";
 import { persist } from "zustand/middleware";
 import { getAvailableChartConfigs } from "../charts/loader";
 import { arrayMove } from "@dnd-kit/sortable";
-
 
 interface DashboardChartLayout {
   id: string; // Corresponds to the ID in DashboardChartModuleConfig
   size: ChartSize;
   isLocked: boolean;
 }
-
 
 // export type ComponentSize = 1 | 2 | 3;
 // allowedSizes: ComponentSize[];
@@ -36,7 +34,6 @@ interface DashboardState {
   toggleChartLock: (chartId: string) => void;
 }
 
-
 // interface DashboardState2 {
 //   components: DashboardComponent[];
 //   componentOrder: string[];
@@ -57,7 +54,6 @@ interface DashboardState {
 
 // load from the registry
 
-
 // interface DashboardState {
 //   charts: ChartItem[];
 //   chartOrder: string[];
@@ -75,7 +71,6 @@ interface DashboardState {
 //   setTimeRange: (range: { start: string; end: string }) => void;
 // }
 
-
 export const useDashboardStore = create<DashboardState>()(
   persist(
     (set, get) => ({
@@ -85,7 +80,7 @@ export const useDashboardStore = create<DashboardState>()(
       addChart: async (chartId) => {
         const currentLayout = get().chartLayout;
         // Prevent adding duplicates
-        if (currentLayout.some(chart => chart.id === chartId)) {
+        if (currentLayout.some((chart) => chart.id === chartId)) {
           console.warn(`Chart "${chartId}" is already on the dashboard.`);
           return;
         }
@@ -94,7 +89,7 @@ export const useDashboardStore = create<DashboardState>()(
         // This could be optimized by loading configs once upfront if preferred
         try {
           const availableConfigs = await getAvailableChartConfigs();
-          const chartConfig = availableConfigs.find(c => c.id === chartId);
+          const chartConfig = availableConfigs.find((c) => c.id === chartId);
 
           if (!chartConfig) {
             console.error(`Configuration for chart "${chartId}" not found.`);
@@ -131,27 +126,22 @@ export const useDashboardStore = create<DashboardState>()(
 
       updateChartSize: (chartId, size) => {
         set((state) => ({
-          chartLayout: state.chartLayout.map((chart) =>
-            chart.id === chartId ? { ...chart, size: size } : chart
-          ),
+          chartLayout: state.chartLayout.map((chart) => (chart.id === chartId ? { ...chart, size: size } : chart)),
         }));
       },
 
       toggleChartLock: (chartId) => {
         set((state) => ({
-          chartLayout: state.chartLayout.map((chart) =>
-            chart.id === chartId ? { ...chart, isLocked: !chart.isLocked } : chart
-          ),
+          chartLayout: state.chartLayout.map((chart) => (chart.id === chartId ? { ...chart, isLocked: !chart.isLocked } : chart)),
         }));
       },
     }),
     {
-      name: 'dashboard-layout-storage', // Changed storage name
+      name: "dashboard-layout-storage", // Changed storage name
       // Optionally migrate from the old structure if needed
     }
   )
 );
-
 
 // export const useDashboardStore = create<DashboardState>()((set) => ({
 //   charts: initialCharts,

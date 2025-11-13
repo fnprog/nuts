@@ -1,4 +1,4 @@
-import { LucideIcon } from 'lucide-react';
+import { LucideIcon } from "lucide-react";
 
 export interface PluginRouteConfig {
   path: string;
@@ -23,12 +23,11 @@ export interface PluginConfigExternal {
   description: string;
   version: string;
   author: string;
-  icon: React.FC | LucideIcon
+  icon: React.FC | LucideIcon;
   routes: PluginRouteConfigExternal[];
   charts: PluginChartConfigExternal[];
   settings: React.FC;
 }
-
 
 export interface PluginRouteConfigExternal {
   path: string;
@@ -44,11 +43,11 @@ export interface PluginRouteConfigExternal {
 }
 
 export interface PluginChartConfigExternal {
-  id: string,
-  type: string,
-  title: string,
-  component: React.FC,
-  defaultSize: 1 | 2 | 3,
+  id: string;
+  type: string;
+  title: string;
+  component: React.FC;
+  defaultSize: 1 | 2 | 3;
 }
 
 export interface PluginConfig {
@@ -64,6 +63,5 @@ export interface PluginConfig {
 }
 
 export interface PluginEntry {
-  default: PluginConfigExternal
+  default: PluginConfigExternal;
 }
-

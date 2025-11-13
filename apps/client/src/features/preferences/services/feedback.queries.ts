@@ -1,10 +1,14 @@
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { feedbackService } from "./feedback";
+import { feedbackService, type FeedbackData } from "../api/feedback";
 
 export const useFeedbackMutation = () => {
   return useMutation({
-    mutationFn: feedbackService.submitFeedback,
+    mutationFn: async (data: FeedbackData) => {
+      const result = await feedbackService.submitFeedback(data);
+      if (result.isErr()) throw result.error;
+      return result.value;
+    },
     onSuccess: () => {
       toast.success("Feedback submitted successfully");
     },

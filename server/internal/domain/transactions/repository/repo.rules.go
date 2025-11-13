@@ -16,7 +16,7 @@ import (
 type CreateRuleParams struct {
 	Name       string                       `json:"name"`
 	IsActive   bool                         `json:"is_active"`
-	Priority   int                          `json:"priority"`
+	Priority   int32                        `json:"priority"`
 	Conditions []transactions.RuleCondition `json:"conditions"`
 	Actions    []transactions.RuleAction    `json:"actions"`
 	CreatedBy  uuid.UUID                    `json:"created_by"`
@@ -27,7 +27,7 @@ type UpdateRuleParams struct {
 	ID         uuid.UUID                     `json:"id"`
 	Name       *string                       `json:"name,omitempty"`
 	IsActive   *bool                         `json:"is_active,omitempty"`
-	Priority   *int                          `json:"priority,omitempty"`
+	Priority   *int32                        `json:"priority,omitempty"`
 	Conditions *[]transactions.RuleCondition `json:"conditions,omitempty"`
 	Actions    *[]transactions.RuleAction    `json:"actions,omitempty"`
 	UpdatedBy  uuid.UUID                     `json:"updated_by"`

@@ -1,13 +1,11 @@
 import { createFileRoute, Link, Outlet, redirect, useNavigate } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
 import { useCallback, Suspense, memo } from "react";
-import { useHotkeys } from 'react-hotkeys-hook'
+import { useHotkeys } from "react-hotkeys-hook";
 import { usePluginStore } from "@/features/plugins/store";
-import { renderIcon } from "@/core/components/icon-picker/index.helper";
-import { cn } from "@/lib/utils"
-import { userService } from "@/features/preferences/services/user";
+import { renderIcon } from "@/core/components/ui/icon-picker/index.helper";
+import { cn } from "@/lib/utils";
 import { useTheme } from "@/features/preferences/hooks/use-theme";
-import { useShallow } from 'zustand/react/shallow'
+import { useShallow } from "zustand/react/shallow";
 import { useTranslation } from "react-i18next";
 import { isOnboardingRequired, getOnboardingEntryPoint } from "@/features/onboarding/services/onboarding";
 import {
@@ -22,10 +20,10 @@ import {
   RiLogoutBoxLine,
   type RemixiconComponentType,
   RiDashboardLine,
-  RiDashboardFill
+  RiDashboardFill,
 } from "@remixicon/react";
-import LogoWTXT from "@/core/assets/icons/ICWLG"
-import { Nuts } from "@/core/assets/icons/Logo"
+import LogoWTXT from "@/core/components/icons/ICWLG";
+import { Nuts } from "@/core/components/icons/Logo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/core/components/ui/avatar";
 import {
   DropdownMenu,
@@ -65,6 +63,7 @@ import { Spinner } from "@/core/components/ui/spinner";
 import { useLogout } from "@/features/auth/services/auth.mutations";
 import { getAllAccounts } from "@/features/accounts/services/account.queries";
 import { ErrorBoundary, ComponentErrorFallback } from "@/core/components/error-boundary";
+import { useAuthStore } from "@/features/auth/stores/auth.store";
 
 export type ValidRoutes = keyof FileRoutesByTo;
 
@@ -102,17 +101,28 @@ const navMain: navStuff[] = [
   // }
 ];
 
-
 export const Route = createFileRoute("/dashboard")({
   beforeLoad: async ({ context, location }) => {
-    if (!context.auth.isAuthenticated) {
-      throw redirect({
-        to: "/login",
-        search: { redirect: location.href },
-      });
+    const queryClient = context.queryClient;
+
+    if (context.auth.isAuthenticated) {
+      try {
+        const user = useAuthStore.getState().user;
+
+        if (user && isOnboardingRequired(user)) {
+          const entryPoint = getOnboardingEntryPoint(user);
+          throw redirect({
+            to: entryPoint,
+          });
+        }
+      } catch (redirectError) {
+        if (redirectError && typeof redirectError === "object" && "type" in redirectError) {
+          throw redirectError;
+        }
+        console.error("Failed to check onboarding status:", redirectError);
+      }
     }
 
-    const queryClient = context.queryClient;
 
     // Check if user needs onboarding
     try {
@@ -142,21 +152,12 @@ export const Route = createFileRoute("/dashboard")({
       hasAccounts: accounts.length > 0,
     };
   },
-  loader: ({ context }) => {
-    const queryClient = context.queryClient
-    queryClient.prefetchQuery({
-      queryKey: ["user"],
-      queryFn: userService.getMe,
-    })
-  },
   component: DashboardWrapper,
 });
-
 
 function DashboardWrapper() {
   const navigate = useNavigate();
 
-  // Enhanced keyboard shortcuts with accessibility announcements
   useHotkeys(
     "g+d",
     () => {
@@ -201,15 +202,13 @@ function DashboardWrapper() {
     { description: "Navigate to Transactions (g+t)" }
   );
 
-  useHotkeys('g+a', () => {
-    navigate({ to: "/dashboard/analytics" });
-    const announcement = document.createElement('div');
-    announcement.setAttribute('aria-live', 'polite');
-    announcement.className = 'sr-only';
-    announcement.textContent = 'Navigated to Analytics';
-    document.body.appendChild(announcement);
-    setTimeout(() => document.body.removeChild(announcement), 1000);
-  }, { description: "Navigate to Analytics (g+a)" });
+  useHotkeys(
+    "g+a",
+    () => {
+      navigate({ to: "/dashboard/analytics" });
+    },
+    []
+  );
 
   useHotkeys(
     "g+s",
@@ -283,16 +282,10 @@ function DashboardWrapper() {
   );
 }
 
-
 const SideBarFooterMenu = memo(() => {
   const navigate = useNavigate();
-
-  const {
-    data: user
-  } = useSuspenseQuery({
-    queryKey: ["user"],
-    queryFn: userService.getMe,
-  });
+  const isAnonymous = useAuthStore((state) => state.isAnonymous);
+  const user = useAuthStore((state) => state.user);
 
   const logout = useLogout();
   const { theme, setTheme } = useTheme();
@@ -300,32 +293,92 @@ const SideBarFooterMenu = memo(() => {
   const { t } = useTranslation();
 
   const onLogout = useCallback(async () => {
-    await logout.mutateAsync()
-    navigate({ to: "/login", replace: true })
+    await logout.mutateAsync();
+    navigate({ to: "/login", replace: true });
   }, [logout, navigate]);
+
+  const onSignIn = useCallback(() => {
+    navigate({ to: "/login", search: { redirect: "/dashboard/home" } });
+  }, [navigate]);
+
+  if (isAnonymous || !user) {
+    return (
+      <SidebarMenu className="group-data-[collapsible=icon]:items-center">
+        <SidebarMenuItem>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <SidebarMenuButton size="lg" className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+                <Avatar className="transition-[width,height] duration-200 ease-in-out in-data-[state=expanded]:size-6">
+                  <AvatarFallback>G</AvatarFallback>
+                </Avatar>
+                <div className="ms-1 grid flex-1 items-center text-left text-sm leading-tight">
+                  <span className="truncate font-medium">Guest</span>
+                  <span className="text-muted-foreground text-xs">Anonymous</span>
+                </div>
+                <div className="bg-sidebar-accent/50 flex size-8 items-center justify-center rounded-lg in-[[data-slot=dropdown-menu-trigger]:hover]:bg-transparent">
+                  <RiArrowDownSLine className="size-5 opacity-40" size={20} />
+                </div>
+              </SidebarMenuButton>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+              align="end"
+              sideOffset={4}
+              side={isMobile ? "bottom" : "right"}
+              forceMount
+            >
+              <DropdownMenuItem asChild>
+                <Link to="/dashboard/settings" className="gap-3 px-1">
+                  <RiSettingsLine size={16} className="text-muted-foreground/70" aria-hidden="true" />
+                  {t("settings.accountSettings")}
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger className="gap-3 px-1 ps-2">
+                  <RiSunLine size={16} className="text-muted-foreground/70" aria-hidden="true" />
+                  {t("settings.theme")}
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuRadioGroup value={theme} onValueChange={(value) => setTheme(value as Theme)}>
+                    <DropdownMenuRadioItem value="light">
+                      <RiSunLine size={16} className="text-muted-foreground/70" aria-hidden="true" />
+                      {t("settings.light")}
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="dark">
+                      <RiMoonLine size={16} className="text-muted-foreground/70" aria-hidden="true" />
+                      {t("settings.dark")}
+                    </DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+              <DropdownMenuItem className="gap-3 px-1 ps-2" onClick={onSignIn}>
+                <RiLogoutBoxLine size={16} className="text-muted-foreground/70" aria-hidden="true" />
+                Sign In
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    );
+  }
 
   return (
     <SidebarMenu className="group-data-[collapsible=icon]:items-center">
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-              <Avatar className="in-data-[state=expanded]:size-6 transition-[width,height] duration-200 ease-in-out">
+            <SidebarMenuButton size="lg" className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+              <Avatar className="transition-[width,height] duration-200 ease-in-out in-data-[state=expanded]:size-6">
                 <AvatarImage src={user.avatar_url} alt={user.first_name} />
                 <AvatarFallback>
                   {user.first_name?.[0]}
                   {user.last_name?.[0]}
                 </AvatarFallback>
               </Avatar>
-              <div className="grid flex-1 text-left items-center text-sm leading-tight ms-1">
-                <span className="truncate font-medium">
-                  {user?.first_name && user?.last_name && (
-                    `${user.first_name} ${user.last_name}`
-                  )}
-                </span>
+              <div className="ms-1 grid flex-1 items-center text-left text-sm leading-tight">
+                <span className="truncate font-medium">{user?.first_name && user?.last_name && `${user.first_name} ${user.last_name}`}</span>
               </div>
-              <div className="size-8 rounded-lg flex items-center justify-center bg-sidebar-accent/50 in-[[data-slot=dropdown-menu-trigger]:hover]:bg-transparent">
+              <div className="bg-sidebar-accent/50 flex size-8 items-center justify-center rounded-lg in-[[data-slot=dropdown-menu-trigger]:hover]:bg-transparent">
                 <RiArrowDownSLine className="size-5 opacity-40" size={20} />
               </div>
             </SidebarMenuButton>
@@ -335,7 +388,8 @@ const SideBarFooterMenu = memo(() => {
             align="end"
             sideOffset={4}
             side={isMobile ? "bottom" : "right"}
-            forceMount>
+            forceMount
+          >
             <DropdownMenuItem asChild>
               <Link to="/dashboard/settings" className="gap-3 px-1">
                 <RiSettingsLine size={16} className="text-muted-foreground/70" aria-hidden="true" />
@@ -368,33 +422,27 @@ const SideBarFooterMenu = memo(() => {
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
-})
-
-
+  );
+});
 
 const SideBarHeader = memo(() => {
   const { state } = useSidebar();
 
   return (
-    <SidebarHeader className="h-fit max-md:mt-2 mb-2 justify-center">
-      <div className="flex w-full items-center px-2 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:justify-center rounded-lg bg-sidebar text-sidebar-primary-foreground">
-        {state === "collapsed" ? (
-          <Nuts className="size-4 fill-sidebar-primary-foreground" />
-        ) : (
-          <LogoWTXT className=" size-14 fill-sidebar-primary-foreground" />
-        )}
+    <SidebarHeader className="mb-2 h-fit justify-center max-md:mt-2">
+      <div className="bg-sidebar text-sidebar-primary-foreground flex w-full items-center rounded-lg px-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+        {state === "collapsed" ? <Nuts className="fill-sidebar-primary-foreground size-4" /> : <LogoWTXT className="fill-sidebar-primary-foreground size-14" />}
       </div>
     </SidebarHeader>
-  )
-})
+  );
+});
 
 const SideBarMainLinks = memo(() => {
   const { t } = useTranslation();
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel className="uppercase text-[#757575]">General</SidebarGroupLabel>
+      <SidebarGroupLabel className="text-[#757575] uppercase">General</SidebarGroupLabel>
       <SidebarGroupContent className="px-1 group-data-[collapsible=icon]:px-0">
         <SidebarMenu className="group-data-[collapsible=icon]:items-center">
           {navMain.map((item) => (
@@ -438,11 +486,11 @@ const SideBarMainLinks = memo(() => {
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
-  )
-})
+  );
+});
 
 const SideBarPluginsLinks = memo(() => {
-  const plugins = usePluginStore(useShallow((state) => state.pluginConfigs.filter(config => config.enabled)));
+  const plugins = usePluginStore(useShallow((state) => state.pluginConfigs.filter((config) => config.enabled)));
 
   if (plugins.length === 0) {
     return null;
@@ -450,73 +498,70 @@ const SideBarPluginsLinks = memo(() => {
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel className="uppercase text-muted-foreground/60">Plugins</SidebarGroupLabel>
+      <SidebarGroupLabel className="text-muted-foreground/60 uppercase">Plugins</SidebarGroupLabel>
       <SidebarGroupContent className="px-1 group-data-[collapsible=icon]:px-0">
         <SidebarMenu className="group-data-[collapsible=icon]:items-center">
-          {
-            plugins.map((item) => {
-              return item.routeConfigs.map((route) => {
-                return (
-                  <Collapsible className="group/collapsible" key={route.label}>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton asChild
-                        className="group/menu-button text-gray-950/60 font-medium gap-3 h-9 rounded-md bg-gradient-to-r hover:bg-transparent hover:from-sidebar-accent hover:to-sidebar-accent/40 data-[active=true]:from-primary/20 data-[active=true]:to-primary/5 [&>svg]:size-auto"
-                        tooltip={route.label} >
-                        <Link to={'/dashboard/$'}
-                          params={{
-                            _splat: route.path
-                          }}
-
-                          activeProps={{ className: "bg-sidebar-accent shadow-sm" }}
-                        >
-                          {renderIcon(route.iconName, { size: 16, "aria-hidden": true, className: "text-muted-foreground/60 group-data-[active=true]/menu-button:text-primary" })}
-                          <span >{route.label}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                      {
-                        route?.subroutes ? (
-                          <>
-                            <CollapsibleTrigger asChild>
-                              <SidebarMenuAction
-                                className="left-2 bg-sidebar-accent text-sidebar-accent-foreground data-[state=open]:rotate-90"
-                                showOnHover
-                              >
-                                <ChevronRight />
-                              </SidebarMenuAction>
-                            </CollapsibleTrigger>
-                            <CollapsibleContent >
-                              <SidebarMenuSub>
-                                {route.subroutes.map((item) => (
-                                  <SidebarMenuSubItem key={item.label}>
-                                    <SidebarMenuSubButton asChild>
-                                      <Link to={'/dashboard/$'} params={{
-                                        _splat: item.path
-                                      }} className={cn(
-                                        "flex text-sm  items-center w-full text-gray-950/60 justify-start  gap-3 hover:shadow-sm transition-all",
-
-                                      )}
-                                        activeProps={{ className: "bg-sidebar-accent shadow-sm" }}
-                                      >
-                                        <span className="ml-2">{item.label}</span>
-                                      </Link>
-                                    </SidebarMenuSubButton>
-                                  </SidebarMenuSubItem>
-                                ))}
-
-                              </SidebarMenuSub>
-                            </CollapsibleContent>
-                          </>
-                        ) : null
-                      }
-
-                    </SidebarMenuItem>
-                  </Collapsible>
-                );
-              });
-            })
-          }
+          {plugins.map((item) => {
+            return item.routeConfigs.map((route) => {
+              return (
+                <Collapsible className="group/collapsible" key={route.label}>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      asChild
+                      className="group/menu-button hover:from-sidebar-accent hover:to-sidebar-accent/40 data-[active=true]:from-primary/20 data-[active=true]:to-primary/5 h-9 gap-3 rounded-md bg-gradient-to-r font-medium text-gray-950/60 hover:bg-transparent [&>svg]:size-auto"
+                      tooltip={route.label}
+                    >
+                      <Link
+                        to={"/dashboard/$"}
+                        params={{
+                          _splat: route.path,
+                        }}
+                        activeProps={{ className: "bg-sidebar-accent shadow-sm" }}
+                      >
+                        {renderIcon(route.iconName, {
+                          size: 16,
+                          "aria-hidden": true,
+                          className: "text-muted-foreground/60 group-data-[active=true]/menu-button:text-primary",
+                        })}
+                        <span>{route.label}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                    {route?.subroutes ? (
+                      <>
+                        <CollapsibleTrigger asChild>
+                          <SidebarMenuAction className="bg-sidebar-accent text-sidebar-accent-foreground left-2 data-[state=open]:rotate-90" showOnHover>
+                            <ChevronRight />
+                          </SidebarMenuAction>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <SidebarMenuSub>
+                            {route.subroutes.map((item) => (
+                              <SidebarMenuSubItem key={item.label}>
+                                <SidebarMenuSubButton asChild>
+                                  <Link
+                                    to={"/dashboard/$"}
+                                    params={{
+                                      _splat: item.path,
+                                    }}
+                                    className={cn("flex w-full items-center justify-start gap-3 text-sm text-gray-950/60 transition-all hover:shadow-sm")}
+                                    activeProps={{ className: "bg-sidebar-accent shadow-sm" }}
+                                  >
+                                    <span className="ml-2">{item.label}</span>
+                                  </Link>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            ))}
+                          </SidebarMenuSub>
+                        </CollapsibleContent>
+                      </>
+                    ) : null}
+                  </SidebarMenuItem>
+                </Collapsible>
+              );
+            });
+          })}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
-  )
-})
+  );
+});

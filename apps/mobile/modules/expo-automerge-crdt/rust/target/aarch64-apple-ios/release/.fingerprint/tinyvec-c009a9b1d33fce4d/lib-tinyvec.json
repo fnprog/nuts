@@ -1,0 +1,20 @@
+{
+  "rustc": 8022303366561187541,
+  "features": "[\"alloc\", \"default\", \"tinyvec_macros\"]",
+  "declared_features": "[\"alloc\", \"arbitrary\", \"borsh\", \"debugger_visualizer\", \"default\", \"experimental_write_impl\", \"generic-array\", \"grab_spare_slice\", \"latest_stable_rust\", \"nightly_slice_partition_dedup\", \"real_blackbox\", \"rustc_1_40\", \"rustc_1_55\", \"rustc_1_57\", \"rustc_1_61\", \"serde\", \"std\", \"tinyvec_macros\"]",
+  "target": 9043339761408747423,
+  "profile": 12693162527509728243,
+  "path": 12269367245810367708,
+  "deps": [[4524103270527811306, "tinyvec_macros", false, 8200072771554943218]],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "aarch64-apple-ios/release/.fingerprint/tinyvec-c009a9b1d33fce4d/dep-lib-tinyvec",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 2069994364910194474,
+  "compile_kind": 3694122122034060669
+}

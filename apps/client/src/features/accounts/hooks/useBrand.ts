@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery } from "@tanstack/react-query";
 
 type TBrandResult = {
   name: string;
@@ -12,15 +12,10 @@ interface UseBrandImageReturn {
   error: string | null;
 }
 
-const fetchBrandImage = async (
-  brandName: string,
-  clientId: string
-): Promise<string | null> => {
+const fetchBrandImage = async (brandName: string, clientId: string): Promise<string | null> => {
   if (!brandName.trim() || !clientId.trim()) return null;
 
-  const url = `https://api.brandfetch.io/v2/search/${encodeURIComponent(
-    brandName
-  )}?c=${encodeURIComponent(clientId)}`;
+  const url = `https://api.brandfetch.io/v2/search/${encodeURIComponent(brandName)}?c=${encodeURIComponent(clientId)}`;
 
   const response = await fetch(url);
 
@@ -34,13 +29,10 @@ const fetchBrandImage = async (
     return data[0].icon;
   }
 
-  throw new Error('No brand image found');
+  throw new Error("No brand image found");
 };
 
-export const useBrandImage = (
-  brandName: string,
-  clientId: string
-): UseBrandImageReturn => {
+export const useBrandImage = (brandName: string, clientId: string): UseBrandImageReturn => {
   const enabled = !!brandName.trim() && !!clientId.trim();
 
   const {
@@ -48,7 +40,7 @@ export const useBrandImage = (
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['brand-image', brandName, clientId],
+    queryKey: ["brand-image", brandName, clientId],
     queryFn: () => fetchBrandImage(brandName, clientId),
     enabled,
     staleTime: 1000 * 60 * 60 * 24 * 7, // 7 days = data is considered fresh for 7 days
@@ -61,4 +53,3 @@ export const useBrandImage = (
     error: error ? (error as Error).message : null,
   };
 };
-

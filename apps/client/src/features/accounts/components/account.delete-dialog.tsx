@@ -7,9 +7,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/core/components/ui/alert-dialog"
-import { Account } from "../services/account.types"
-import { AccountDelete } from "../services/account.types"
+} from "@/core/components/ui/alert-dialog";
+import { Account } from "../services/account.types";
+import { AccountDelete } from "../services/account.types";
 
 export default function DeleteAccountDialog({
   isOpen,
@@ -17,20 +17,19 @@ export default function DeleteAccountDialog({
   account,
   onDeleteAccount,
 }: {
-  isOpen: boolean
-  onClose: () => void
-  account: Account | null
-  onDeleteAccount: AccountDelete
+  isOpen: boolean;
+  onClose: () => void;
+  account: Account | null;
+  onDeleteAccount: AccountDelete;
 }) {
-
   const handleDelete = () => {
     if (account) {
-      onDeleteAccount(account.id)
-      onClose()
+      onDeleteAccount(account.id);
+      onClose();
     }
-  }
+  };
 
-  if (!account) return null
+  if (!account) return null;
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
@@ -38,21 +37,16 @@ export default function DeleteAccountDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>Are you sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            This will permanently delete the account "{account.name}" and remove all associated data. This action cannot
-            be undone.
+            This will permanently delete the account "{account.name}" and remove all associated data. This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={handleDelete}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-          >
+          <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
             Delete
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  )
+  );
 }
-

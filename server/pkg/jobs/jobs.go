@@ -23,6 +23,9 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+const maxAccounts = 1000      // Bound to prevent unbounded loops and resource exhaustion
+const maxTransactions = 10000 // Bound for transaction processing
+
 type EmailJob struct {
 	UserID    int64          `json:"user_id"`
 	Email     string         `json:"email"`
@@ -162,6 +165,10 @@ func (w *BankSyncWorker) syncAccounts(ctx context.Context, qtx *repository.Queri
 		return fmt.Errorf("failed to get accounts from provider: %w", err)
 	}
 
+	if len(accounts) > maxAccounts {
+		panic("too many accounts from provider")
+	}
+
 	if len(accounts) == 0 {
 		return nil
 	}
@@ -185,6 +192,7 @@ func (w *BankSyncWorker) syncAccounts(ctx context.Context, qtx *repository.Queri
 	var accountsToCreate []repository.BatchCreateAccountParams
 	var accountsToUpdate []repository.UpdateAccountParams
 
+	// Est. 5ms per account processing, max 5s for 1000 accounts to prevent long-running ops
 	for _, account := range accounts {
 		newBalance := types.FloatToNullDecimal(account.Balance)
 		isExternal := true
@@ -246,12 +254,17 @@ func (w *BankSyncWorker) syncTransactions(ctx context.Context, qtx *repository.Q
 		return fmt.Errorf("failed to get user accounts: %w", err)
 	}
 
+	if len(accounts) > maxAccounts {
+		panic("too many accounts from database")
+	}
+
 	// Pre-load category cache
 	categoryCache, err := w.buildCategoryCache(ctx, qtx, userID)
 	if err != nil {
 		return fmt.Errorf("failed to build category cache: %w", err)
 	}
 
+	// Est. 100ms per account sync (including transactions), max 100s for 1000 accounts
 	for _, account := range accounts {
 		if err := w.syncAccountTransactions(ctx, qtx, provider, connection, account, syncType, categoryCache, userID); err != nil {
 			w.deps.Logger.Error().Err(err).Str("account_id", account.ID.String()).Msg("Failed to sync account transactions")
@@ -282,6 +295,10 @@ func (w *BankSyncWorker) syncAccountTransactions(ctx context.Context, qtx *repos
 		return fmt.Errorf("failed to get transactions from provider: %w", err)
 	}
 
+	if len(transactions) > maxTransactions {
+		panic("too many transactions from provider")
+	}
+
 	if len(transactions) == 0 {
 		return nil
 	}
@@ -308,6 +325,7 @@ func (w *BankSyncWorker) syncAccountTransactions(ctx context.Context, qtx *repos
 	// Prepare batch insert
 	var transactionsToCreate []repository.BatchCreateTransactionParams
 
+	// Est. 1ms per transaction processing, max 10s for 10000 transactions
 	for _, transaction := range transactions {
 		// Skip if transaction already exists
 		if existingTxnMap[transaction.ProviderTransactionID] {

@@ -3,7 +3,13 @@ import { useDropzone } from "react-dropzone";
 import Papa from "papaparse";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/core/components/ui/button";
-import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogTrigger } from "@/core/components/ui/dialog-sheet";
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogTrigger,
+} from "@/core/components/ui/dialog-sheet";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/core/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/components/ui/select";
 import { Input } from "@/core/components/ui/input";
@@ -13,14 +19,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/cor
 import { Badge } from "@/core/components/ui/badge";
 import { Upload, FileSpreadsheet, AlertCircle, CheckCircle, ArrowRight, ArrowLeft } from "lucide-react";
 import { accountService } from "@/features/accounts/services/account";
-import { categoryService } from "@/features/categories/services/category";
+import { categoryService } from "@/features/categories/services/category.service";
 import { bulkCreateTransactions } from "@/features/transactions/services/transaction";
 import { RecordCreateSchema } from "@/features/transactions/services/transaction.types";
 import { AccountFormSchema } from "@/features/accounts/services/account.types";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { arktypeResolver } from '@hookform/resolvers/arktype';
+import { type } from "arktype";
 import { useQuery } from "@tanstack/react-query";
 
 type CSVRow = Record<string, string>;
@@ -45,17 +51,17 @@ interface ParsedTransaction {
   isValid: boolean;
 }
 
-const columnMappingSchema = z.object({
-  date: z.string().min(1, "Date column is required"),
-  amount: z.string().min(1, "Amount column is required"),
-  description: z.string().min(1, "Description column is required"),
-  category: z.string().optional(),
-  type: z.string().optional(),
+const columnMappingSchema = type({
+  date: "string>=1",
+  amount: "string>=1",
+  description: "string>=1",
+  "category?": "string",
+  "type?": "string",
 });
 
-const accountInfoSchema = z.object({
-  name: z.string().min(1, "Account name is required"),
-  currency: z.string().min(1, "Currency is required"),
+const accountInfoSchema = type({
+  name: "string>=1",
+  currency: "string>=1",
 });
 
 export function CSVImportDialog({ children }: React.PropsWithChildren) {
@@ -66,11 +72,11 @@ export function CSVImportDialog({ children }: React.PropsWithChildren) {
   const [parsedTransactions, setParsedTransactions] = useState<ParsedTransaction[]>([]);
   const [importProgress, setImportProgress] = useState(0);
   const [createdAccountId, setCreatedAccountId] = useState<string | null>(null);
-  
+
   const queryClient = useQueryClient();
 
   const mappingForm = useForm<ColumnMapping>({
-    resolver: zodResolver(columnMappingSchema),
+    resolver: arktypeResolver(columnMappingSchema),
     defaultValues: {
       date: "",
       amount: "",
@@ -81,7 +87,7 @@ export function CSVImportDialog({ children }: React.PropsWithChildren) {
   });
 
   const accountForm = useForm<{ name: string; currency: string }>({
-    resolver: zodResolver(accountInfoSchema),
+    resolver: arktypeResolver(accountInfoSchema),
     defaultValues: {
       name: "",
       currency: "USD",
@@ -90,11 +96,19 @@ export function CSVImportDialog({ children }: React.PropsWithChildren) {
 
   const { data: categories } = useQuery({
     queryKey: ["categories"],
-    queryFn: categoryService.getCategories,
+    queryFn: async () => {
+      const result = await categoryService.getCategories();
+      if (result.isErr()) throw result.error;
+      return result.value;
+    },
   });
 
   const createAccountMutation = useMutation({
-    mutationFn: accountService.createAccount,
+    mutationFn: async (data: any) => {
+      const result = await accountService.createAccount(data);
+      if (result.isErr()) throw result.error;
+      return result.value;
+    },
     onSuccess: (account) => {
       setCreatedAccountId(account.id);
       queryClient.invalidateQueries({ queryKey: ["accounts"] });
@@ -107,58 +121,61 @@ export function CSVImportDialog({ children }: React.PropsWithChildren) {
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["accounts"] });
-      
+
       const { created_count, error_count, total_requested } = result;
       if (error_count > 0) {
         toast.warning(`Imported ${created_count} of ${total_requested} transactions. ${error_count} transactions had errors.`);
       } else {
         toast.success(`Successfully imported all ${created_count} transactions!`);
       }
-      
+
       setIsOpen(false);
       resetState();
     },
   });
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    if (!file) return;
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      const file = acceptedFiles[0];
+      if (!file) return;
 
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        if (results.errors.length > 0) {
-          toast.error("Error parsing CSV file");
-          return;
-        }
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          if (results.errors.length > 0) {
+            toast.error("Error parsing CSV file");
+            return;
+          }
 
-        const headers = results.meta.fields || [];
-        setCsvHeaders(headers);
-        setCsvData(results.data as CSVRow[]);
-        
-        // Auto-detect common column mappings
-        const autoMapping = autoDetectColumns(headers);
-        mappingForm.reset(autoMapping);
-        
-        // Suggest account name based on filename
-        const accountName = file.name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " ");
-        accountForm.setValue("name", `Import from ${accountName}`);
-        
-        setStep("account");
-      },
-      error: () => {
-        toast.error("Failed to parse CSV file");
-      },
-    });
-  }, [mappingForm, accountForm]);
+          const headers = results.meta.fields || [];
+          setCsvHeaders(headers);
+          setCsvData(results.data as CSVRow[]);
+
+          // Auto-detect common column mappings
+          const autoMapping = autoDetectColumns(headers);
+          mappingForm.reset(autoMapping);
+
+          // Suggest account name based on filename
+          const accountName = file.name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " ");
+          accountForm.setValue("name", `Import from ${accountName}`);
+
+          setStep("account");
+        },
+        error: () => {
+          toast.error("Failed to parse CSV file");
+        },
+      });
+    },
+    [mappingForm, accountForm]
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'text/csv': ['.csv'],
-      'application/vnd.ms-excel': ['.xls'],
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+      "text/csv": [".csv"],
+      "application/vnd.ms-excel": [".xls"],
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
     },
     maxFiles: 1,
   });
@@ -172,106 +189,107 @@ export function CSVImportDialog({ children }: React.PropsWithChildren) {
       type: undefined,
     };
 
-    const lowercaseHeaders = headers.map(h => h.toLowerCase());
+    const lowercaseHeaders = headers.map((h) => h.toLowerCase());
 
     // Date detection
-    const dateKeywords = ['date', 'transaction date', 'posted date', 'time', 'datetime'];
-    mapping.date = headers.find((_, i) => 
-      dateKeywords.some(keyword => lowercaseHeaders[i].includes(keyword))
-    ) || "";
+    const dateKeywords = ["date", "transaction date", "posted date", "time", "datetime"];
+    mapping.date = headers.find((_, i) => dateKeywords.some((keyword) => lowercaseHeaders[i].includes(keyword))) || "";
 
     // Amount detection
-    const amountKeywords = ['amount', 'value', 'sum', 'total', 'money', 'price'];
-    mapping.amount = headers.find((_, i) => 
-      amountKeywords.some(keyword => lowercaseHeaders[i].includes(keyword))
-    ) || "";
+    const amountKeywords = ["amount", "value", "sum", "total", "money", "price"];
+    mapping.amount = headers.find((_, i) => amountKeywords.some((keyword) => lowercaseHeaders[i].includes(keyword))) || "";
 
     // Description detection
-    const descKeywords = ['description', 'memo', 'note', 'details', 'payee', 'merchant'];
-    mapping.description = headers.find((_, i) => 
-      descKeywords.some(keyword => lowercaseHeaders[i].includes(keyword))
-    ) || "";
+    const descKeywords = ["description", "memo", "note", "details", "payee", "merchant"];
+    mapping.description = headers.find((_, i) => descKeywords.some((keyword) => lowercaseHeaders[i].includes(keyword))) || "";
 
     // Category detection
-    const categoryKeywords = ['category', 'type', 'class', 'group'];
-    mapping.category = headers.find((_, i) => 
-      categoryKeywords.some(keyword => lowercaseHeaders[i].includes(keyword))
-    ) || undefined;
+    const categoryKeywords = ["category", "type", "class", "group"];
+    mapping.category = headers.find((_, i) => categoryKeywords.some((keyword) => lowercaseHeaders[i].includes(keyword))) || undefined;
 
     return mapping;
   };
 
-  const parseTransactions = useCallback((mapping: ColumnMapping): ParsedTransaction[] => {
-    return csvData.map((row, index) => {
-      const errors: string[] = [];
-      let isValid = true;
+  const parseTransactions = useCallback(
+    (mapping: ColumnMapping): ParsedTransaction[] => {
+      return csvData.map((row, index) => {
+        const errors: string[] = [];
+        let isValid = true;
 
-      // Parse date
-      const dateStr = mapping.date ? row[mapping.date] : "";
-      if (!dateStr) {
-        errors.push("Date is required");
-        isValid = false;
-      }
+        // Parse date
+        const dateStr = mapping.date ? row[mapping.date] : "";
+        if (!dateStr) {
+          errors.push("Date is required");
+          isValid = false;
+        }
 
-      // Parse amount
-      const amountStr = mapping.amount ? row[mapping.amount] : "";
-      const amount = parseFloat(amountStr.replace(/[^\d.-]/g, ""));
-      if (isNaN(amount)) {
-        errors.push("Invalid amount format");
-        isValid = false;
-      }
+        // Parse amount
+        const amountStr = mapping.amount ? row[mapping.amount] : "";
+        const amount = parseFloat(amountStr.replace(/[^\d.-]/g, ""));
+        if (isNaN(amount)) {
+          errors.push("Invalid amount format");
+          isValid = false;
+        }
 
-      // Parse description
-      const description = mapping.description ? row[mapping.description] : "";
-      if (!description.trim()) {
-        errors.push("Description is required");
-        isValid = false;
-      }
+        // Parse description
+        const description = mapping.description ? row[mapping.description] : "";
+        if (!description.trim()) {
+          errors.push("Description is required");
+          isValid = false;
+        }
 
-      // Determine transaction type
-      let type: "expense" | "income" = "expense";
-      if (mapping.type && mapping.type !== "__none__" && row[mapping.type]) {
-        const typeStr = row[mapping.type].toLowerCase();
-        if (typeStr.includes("income") || typeStr.includes("credit") || typeStr.includes("deposit")) {
+        // Determine transaction type
+        let type: "expense" | "income" = "expense";
+        if (mapping.type && mapping.type !== "__none__" && row[mapping.type]) {
+          const typeStr = row[mapping.type].toLowerCase();
+          if (typeStr.includes("income") || typeStr.includes("credit") || typeStr.includes("deposit")) {
+            type = "income";
+          }
+        } else if (amount > 0) {
+          // If no type column, assume positive amounts are income
           type = "income";
         }
-      } else if (amount > 0) {
-        // If no type column, assume positive amounts are income
-        type = "income";
-      }
 
-      return {
-        row: index + 1,
-        date: dateStr,
-        amount: Math.abs(amount),
-        description: description.trim(),
-        category: mapping.category && mapping.category !== "__none__" ? row[mapping.category] : undefined,
-        type,
-        errors,
-        isValid,
+        return {
+          row: index + 1,
+          date: dateStr,
+          amount: Math.abs(amount),
+          description: description.trim(),
+          category: mapping.category && mapping.category !== "__none__" ? row[mapping.category] : undefined,
+          type,
+          errors,
+          isValid,
+        };
+      });
+    },
+    [csvData]
+  );
+
+  const handleAccountSubmit = useCallback(
+    (values: { name: string; currency: string }) => {
+      const accountData: AccountFormSchema = {
+        name: values.name,
+        type: "checking", // Default type for imports
+        currency: values.currency,
+        balance: 0,
+        meta: {
+          notes: "Account created for CSV import",
+        },
       };
-    });
-  }, [csvData]);
 
-  const handleAccountSubmit = useCallback((values: { name: string; currency: string }) => {
-    const accountData: AccountFormSchema = {
-      name: values.name,
-      type: "checking", // Default type for imports
-      currency: values.currency,
-      balance: 0,
-      meta: {
-        notes: "Account created for CSV import",
-      },
-    };
+      createAccountMutation.mutate(accountData);
+    },
+    [createAccountMutation]
+  );
 
-    createAccountMutation.mutate(accountData);
-  }, [createAccountMutation]);
-
-  const handleMapping = useCallback((values: ColumnMapping) => {
-    const parsed = parseTransactions(values);
-    setParsedTransactions(parsed);
-    setStep("preview");
-  }, [parseTransactions]);
+  const handleMapping = useCallback(
+    (values: ColumnMapping) => {
+      const parsed = parseTransactions(values);
+      setParsedTransactions(parsed);
+      setStep("preview");
+    },
+    [parseTransactions]
+  );
 
   const handleImport = useCallback(async () => {
     if (!createdAccountId) {
@@ -279,7 +297,7 @@ export function CSVImportDialog({ children }: React.PropsWithChildren) {
       return;
     }
 
-    const validTransactions = parsedTransactions.filter(t => t.isValid);
+    const validTransactions = parsedTransactions.filter((t) => t.isValid);
     if (validTransactions.length === 0) {
       toast.error("No valid transactions to import");
       return;
@@ -288,10 +306,10 @@ export function CSVImportDialog({ children }: React.PropsWithChildren) {
     setStep("importing");
     setImportProgress(0);
 
-    const defaultCategory = categories?.find(c => c.name.toLowerCase().includes("other")) || categories?.[0];
+    const defaultCategory = categories?.find((c) => c.name.toLowerCase().includes("other")) || categories?.[0];
 
     // Convert parsed transactions to API format
-    const transactionsData: RecordCreateSchema[] = validTransactions.map(transaction => ({
+    const transactionsData: RecordCreateSchema[] = validTransactions.map((transaction) => ({
       type: transaction.type,
       amount: transaction.amount,
       transaction_datetime: new Date(transaction.date),
@@ -330,23 +348,20 @@ export function CSVImportDialog({ children }: React.PropsWithChildren) {
     accountForm.reset();
   };
 
-  const validTransactions = useMemo(() => 
-    parsedTransactions.filter(t => t.isValid).length, 
-    [parsedTransactions]
-  );
+  const validTransactions = useMemo(() => parsedTransactions.filter((t) => t.isValid).length, [parsedTransactions]);
 
-  const invalidTransactions = useMemo(() => 
-    parsedTransactions.filter(t => !t.isValid).length, 
-    [parsedTransactions]
-  );
+  const invalidTransactions = useMemo(() => parsedTransactions.filter((t) => !t.isValid).length, [parsedTransactions]);
 
   return (
-    <ResponsiveDialog open={isOpen} onOpenChange={(open) => {
-      setIsOpen(open);
-      if (!open) resetState();
-    }}>
+    <ResponsiveDialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        setIsOpen(open);
+        if (!open) resetState();
+      }}
+    >
       <ResponsiveDialogTrigger asChild>{children}</ResponsiveDialogTrigger>
-      <ResponsiveDialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
+      <ResponsiveDialogContent className="max-h-[90vh] max-w-6xl overflow-hidden">
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle>Import CSV to New Account</ResponsiveDialogTitle>
         </ResponsiveDialogHeader>
@@ -356,18 +371,18 @@ export function CSVImportDialog({ children }: React.PropsWithChildren) {
           <div className="flex items-center justify-center space-x-2">
             {["upload", "account", "mapping", "preview", "importing"].map((s, index) => (
               <div key={s} className="flex items-center">
-                <div className={`
-                  w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium
-                  ${step === s ? 'bg-primary text-primary-foreground' : 
-                    ['upload', 'account', 'mapping', 'preview'].indexOf(step) > index ? 'bg-green-500 text-white' : 
-                    'bg-muted text-muted-foreground'}
-                `}>
+                <div
+                  className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${step === s
+                      ? "bg-primary text-primary-foreground"
+                      : ["upload", "account", "mapping", "preview"].indexOf(step) > index
+                        ? "bg-green-500 text-white"
+                        : "bg-muted text-muted-foreground"
+                    } `}
+                >
                   {index + 1}
                 </div>
                 {index < 4 && (
-                  <div className={`w-8 h-0.5 mx-2 ${
-                    ['upload', 'account', 'mapping', 'preview'].indexOf(step) > index ? 'bg-green-500' : 'bg-muted'
-                  }`} />
+                  <div className={`mx-2 h-0.5 w-8 ${["upload", "account", "mapping", "preview"].indexOf(step) > index ? "bg-green-500" : "bg-muted"}`} />
                 )}
               </div>
             ))}
@@ -381,28 +396,21 @@ export function CSVImportDialog({ children }: React.PropsWithChildren) {
                   <FileSpreadsheet className="h-5 w-5" />
                   Upload CSV File
                 </CardTitle>
-                <CardDescription>
-                  Upload a CSV file containing your transaction data. We'll create a new account for these transactions.
-                </CardDescription>
+                <CardDescription>Upload a CSV file containing your transaction data. We'll create a new account for these transactions.</CardDescription>
               </CardHeader>
               <CardContent>
                 <div
                   {...getRootProps()}
-                  className={`
-                    border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
-                    ${isDragActive ? 'border-primary bg-primary/5' : 'border-muted-foreground/25 hover:border-primary/50'}
-                  `}
+                  className={`cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-colors ${isDragActive ? "border-primary bg-primary/5" : "border-muted-foreground/25 hover:border-primary/50"} `}
                 >
                   <input {...getInputProps()} />
-                  <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <Upload className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
                   {isDragActive ? (
                     <p className="text-lg">Drop your CSV file here...</p>
                   ) : (
                     <div className="space-y-2">
                       <p className="text-lg">Drag & drop your CSV file here, or click to select</p>
-                      <p className="text-sm text-muted-foreground">
-                        CSV, XLS, and XLSX files are supported
-                      </p>
+                      <p className="text-muted-foreground text-sm">CSV, XLS, and XLSX files are supported</p>
                     </div>
                   )}
                 </div>
@@ -415,9 +423,7 @@ export function CSVImportDialog({ children }: React.PropsWithChildren) {
             <Card>
               <CardHeader>
                 <CardTitle>Create Account for Import</CardTitle>
-                <CardDescription>
-                  We'll create a new account specifically for these imported transactions.
-                </CardDescription>
+                <CardDescription>We'll create a new account specifically for these imported transactions.</CardDescription>
               </CardHeader>
               <CardContent>
                 <Form {...accountForm}>
@@ -462,12 +468,12 @@ export function CSVImportDialog({ children }: React.PropsWithChildren) {
 
                     <div className="flex justify-between">
                       <Button type="button" variant="outline" onClick={() => setStep("upload")}>
-                        <ArrowLeft className="h-4 w-4 mr-2" />
+                        <ArrowLeft className="mr-2 h-4 w-4" />
                         Back
                       </Button>
                       <Button type="submit" disabled={createAccountMutation.isPending}>
                         {createAccountMutation.isPending ? "Creating..." : "Create Account"}
-                        <ArrowRight className="h-4 w-4 ml-2" />
+                        <ArrowRight className="ml-2 h-4 w-4" />
                       </Button>
                     </div>
                   </form>
@@ -481,14 +487,12 @@ export function CSVImportDialog({ children }: React.PropsWithChildren) {
             <Card>
               <CardHeader>
                 <CardTitle>Map Columns</CardTitle>
-                <CardDescription>
-                  Map your CSV columns to transaction fields. We've auto-detected some mappings for you.
-                </CardDescription>
+                <CardDescription>Map your CSV columns to transaction fields. We've auto-detected some mappings for you.</CardDescription>
               </CardHeader>
               <CardContent>
                 <Form {...mappingForm}>
                   <form onSubmit={mappingForm.handleSubmit(handleMapping)} className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       <FormField
                         control={mappingForm.control}
                         name="date"
@@ -593,12 +597,12 @@ export function CSVImportDialog({ children }: React.PropsWithChildren) {
 
                     <div className="flex justify-between">
                       <Button type="button" variant="outline" onClick={() => setStep("account")}>
-                        <ArrowLeft className="h-4 w-4 mr-2" />
+                        <ArrowLeft className="mr-2 h-4 w-4" />
                         Back
                       </Button>
                       <Button type="submit">
                         Next
-                        <ArrowRight className="h-4 w-4 ml-2" />
+                        <ArrowRight className="ml-2 h-4 w-4" />
                       </Button>
                     </div>
                   </form>
@@ -611,21 +615,19 @@ export function CSVImportDialog({ children }: React.PropsWithChildren) {
           {step === "preview" && (
             <Card>
               <CardHeader>
-                <div className="flex justify-between items-start">
+                <div className="flex items-start justify-between">
                   <div>
                     <CardTitle>Preview & Import</CardTitle>
-                    <CardDescription>
-                      Review your transactions before importing. Invalid transactions will be skipped.
-                    </CardDescription>
+                    <CardDescription>Review your transactions before importing. Invalid transactions will be skipped.</CardDescription>
                   </div>
                   <div className="flex gap-2">
                     <Badge variant="default" className="bg-green-500">
-                      <CheckCircle className="h-3 w-3 mr-1" />
+                      <CheckCircle className="mr-1 h-3 w-3" />
                       {validTransactions} Valid
                     </Badge>
                     {invalidTransactions > 0 && (
                       <Badge variant="destructive">
-                        <AlertCircle className="h-3 w-3 mr-1" />
+                        <AlertCircle className="mr-1 h-3 w-3" />
                         {invalidTransactions} Invalid
                       </Badge>
                     )}
@@ -633,7 +635,7 @@ export function CSVImportDialog({ children }: React.PropsWithChildren) {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="border rounded-lg max-h-96 overflow-auto">
+                <div className="max-h-96 overflow-auto rounded-lg border">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -655,19 +657,17 @@ export function CSVImportDialog({ children }: React.PropsWithChildren) {
                           </TableCell>
                           <TableCell>{transaction.description}</TableCell>
                           <TableCell>
-                            <Badge variant={transaction.type === "income" ? "default" : "secondary"}>
-                              {transaction.type}
-                            </Badge>
+                            <Badge variant={transaction.type === "income" ? "default" : "secondary"}>{transaction.type}</Badge>
                           </TableCell>
                           <TableCell>
                             {transaction.isValid ? (
                               <Badge variant="default" className="bg-green-500">
-                                <CheckCircle className="h-3 w-3 mr-1" />
+                                <CheckCircle className="mr-1 h-3 w-3" />
                                 Valid
                               </Badge>
                             ) : (
                               <Badge variant="destructive">
-                                <AlertCircle className="h-3 w-3 mr-1" />
+                                <AlertCircle className="mr-1 h-3 w-3" />
                                 {transaction.errors[0]}
                               </Badge>
                             )}
@@ -678,15 +678,12 @@ export function CSVImportDialog({ children }: React.PropsWithChildren) {
                   </Table>
                 </div>
 
-                <div className="flex justify-between mt-4">
+                <div className="mt-4 flex justify-between">
                   <Button type="button" variant="outline" onClick={() => setStep("mapping")}>
-                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    <ArrowLeft className="mr-2 h-4 w-4" />
                     Back
                   </Button>
-                  <Button 
-                    onClick={handleImport} 
-                    disabled={validTransactions === 0 || bulkImportMutation.isPending}
-                  >
+                  <Button onClick={handleImport} disabled={validTransactions === 0 || bulkImportMutation.isPending}>
                     Import {validTransactions} Transactions to New Account
                   </Button>
                 </div>
@@ -699,16 +696,12 @@ export function CSVImportDialog({ children }: React.PropsWithChildren) {
             <Card>
               <CardHeader>
                 <CardTitle>Importing Transactions</CardTitle>
-                <CardDescription>
-                  Please wait while we import your transactions to the new account...
-                </CardDescription>
+                <CardDescription>Please wait while we import your transactions to the new account...</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <Progress value={importProgress} className="w-full" />
-                  <p className="text-center text-sm text-muted-foreground">
-                    {Math.round(importProgress)}% Complete
-                  </p>
+                  <p className="text-muted-foreground text-center text-sm">{Math.round(importProgress)}% Complete</p>
                 </div>
               </CardContent>
             </Card>

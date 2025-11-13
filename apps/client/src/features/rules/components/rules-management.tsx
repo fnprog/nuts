@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Plus, Edit2, Trash2 } from "lucide-react";
-import { useRules, useDeleteRule, useToggleRule } from "../services/rule.service";
+import { useRules } from "../services/rules.queries";
+import { useDeleteRule, useToggleRule } from "../services/rules.mutation";
 import { TransactionRule } from "../services/rule.types";
 import { Button } from "@/core/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
@@ -66,12 +67,12 @@ export function RulesManagement() {
         {[...Array(3)].map((_, i) => (
           <Card key={i} className="animate-pulse">
             <CardHeader>
-              <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+              <div className="h-4 w-1/4 rounded bg-gray-200"></div>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <div className="h-3 bg-gray-200 rounded w-3/4"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-3 w-3/4 rounded bg-gray-200"></div>
+                <div className="h-3 w-1/2 rounded bg-gray-200"></div>
               </div>
             </CardContent>
           </Card>
@@ -84,25 +85,24 @@ export function RulesManagement() {
     return (
       <Card>
         <CardContent className="pt-6">
-          <div className="text-center text-red-600">
-            Failed to load rules. Please try again.
-          </div>
+          <div className="text-center text-red-600">Failed to load rules. Please try again.</div>
         </CardContent>
       </Card>
     );
   }
 
-  const sortedRules = rules?.sort((a, b) => {
-    if (a.priority !== b.priority) {
-      return b.priority - a.priority; // Higher priority first
-    }
-    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-  }) || [];
+  const sortedRules =
+    rules?.sort((a, b) => {
+      if (a.priority !== b.priority) {
+        return b.priority - a.priority; // Higher priority first
+      }
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    }) || [];
 
   return (
     <div className="space-y-6">
       {/* Header with Create Button */}
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold">Automatic Rules</h2>
           <p className="text-sm text-gray-600">
@@ -110,7 +110,7 @@ export function RulesManagement() {
           </p>
         </div>
         <Button onClick={() => setShowCreateDialog(true)}>
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="mr-2 h-4 w-4" />
           Create Rule
         </Button>
       </div>
@@ -119,10 +119,10 @@ export function RulesManagement() {
       {sortedRules.length === 0 ? (
         <Card>
           <CardContent className="pt-6">
-            <div className="text-center py-8">
-              <div className="text-gray-500 mb-4">No rules configured yet</div>
+            <div className="py-8 text-center">
+              <div className="mb-4 text-gray-500">No rules configured yet</div>
               <Button onClick={() => setShowCreateDialog(true)}>
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="mr-2 h-4 w-4" />
                 Create Your First Rule
               </Button>
             </div>
@@ -136,19 +136,11 @@ export function RulesManagement() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <CardTitle className="text-lg">{rule.name}</CardTitle>
-                    <Badge variant={rule.is_active ? "default" : "secondary"}>
-                      {rule.is_active ? "Active" : "Inactive"}
-                    </Badge>
-                    {rule.priority > 0 && (
-                      <Badge variant="outline">Priority: {rule.priority}</Badge>
-                    )}
+                    <Badge variant={rule.is_active ? "default" : "secondary"}>{rule.is_active ? "Active" : "Inactive"}</Badge>
+                    {rule.priority > 0 && <Badge variant="outline">Priority: {rule.priority}</Badge>}
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Switch
-                      checked={rule.is_active}
-                      onCheckedChange={() => handleToggleRule(rule)}
-                      disabled={toggleRule.isPending}
-                    />
+                    <Switch checked={rule.is_active} onCheckedChange={() => handleToggleRule(rule)} disabled={toggleRule.isPending} />
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="sm">
@@ -157,7 +149,7 @@ export function RulesManagement() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
                         <DropdownMenuItem onClick={() => setEditingRule(rule)}>
-                          <Edit2 className="h-4 w-4 mr-2" />
+                          <Edit2 className="mr-2 h-4 w-4" />
                           Edit Rule
                         </DropdownMenuItem>
                         <DropdownMenuItem
@@ -176,7 +168,7 @@ export function RulesManagement() {
                 <div className="space-y-4">
                   {/* Conditions */}
                   <div>
-                    <h4 className="text-sm font-medium mb-2">Conditions</h4>
+                    <h4 className="mb-2 text-sm font-medium">Conditions</h4>
                     <div className="flex flex-wrap gap-2">
                       {rule.conditions.map((condition, index) => (
                         <div key={index} className="flex items-center space-x-2">
@@ -193,7 +185,7 @@ export function RulesManagement() {
 
                   {/* Actions */}
                   <div>
-                    <h4 className="text-sm font-medium mb-2">Actions</h4>
+                    <h4 className="mb-2 text-sm font-medium">Actions</h4>
                     <div className="flex flex-wrap gap-2">
                       {rule.actions.map((action, index) => (
                         <RuleActionBadge key={index} action={action} />
@@ -208,35 +200,21 @@ export function RulesManagement() {
       )}
 
       {/* Create Rule Dialog */}
-      <CreateRuleDialog
-        open={showCreateDialog}
-        onOpenChange={setShowCreateDialog}
-      />
+      <CreateRuleDialog open={showCreateDialog} onOpenChange={setShowCreateDialog} />
 
       {/* Edit Rule Dialog */}
-      {editingRule && (
-        <EditRuleDialog
-          rule={editingRule}
-          open={!!editingRule}
-          onOpenChange={(open) => !open && setEditingRule(null)}
-        />
-      )}
+      {editingRule && <EditRuleDialog rule={editingRule} open={!!editingRule} onOpenChange={(open) => !open && setEditingRule(null)} />}
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deletingRule} onOpenChange={() => setDeletingRule(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Rule</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete the rule "{deletingRule?.name}"? This action cannot be undone.
-            </AlertDialogDescription>
+            <AlertDialogDescription>Are you sure you want to delete the rule "{deletingRule?.name}"? This action cannot be undone.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => deletingRule && handleDeleteRule(deletingRule)}
-              disabled={deleteRule.isPending}
-            >
+            <AlertDialogAction onClick={() => deletingRule && handleDeleteRule(deletingRule)} disabled={deleteRule.isPending}>
               {deleteRule.isPending ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>

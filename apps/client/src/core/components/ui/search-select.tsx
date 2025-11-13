@@ -1,47 +1,47 @@
-import type React from "react"
+import type React from "react";
 
-import { cn } from "@/lib/utils"
-import { Button } from "./button"
-import { Popover, PopoverContent, PopoverTrigger } from "./popover"
-import { CheckIcon, ChevronDownIcon, Loader2, Plus } from "lucide-react"
-import { useState } from "react"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "./command"
+import { cn } from "@/lib/utils";
+import { Button } from "./button";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+import { CheckIcon, ChevronDownIcon, Loader2, Plus } from "lucide-react";
+import { useState } from "react";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "./command";
 
 // Base interface that all options must extend
 export interface SearchableSelectOption {
-  value: string
-  label: string
-  keywords?: string[]
-  icon?: React.ReactNode
-  disabled?: boolean
+  value: string;
+  label: string;
+  keywords?: string[];
+  icon?: React.ReactNode;
+  disabled?: boolean;
 }
 
 // Enhanced props with new features
 export interface SearchableSelectProps<T extends SearchableSelectOption = SearchableSelectOption> {
-  options: T[]
-  value: string
-  onChange: (value: string, option?: T) => void
-  placeholder: string
-  id?: string
-  searchPlaceholder?: string
-  isLoading?: boolean
-  loadingText?: string
-  emptyText?: string
+  options: T[];
+  value: string;
+  onChange: (value: string, option?: T) => void;
+  placeholder: string;
+  id?: string;
+  searchPlaceholder?: string;
+  isLoading?: boolean;
+  loadingText?: string;
+  emptyText?: string;
 
   // New features from ComboboxDropdown
-  renderSelectedItem?: (option: T) => React.ReactNode
-  renderListItem?: (params: { isSelected: boolean; option: T }) => React.ReactNode
-  onCreate?: (value: string) => void
-  renderOnCreate?: (value: string) => React.ReactNode
-  onCreateText?: string
-  emptyResults?: React.ReactNode
-  popoverProps?: React.ComponentProps<typeof PopoverContent>
-  disabled?: boolean
-  headless?: boolean
-  className?: string
+  renderSelectedItem?: (option: T) => React.ReactNode;
+  renderListItem?: (params: { isSelected: boolean; option: T }) => React.ReactNode;
+  onCreate?: (value: string) => void;
+  renderOnCreate?: (value: string) => React.ReactNode;
+  onCreateText?: string;
+  emptyResults?: React.ReactNode;
+  popoverProps?: React.ComponentProps<typeof PopoverContent>;
+  disabled?: boolean;
+  headless?: boolean;
+  className?: string;
 
   // Enhanced search
-  customFilter?: (option: T, search: string) => boolean
+  customFilter?: (option: T, search: string) => boolean;
 }
 
 export function SearchableSelect<T extends SearchableSelectOption = SearchableSelectOption>({
@@ -66,25 +66,25 @@ export function SearchableSelect<T extends SearchableSelectOption = SearchableSe
   className,
   customFilter,
 }: SearchableSelectProps<T>) {
-  const [open, setOpen] = useState(false)
-  const [inputValue, setInputValue] = useState("")
+  const [open, setOpen] = useState(false);
+  const [inputValue, setInputValue] = useState("");
 
-  const selectedOption = options.find((option) => option.value === value)
+  const selectedOption = options.find((option) => option.value === value);
 
   // Enhanced filtering logic
   const filteredOptions = options.filter((option) => {
     if (customFilter) {
-      return customFilter(option, inputValue)
+      return customFilter(option, inputValue);
     }
 
-    const searchTerm = inputValue.toLowerCase()
-    const labelMatch = option.label.toLowerCase().includes(searchTerm)
-    const keywordMatch = option.keywords?.some((keyword) => keyword.toLowerCase().includes(searchTerm))
+    const searchTerm = inputValue.toLowerCase();
+    const labelMatch = option.label.toLowerCase().includes(searchTerm);
+    const keywordMatch = option.keywords?.some((keyword) => keyword.toLowerCase().includes(searchTerm));
 
-    return labelMatch || keywordMatch
-  })
+    return labelMatch || keywordMatch;
+  });
 
-  const showCreate = onCreate && Boolean(inputValue) && !filteredOptions.length && !isLoading
+  const showCreate = onCreate && Boolean(inputValue) && !filteredOptions.length && !isLoading;
 
   const displayInTrigger = () => {
     // If `isLoading` is true AND there are no `options` yet (initial load phase)
@@ -94,25 +94,25 @@ export function SearchableSelect<T extends SearchableSelectOption = SearchableSe
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           {loadingText}
         </>
-      )
+      );
     }
 
     // If an option is selected
     if (selectedOption) {
       if (renderSelectedItem) {
-        return renderSelectedItem(selectedOption)
+        return renderSelectedItem(selectedOption);
       }
       return (
         <>
           {selectedOption.icon}
           {selectedOption.label}
         </>
-      )
+      );
     }
 
     // Otherwise, show the placeholder
-    return placeholder
-  }
+    return placeholder;
+  };
 
   const CommandComponent = (
     <Command loop shouldFilter={false}>
@@ -125,18 +125,18 @@ export function SearchableSelect<T extends SearchableSelectOption = SearchableSe
       />
       <CommandList>
         {isLoading && options.length === 0 ? (
-          <div className="py-6 text-sm text-center text-muted-foreground flex items-center justify-center">
+          <div className="text-muted-foreground flex items-center justify-center py-6 text-center text-sm">
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             {loadingText}
           </div>
         ) : !isLoading && options.length === 0 ? (
-          <div className="py-6 text-sm text-center text-muted-foreground">{emptyText}</div>
+          <div className="text-muted-foreground py-6 text-center text-sm">{emptyText}</div>
         ) : (
           <>
             <CommandEmpty>{emptyResults ?? "No matching option found."}</CommandEmpty>
             <CommandGroup>
               {filteredOptions.map((option) => {
-                const isSelected = value === option.value
+                const isSelected = value === option.value;
 
                 return (
                   <CommandItem
@@ -146,23 +146,23 @@ export function SearchableSelect<T extends SearchableSelectOption = SearchableSe
                     disabled={option.disabled}
                     className={cn("cursor-pointer", className)}
                     onSelect={(currentValue) => {
-                      const newValue = currentValue === value ? "" : currentValue
-                      const selectedOpt = options.find((opt) => opt.value === currentValue)
-                      onChange(newValue, selectedOpt)
-                      setOpen(false)
+                      const newValue = currentValue === value ? "" : currentValue;
+                      const selectedOpt = options.find((opt) => opt.value === currentValue);
+                      onChange(newValue, selectedOpt);
+                      setOpen(false);
                     }}
                   >
                     {renderListItem ? (
                       renderListItem({ isSelected, option })
                     ) : (
-                      <div className="flex items-center w-full">
+                      <div className="flex w-full items-center">
                         {option.icon}
                         <span className={cn(option.icon && "ml-2")}>{option.label}</span>
                         {isSelected && <CheckIcon size={16} className="ml-auto" />}
                       </div>
                     )}
                   </CommandItem>
-                )
+                );
               })}
 
               {showCreate && (
@@ -170,13 +170,13 @@ export function SearchableSelect<T extends SearchableSelectOption = SearchableSe
                   key={inputValue}
                   value={inputValue}
                   onSelect={() => {
-                    onCreate(inputValue)
-                    setOpen(false)
-                    setInputValue("")
+                    onCreate(inputValue);
+                    setOpen(false);
+                    setInputValue("");
                   }}
                   onMouseDown={(event) => {
-                    event.preventDefault()
-                    event.stopPropagation()
+                    event.preventDefault();
+                    event.stopPropagation();
                   }}
                 >
                   {renderOnCreate ? (
@@ -194,10 +194,10 @@ export function SearchableSelect<T extends SearchableSelectOption = SearchableSe
         )}
       </CommandList>
     </Command>
-  )
+  );
 
   if (headless) {
-    return CommandComponent
+    return CommandComponent;
   }
 
   return (
@@ -208,28 +208,18 @@ export function SearchableSelect<T extends SearchableSelectOption = SearchableSe
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="bg-card border-input w-full justify-between px-3 font-normal outline-offset-0 outline-none focus-visible:outline-[3px] text-md h-11"
+          className="bg-card border-input text-md h-11 w-full justify-between px-3 font-normal outline-offset-0 outline-none focus-visible:outline-[3px]"
           disabled={disabled || (isLoading && options.length === 0)}
         >
-          <span
-            className={cn(
-              "truncate flex items-center",
-              !selectedOption && !(isLoading && options.length === 0) && "text-muted-foreground",
-            )}
-          >
+          <span className={cn("flex items-center truncate", !selectedOption && !(isLoading && options.length === 0) && "text-muted-foreground")}>
             {displayInTrigger()}
           </span>
           <ChevronDownIcon size={16} className="text-muted-foreground/80 shrink-0" aria-hidden="true" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent
-        className="border-input p-0 w-[var(--radix-popover-trigger-width)]"
-        align="start"
-        {...popoverProps}
-      >
+      <PopoverContent className="border-input w-[var(--radix-popover-trigger-width)] p-0" align="start" {...popoverProps}>
         {CommandComponent}
       </PopoverContent>
     </Popover>
-  )
+  );
 }
-

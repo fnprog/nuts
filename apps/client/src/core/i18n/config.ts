@@ -9,7 +9,7 @@ i18n
     // Specifies the default language (locale) used
     // when a user visits our site for the first time.
     // We use English here, but feel free to use
-    // whichever locale you want.                   
+    // whichever locale you want.
     lng: "en-US",
 
     // Fallback locale used when a translation is
@@ -25,7 +25,7 @@ i18n
     // ensures that i18next escapes any code in
     // translation messages, safeguarding against
     // XSS (cross-site scripting) attacks. However,
-    // React does this escaping itself, so we turn 
+    // React does this escaping itself, so we turn
     // it off in i18next.
     interpolation: {
       escapeValue: false,

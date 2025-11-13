@@ -1,77 +1,56 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Button } from '@/core/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/core/components/ui/dialog';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/core/components/ui/form';
-import { Input } from '@/core/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/core/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/core/components/ui/tabs';
-import { Plus } from 'lucide-react';
-import { useRealEstateStore } from '../store';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { arktypeResolver } from "@/lib/arktype-resolver";
+import { type } from "arktype";
+import { Button } from "@/core/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/core/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/core/components/ui/form";
+import { Input } from "@/core/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/core/components/ui/tabs";
+import { Plus } from "lucide-react";
+import { useRealEstateStore } from "../store";
 
-const propertySchema = z.object({
-  name: z.string().min(1, 'Property name is required'),
-  address: z.string().min(1, 'Address is required'),
-  propertyType: z.string().min(1, 'Property type is required'),
-  purchaseDate: z.string().min(1, 'Purchase date is required'),
-  purchasePrice: z.coerce.number().positive('Purchase price must be positive'),
-  currentValue: z.coerce.number().positive('Current value must be positive'),
-  bedrooms: z.coerce.number().int().positive('Bedrooms must be a positive integer'),
-  bathrooms: z.coerce.number().positive('Bathrooms must be a positive number'),
-  squareFeet: z.coerce.number().int().positive('Square feet must be a positive integer'),
-  type: z.enum(['primary', 'rental']),
-  image: z.string().url('Please enter a valid URL').optional(),
-  // Mortgage fields
-  loanAmount: z.coerce.number().positive('Loan amount must be positive').optional(),
-  interestRate: z.coerce.number().positive('Interest rate must be positive').optional(),
-  loanTerm: z.coerce.number().int().positive('Loan term must be a positive integer').optional(),
-  // Rental fields
-  monthlyRent: z.coerce.number().positive('Monthly rent must be positive').optional(),
-  occupancyRate: z.coerce.number().min(0).max(100, 'Occupancy rate must be between 0 and 100').optional(),
+const propertySchema = type({
+  name: "string>=1",
+  address: "string>=1",
+  propertyType: "string>=1",
+  purchaseDate: "string>=1",
+  purchasePrice: "number>0",
+  currentValue: "number>0",
+  bedrooms: "number.integer>0",
+  bathrooms: "number>0",
+  squareFeet: "number.integer>0",
+  type: "'primary' | 'rental'",
+  "image?": "string",
+  "loanAmount?": "number>0",
+  "interestRate?": "number>0",
+  "loanTerm?": "number.integer>0",
+  "monthlyRent?": "number>0",
+  "occupancyRate?": "number>=0<=100",
 });
 
-type PropertyFormValues = z.infer<typeof propertySchema>;
+type PropertyFormValues = typeof propertySchema.infer;
 
 export function AddPropertyDialog() {
   const [open, setOpen] = useState(false);
   const { addProperty } = useRealEstateStore();
-  const [propertyType, setPropertyType] = useState<'primary' | 'rental'>('primary');
+  const [propertyType, setPropertyType] = useState<"primary" | "rental">("primary");
 
   const form = useForm<PropertyFormValues>({
-    resolver: zodResolver(propertySchema),
+    resolver: arktypeResolver(propertySchema),
     defaultValues: {
-      name: '',
-      address: '',
-      propertyType: 'single-family',
-      purchaseDate: new Date().toISOString().split('T')[0],
+      name: "",
+      address: "",
+      propertyType: "single-family",
+      purchaseDate: new Date().toISOString().split("T")[0],
       purchasePrice: undefined,
       currentValue: undefined,
       bedrooms: undefined,
       bathrooms: undefined,
       squareFeet: undefined,
-      type: 'primary',
-      image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?q=80&w=1000',
+      type: "primary",
+      image: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?q=80&w=1000",
       loanAmount: undefined,
       interestRate: undefined,
       loanTerm: 30,
@@ -93,17 +72,22 @@ export function AddPropertyDialog() {
       bathrooms: data.bathrooms,
       squareFeet: data.squareFeet,
       type: data.type,
-      image: data.image || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?q=80&w=1000',
-      mortgage: data.loanAmount ? {
-        loanAmount: data.loanAmount,
-        interestRate: data.interestRate || 0,
-        loanTerm: data.loanTerm || 30,
-        monthlyPayment: calculateMonthlyPayment(data.loanAmount, data.interestRate || 0, data.loanTerm || 30),
-      } : undefined,
-      rental: data.type === 'rental' ? {
-        monthlyRent: data.monthlyRent || 0,
-        occupancyRate: data.occupancyRate || 100,
-      } : undefined,
+      image: data.image || "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?q=80&w=1000",
+      mortgage: data.loanAmount
+        ? {
+            loanAmount: data.loanAmount,
+            interestRate: data.interestRate || 0,
+            loanTerm: data.loanTerm || 30,
+            monthlyPayment: calculateMonthlyPayment(data.loanAmount, data.interestRate || 0, data.loanTerm || 30),
+          }
+        : undefined,
+      rental:
+        data.type === "rental"
+          ? {
+              monthlyRent: data.monthlyRent || 0,
+              occupancyRate: data.occupancyRate || 100,
+            }
+          : undefined,
     };
 
     addProperty(newProperty);
@@ -117,10 +101,7 @@ export function AddPropertyDialog() {
 
     if (monthlyRate === 0) return principal / numPayments;
 
-    return (
-      (principal * monthlyRate * Math.pow(1 + monthlyRate, numPayments)) /
-      (Math.pow(1 + monthlyRate, numPayments) - 1)
-    );
+    return (principal * monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / (Math.pow(1 + monthlyRate, numPayments) - 1);
   };
 
   return (
@@ -167,7 +148,7 @@ export function AddPropertyDialog() {
                       <FormItem>
                         <FormLabel>Property Usage</FormLabel>
                         <Select
-                          onValueChange={(value: 'primary' | 'rental') => {
+                          onValueChange={(value: "primary" | "rental") => {
                             field.onChange(value);
                             setPropertyType(value);
                           }}
@@ -367,7 +348,7 @@ export function AddPropertyDialog() {
                   </div>
                 </div>
 
-                {propertyType === 'rental' && (
+                {propertyType === "rental" && (
                   <div className="space-y-2">
                     <h3 className="text-sm font-medium">Rental Details</h3>
                     <div className="grid gap-4 md:grid-cols-2">
@@ -420,7 +401,9 @@ export function AddPropertyDialog() {
               </TabsContent>
             </Tabs>
 
-            <Button type="submit" className="w-full">Add Property</Button>
+            <Button type="submit" className="w-full">
+              Add Property
+            </Button>
           </form>
         </Form>
       </DialogContent>

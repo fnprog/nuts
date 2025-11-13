@@ -17,7 +17,6 @@ import { useDashboardStore } from "@/features/dashboard/stores/dashboard.store";
 import { DraggableAttributes } from "@dnd-kit/core";
 import { SyntheticListenerMap } from "@dnd-kit/core/dist/hooks/utilities";
 
-
 export type ChartSize = 1 | 2 | 3;
 
 export interface ChartItem {
@@ -68,9 +67,8 @@ interface ChartCardProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export function ChartCard({ id, onDragStart, onDragEnd, size, isLocked, className, children, ...props }: ChartCardProps) {
-
   // Select actions
-  const removeChart = useDashboardStore(state => state.removeChart);
+  const removeChart = useDashboardStore((state) => state.removeChart);
   // const updateChartTitle = useDashboardStore(state => state.updateChartTitle);
   const toggleChartLock = useDashboardStore(state => state.toggleChartLock);
 
@@ -97,10 +95,13 @@ export function ChartCard({ id, onDragStart, onDragEnd, size, isLocked, classNam
     handleRename, handleRemove, handleToggleLock
   ]);
 
-  const style = useMemo(() => ({
-    transform: CSS.Transform.toString(transform),
-    transition,
-  }), [transform, transition]);
+  const style = useMemo(
+    () => ({
+      transform: CSS.Transform.toString(transform),
+      transition,
+    }),
+    [transform, transition]
+  );
 
   const sizeClasses = useMemo(() => ({
     1: "col-span-2",
@@ -115,7 +116,7 @@ export function ChartCard({ id, onDragStart, onDragEnd, size, isLocked, classNam
         style={style}
         className={cn("group relative w-full h-fit overflow-hidden",
           "transition-shadow duration-200",
-          isDragging && "opacity-50 z-10 shadow-2xl",
+          isDragging && "z-10 opacity-50 shadow-2xl",
           sizeClasses[size],
           className
         )}
@@ -146,13 +147,17 @@ export const ChartCardHeader = memo(({ children, className, ref }: ChartCardHead
     )} ref={ref}>
       {children}
     </CardHeader>
-  )
-})
+  );
+});
 
 ChartCardHeader.displayName = "ChartCardHeader";
 
 export const ChartCardTitle = memo(({ children, className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => {
-  return <h3 className={cn("flex-1 font-semibold text-sm", className)} {...props}>{children}</h3>;
+  return (
+    <h3 className={cn("flex-1 text-sm font-semibold", className)} {...props}>
+      {children}
+    </h3>
+  );
 });
 
 ChartCardTitle.displayName = "ChartCardTitle";
@@ -177,15 +182,8 @@ export const ChartCardContent = memo(({ className, children, ...props }: React.H
 
 
   return (
-    <CardContent className={cn(
-      "overflow-hidden h-full",
-      sizeClasses[size],
-      heightClasses[size],
-      className
-    )} {...props}>
-      <div className="w-full h-full">
-        {children}
-      </div>
+    <CardContent className={cn("h-full overflow-hidden", sizeClasses[size], heightClasses[size], className)} {...props}>
+      <div className="h-full w-full">{children}</div>
     </CardContent>
   );
 });
@@ -213,7 +211,7 @@ export const ChartCardHandle = memo(() => {
       </Button>
     </div>
   );
-})
+});
 
 ChartCardHandle.displayName = "ChartCardHandle";
 
@@ -228,7 +226,6 @@ export const ChartCardMenu = memo(({ children, ref, hasContext = true }: ChartCa
 
   const [newTitle, setNewTitle] = useState("");
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
-
 
   const openRenameDialog = useCallback(() => {
     setIsRenameDialogOpen(true);
@@ -250,7 +247,17 @@ export const ChartCardMenu = memo(({ children, ref, hasContext = true }: ChartCa
         Rename
       </ContextMenuItem>
       <ContextMenuItem onSelect={toggleLockFn}>
-        {isLocked ? <><Unlock className="mr-2 h-4 w-4" />Unlock</> : <><Lock className="mr-2 h-4 w-4" />Lock</>}
+        {isLocked ? (
+          <>
+            <Unlock className="mr-2 h-4 w-4" />
+            Unlock
+          </>
+        ) : (
+          <>
+            <Lock className="mr-2 h-4 w-4" />
+            Lock
+          </>
+        )}
       </ContextMenuItem>
       <ContextMenuItem className="text-red-600" onSelect={removeFn}>
         <Trash className="mr-2 h-4 w-4" />
@@ -276,18 +283,13 @@ export const ChartCardMenu = memo(({ children, ref, hasContext = true }: ChartCa
             <DialogTitle>Rename Chart</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <Input
-              value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-              placeholder="Enter new title"
-              aria-label="New chart title"
-            />
+            <Input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="Enter new title" aria-label="New chart title" />
             <Button onClick={submitRename}>Save Changes</Button>
           </div>
         </DialogContent>
       </Dialog>
     </>
   );
-})
+});
 
 ChartCardMenu.displayName = "ChartCardMenu";

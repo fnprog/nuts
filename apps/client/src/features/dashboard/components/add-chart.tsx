@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import { Button } from "@/core/components/ui/button";
 import {
   Dialog,
@@ -12,8 +12,8 @@ import { getAvailableChartConfigs } from '@/features/dashboard/charts/loader';
 import type { DashboardChartModuleConfig } from '@/features/dashboard/charts/types';
 
 interface AddChartDialogProps {
-  children: React.ReactNode
-  onClose?: () => void
+  children: React.ReactNode;
+  onClose?: () => void;
   onAddChart: (config: DashboardChartModuleConfig) => void;
 }
 
@@ -27,11 +27,11 @@ export function AddChartDialog({ onAddChart, children }: AddChartDialogProps) {
     if (isOpen) {
       setIsLoading(true);
       getAvailableChartConfigs()
-        .then(configs => {
+        .then((configs) => {
           setAvailableCharts(configs);
           setIsLoading(false);
         })
-        .catch(err => {
+        .catch((err) => {
           console.error("Failed to load available chart configs:", err);
           setIsLoading(false);
           // Handle error state in UI if needed
@@ -52,13 +52,11 @@ export function AddChartDialog({ onAddChart, children }: AddChartDialogProps) {
       <DialogContent className="sm:max-w-[800px]">
         <DialogHeader>
           <DialogTitle>Add Chart to Dashboard</DialogTitle>
-          <DialogDescription>
-            Select a chart widget to add to your current view.
-          </DialogDescription>
+          <DialogDescription>Select a chart widget to add to your current view.</DialogDescription>
         </DialogHeader>
         <div className="py-6">
           {isLoading ? (
-            <div className="text-center p-4">Loading available charts...</div>
+            <div className="p-4 text-center">Loading available charts...</div>
           ) : availableCharts.length > 0 ? (
             <div className="max-h-[400px] overflow-y-auto pr-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -87,7 +85,7 @@ export function AddChartDialog({ onAddChart, children }: AddChartDialogProps) {
               </div>
             </div>
           ) : (
-            <div className="text-center p-4 text-muted-foreground">No charts available to add.</div>
+            <div className="text-muted-foreground p-4 text-center">No charts available to add.</div>
           )}
         </div>
         {/* Optional Footer with Close button */}

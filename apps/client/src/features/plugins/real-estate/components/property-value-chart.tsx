@@ -1,20 +1,12 @@
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 const data = [
-  { month: 'Jan', value: 350000 },
-  { month: 'Feb', value: 352000 },
-  { month: 'Mar', value: 355000 },
-  { month: 'Apr', value: 358000 },
-  { month: 'May', value: 362000 },
-  { month: 'Jun', value: 365000 },
+  { month: "Jan", value: 350000 },
+  { month: "Feb", value: 352000 },
+  { month: "Mar", value: 355000 },
+  { month: "Apr", value: 358000 },
+  { month: "May", value: 362000 },
+  { month: "Jun", value: 365000 },
 ];
 
 export function PropertyValueChart() {
@@ -34,13 +26,8 @@ export function PropertyValueChart() {
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
             <YAxis />
-            <Tooltip formatter={(value) => [`$${value}`, 'Property Value']} />
-            <Area
-              type="monotone"
-              dataKey="value"
-              stroke="#8884d8"
-              fill="#8884d8"
-            />
+            <Tooltip formatter={(value) => [`$${value}`, "Property Value"]} />
+            <Area type="monotone" dataKey="value" stroke="#8884d8" fill="#8884d8" />
           </AreaChart>
         </ResponsiveContainer>
       </div>

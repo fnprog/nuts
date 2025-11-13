@@ -1,0 +1,23 @@
+{
+  "rustc": 8022303366561187541,
+  "features": "[\"alloc\", \"block-buffer\", \"core-api\", \"default\", \"std\"]",
+  "declared_features": "[\"alloc\", \"blobby\", \"block-buffer\", \"const-oid\", \"core-api\", \"default\", \"dev\", \"mac\", \"oid\", \"rand_core\", \"std\", \"subtle\"]",
+  "target": 7510122432137863311,
+  "profile": 12693162527509728243,
+  "path": 6328866338979737392,
+  "deps": [
+    [2352660017780662552, "crypto_common", false, 6829853474323336355],
+    [10626340395483396037, "block_buffer", false, 16757114809972344430]
+  ],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "aarch64-apple-ios/release/.fingerprint/digest-100664ad8c04634e/dep-lib-digest",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 2069994364910194474,
+  "compile_kind": 3694122122034060669
+}

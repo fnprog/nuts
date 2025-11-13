@@ -2,9 +2,13 @@ import { RouterProvider } from "@tanstack/react-router";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useAuthStore } from "@/features/auth/stores/auth.store";
 import { router, queryClient } from "./router";
+import { OfflineStatusIndicator } from "@/core/components/ui/offline-status-indicator";
+import { Initializer } from "@/core/components/ui/Initializer";
+import { ConflictResolutionIndicator } from "@/core/components/dev/ConflictResolutionUI";
 
 function RouterWrapper() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isAnonymous = useAuthStore((state) => state.isAnonymous);
 
   return (
     <RouterProvider
@@ -12,8 +16,9 @@ function RouterWrapper() {
       context={{
         auth: {
           isAuthenticated,
+          isAnonymous,
         },
-        queryClient
+        queryClient,
       }}
     />
   );
@@ -22,7 +27,11 @@ function RouterWrapper() {
 export function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <RouterWrapper />
+      <Initializer>
+        <RouterWrapper />
+        <OfflineStatusIndicator />
+        <ConflictResolutionIndicator />
+      </Initializer>
     </QueryClientProvider>
   );
 }

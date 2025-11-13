@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { Property, RealEstateState } from './types';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { Property, RealEstateState } from "./types";
 
 interface RealEstateStore extends RealEstateState {
   addProperty: (property: Property) => void;
@@ -27,9 +27,7 @@ export const useRealEstateStore = create<RealEstateStore>()(
 
       updateProperty: (id, updatedProperty) => {
         set((state) => ({
-          properties: state.properties.map((property) =>
-            property.id === id ? { ...property, ...updatedProperty } : property
-          ),
+          properties: state.properties.map((property) => (property.id === id ? { ...property, ...updatedProperty } : property)),
         }));
         get().calculateTotals();
       },
@@ -44,25 +42,13 @@ export const useRealEstateStore = create<RealEstateStore>()(
       calculateTotals: () => {
         const properties = get().properties;
 
-        const totalValue = properties.reduce(
-          (sum, property) => sum + property.currentValue,
-          0
-        );
+        const totalValue = properties.reduce((sum, property) => sum + property.currentValue, 0);
 
-        const totalDebt = properties.reduce(
-          (sum, property) => sum + (property.mortgage?.loanAmount || 0),
-          0
-        );
+        const totalDebt = properties.reduce((sum, property) => sum + (property.mortgage?.loanAmount || 0), 0);
 
         const totalEquity = totalValue - totalDebt;
 
-        const totalRentalIncome = properties.reduce(
-          (sum, property) =>
-            property.type === 'rental'
-              ? sum + (property.rental?.monthlyRent || 0)
-              : sum,
-          0
-        );
+        const totalRentalIncome = properties.reduce((sum, property) => (property.type === "rental" ? sum + (property.rental?.monthlyRent || 0) : sum), 0);
 
         set({
           totalValue,
@@ -73,29 +59,29 @@ export const useRealEstateStore = create<RealEstateStore>()(
       },
     }),
     {
-      name: 'real-estate-storage',
+      name: "real-estate-storage",
     }
   )
 );
 
 // Initialize with sample data
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   const store = useRealEstateStore.getState();
 
   if (store.properties.length === 0) {
     store.addProperty({
-      id: '1',
-      name: 'Main Residence',
-      address: '123 Main St, Anytown, USA',
-      propertyType: 'single-family',
-      purchaseDate: '2020-05-15',
+      id: "1",
+      name: "Main Residence",
+      address: "123 Main St, Anytown, USA",
+      propertyType: "single-family",
+      purchaseDate: "2020-05-15",
       purchasePrice: 350000,
       currentValue: 425000,
       bedrooms: 3,
       bathrooms: 2,
       squareFeet: 1800,
-      type: 'primary',
-      image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?q=80&w=1000',
+      type: "primary",
+      image: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?q=80&w=1000",
       mortgage: {
         loanAmount: 280000,
         interestRate: 3.5,
@@ -105,18 +91,18 @@ if (typeof window !== 'undefined') {
     });
 
     store.addProperty({
-      id: '2',
-      name: 'Rental Property',
-      address: '456 Oak Ave, Othertown, USA',
-      propertyType: 'condo',
-      purchaseDate: '2021-08-10',
+      id: "2",
+      name: "Rental Property",
+      address: "456 Oak Ave, Othertown, USA",
+      propertyType: "condo",
+      purchaseDate: "2021-08-10",
       purchasePrice: 220000,
       currentValue: 245000,
       bedrooms: 2,
       bathrooms: 2,
       squareFeet: 1200,
-      type: 'rental',
-      image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?q=80&w=1000',
+      type: "rental",
+      image: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?q=80&w=1000",
       mortgage: {
         loanAmount: 176000,
         interestRate: 3.75,

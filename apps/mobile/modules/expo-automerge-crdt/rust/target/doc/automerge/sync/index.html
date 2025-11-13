@@ -1,0 +1,62 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Sync Protocol"><title>automerge::sync - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-e56847b5.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="automerge" data-themes="" data-resource-suffix="" data-rustdoc-version="1.91.0 (f8297e351 2025-10-28)" data-channel="1.91.0" data-search-js="search-e256b49e.js" data-stringdex-js="stringdex-c3e638e9.js" data-settings-js="settings-c38705f0.js" ><script src="../../static.files/storage-e2aeef58.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../static.files/main-6dc2a7f3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-263c88ec.css"></noscript><link rel="icon" href="https:///raw.githubusercontent.com/automerge/automerge/main/img/favicon.ico"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Module sync</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><a class="logo-container" href="../../automerge/index.html"><img src="https://raw.githubusercontent.com/automerge/automerge/main/img/brandmark.svg" alt="logo"></a><h2><a href="../../automerge/index.html">automerge</a><span class="version">0.5.12</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module sync</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#sync-protocol" title="Sync Protocol">Sync Protocol</a><ul><li><a href="#example" title="Example">Example</a></li></ul></li></ul><h3><a href="#structs">Module Items</a></h3><ul class="block"><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#traits" title="Traits">Traits</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="../index.html">In crate automerge</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">automerge</a></div><h1>Module <span>sync</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/automerge/sync.rs.html#1-1290">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="sync-protocol"><a class="doc-anchor" href="#sync-protocol">§</a>Sync Protocol</h2>
+<p>The sync protocol is based on this paper:
+<a href="https://arxiv.org/abs/2012.00472">https://arxiv.org/abs/2012.00472</a>, it assumes a reliable in-order stream
+between two peers who are synchronizing a document.</p>
+<p>Each peer maintains a <a href="struct.State.html" title="struct automerge::sync::State"><code>State</code></a> for each peer they are synchronizing with.
+This state tracks things like what the heads of the other peer are and
+whether there are in-flight messages. Anything which implements <a href="trait.SyncDoc.html" title="trait automerge::sync::SyncDoc"><code>SyncDoc</code></a>
+can take part in the sync protocol. The flow goes something like this:</p>
+<ul>
+<li>The initiating peer creates an empty <a href="struct.State.html" title="struct automerge::sync::State"><code>State</code></a> and then calls
+<a href="trait.SyncDoc.html#tymethod.generate_sync_message" title="method automerge::sync::SyncDoc::generate_sync_message"><code>SyncDoc::generate_sync_message()</code></a> to generate new sync message and sends
+it to the receiving peer.</li>
+<li>The receiving peer receives a message from the initiator, creates a new
+<a href="struct.State.html" title="struct automerge::sync::State"><code>State</code></a>, and calls <a href="trait.SyncDoc.html#tymethod.receive_sync_message" title="method automerge::sync::SyncDoc::receive_sync_message"><code>SyncDoc::receive_sync_message()</code></a> on it’s view of the
+document</li>
+<li>The receiving peer then calls <a href="trait.SyncDoc.html#tymethod.generate_sync_message" title="method automerge::sync::SyncDoc::generate_sync_message"><code>SyncDoc::generate_sync_message()</code></a> to generate
+a new sync message and send it back to the initiator</li>
+<li>From this point on each peer operates in a loop, receiving a sync message
+from the other peer and then generating a new message to send back.</li>
+</ul>
+<h3 id="example"><a class="doc-anchor" href="#example">§</a>Example</h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>automerge::{transaction::Transactable, sync::{<span class="self">self</span>, SyncDoc}, ReadDoc};
+<span class="comment">// Create a document on peer1
+</span><span class="kw">let </span><span class="kw-2">mut </span>peer1 = automerge::AutoCommit::new();
+peer1.put(automerge::ROOT, <span class="string">"key"</span>, <span class="string">"value"</span>)<span class="question-mark">?</span>;
+
+<span class="comment">// Create a state to track our sync with peer2
+</span><span class="kw">let </span><span class="kw-2">mut </span>peer1_state = sync::State::new();
+<span class="comment">// Generate the initial message to send to peer2, unwrap for brevity
+</span><span class="kw">let </span>message1to2 = peer1.sync().generate_sync_message(<span class="kw-2">&amp;mut </span>peer1_state).unwrap();
+
+<span class="comment">// We receive the message on peer2. We don't have a document at all yet
+// so we create one
+</span><span class="kw">let </span><span class="kw-2">mut </span>peer2 = automerge::AutoCommit::new();
+<span class="comment">// We don't have a state for peer1 (it's a new connection), so we create one
+</span><span class="kw">let </span><span class="kw-2">mut </span>peer2_state = sync::State::new();
+<span class="comment">// Now receive the message from peer 1
+</span>peer2.sync().receive_sync_message(<span class="kw-2">&amp;mut </span>peer2_state, message1to2)<span class="question-mark">?</span>;
+
+<span class="comment">// Now we loop, sending messages from one to two and two to one until
+// neither has anything new to send
+
+</span><span class="kw">loop </span>{
+    <span class="kw">let </span>two_to_one = peer2.sync().generate_sync_message(<span class="kw-2">&amp;mut </span>peer2_state);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(message) = two_to_one.as_ref() {
+        <span class="macro">println!</span>(<span class="string">"two to one"</span>);
+        peer1.sync().receive_sync_message(<span class="kw-2">&amp;mut </span>peer1_state, message.clone())<span class="question-mark">?</span>;
+    }
+    <span class="kw">let </span>one_to_two = peer1.sync().generate_sync_message(<span class="kw-2">&amp;mut </span>peer1_state);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(message) = one_to_two.as_ref() {
+        <span class="macro">println!</span>(<span class="string">"one to two"</span>);
+        peer2.sync().receive_sync_message(<span class="kw-2">&amp;mut </span>peer2_state, message.clone())<span class="question-mark">?</span>;
+    }
+    <span class="kw">if </span>two_to_one.is_none() &amp;&amp; one_to_two.is_none() {
+        <span class="kw">break</span>;
+    }
+}
+
+<span class="macro">assert_eq!</span>(peer2.get(automerge::ROOT, <span class="string">"key"</span>)<span class="question-mark">?</span>.unwrap().<span class="number">0</span>.to_str(), <span class="prelude-val">Some</span>(<span class="string">"value"</span>));
+</code></pre></div></div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.BloomFilter.html" title="struct automerge::sync::BloomFilter">Bloom<wbr>Filter</a></dt><dt><a class="struct" href="struct.ChunkList.html" title="struct automerge::sync::ChunkList">Chunk<wbr>List</a></dt><dd>An array of changes, each of which should be passed to <a href="../struct.Automerge.html#method.load_incremental" title="method automerge::Automerge::load_incremental"><code>Automerge::load_incremental()</code></a></dd><dt><a class="struct" href="struct.DecodeBloomError.html" title="struct automerge::sync::DecodeBloomError">Decode<wbr>Bloom<wbr>Error</a></dt><dt><a class="struct" href="struct.Have.html" title="struct automerge::sync::Have">Have</a></dt><dd>A summary of the changes that the sender of the message already has.
+This is implicitly a request to the recipient to send all changes that the
+sender does not already have.</dd><dt><a class="struct" href="struct.Message.html" title="struct automerge::sync::Message">Message</a></dt><dd>The sync message to be sent.</dd><dt><a class="struct" href="struct.State.html" title="struct automerge::sync::State">State</a></dt><dd>The state of synchronisation with a peer.</dd></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.Capability.html" title="enum automerge::sync::Capability">Capability</a></dt><dt><a class="enum" href="enum.DecodeStateError.html" title="enum automerge::sync::DecodeStateError">Decode<wbr>State<wbr>Error</a></dt><dt><a class="enum" href="enum.MessageVersion.html" title="enum automerge::sync::MessageVersion">Message<wbr>Version</a></dt><dt><a class="enum" href="enum.ReadMessageError.html" title="enum automerge::sync::ReadMessageError">Read<wbr>Message<wbr>Error</a></dt></dl><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><dl class="item-table"><dt><a class="trait" href="trait.SyncDoc.html" title="trait automerge::sync::SyncDoc">SyncDoc</a></dt><dd>A document which can take part in the sync protocol</dd></dl></section></div></main></body></html>

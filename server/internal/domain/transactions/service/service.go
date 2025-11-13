@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"time"
 
 	accRepo "github.com/Fantasy-Programming/nuts/server/internal/domain/accounts/repository"
 	"github.com/Fantasy-Programming/nuts/server/internal/domain/transactions"
@@ -22,9 +23,16 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+const (
+	maxTransactionsPerQuery = 10000
+	maxBulkOperations       = 1000
+	dbTimeoutMs             = 5000
+)
+
 type Transactions interface {
 	GetTransactions(ctx context.Context, params transactions.ListTransactionsParams, groupByDate bool) (*transactions.PaginatedTransactionsResponse, error)
 	GetTransaction(ctx context.Context, id uuid.UUID) (repository.Transaction, error)
+	ListTransactionsSince(ctx context.Context, userID uuid.UUID, since time.Time) ([]repository.GetTransactionsSinceRow, error)
 
 	CreateTransaction(ctx context.Context, params repository.CreateTransactionParams) (repository.Transaction, error)
 	CreateTransfertTransaction(ctx context.Context, params transactions.TransfertParams) (repository.Transaction, error)
@@ -138,6 +146,10 @@ func (t *TransactionService) GetTransactions(ctx context.Context, params transac
 		return nil, err
 	}
 
+	if len(transactionsData) > maxTransactionsPerQuery {
+		return nil, fmt.Errorf("transaction count %d exceeds max %d", len(transactionsData), maxTransactionsPerQuery)
+	}
+
 	enhancedTransactions := make([]transactions.EnhancedTransaction, len(transactionsData))
 
 	for i, t := range transactionsData {
@@ -158,8 +170,8 @@ func (t *TransactionService) GetTransactions(ctx context.Context, params transac
 
 	resp := &transactions.PaginatedTransactionsResponse{
 		Pagination: transactions.Pagination{
-			TotalItems: int(totalItems),
-			TotalPages: int(math.Ceil(float64(totalItems) / float64(params.Limit))),
+			TotalItems: int32(totalItems),
+			TotalPages: int32(math.Ceil(float64(totalItems) / float64(params.Limit))),
 			Page:       params.Page,
 			Limit:      params.Limit,
 		},
@@ -182,7 +194,14 @@ func (t *TransactionService) GetTransaction(ctx context.Context, id uuid.UUID) (
 	return t.trscRepo.GetTransaction(ctx, id)
 }
 
+func (t *TransactionService) ListTransactionsSince(ctx context.Context, userID uuid.UUID, since time.Time) ([]repository.GetTransactionsSinceRow, error) {
+	return t.trscRepo.GetTransactionsSince(ctx, userID, since)
+}
+
 func (t *TransactionService) CreateTransaction(ctx context.Context, params repository.CreateTransactionParams) (repository.Transaction, error) {
+	ctx, cancel := context.WithTimeout(ctx, dbTimeoutMs*time.Millisecond)
+	defer cancel()
+
 	tx, err := t.db.Begin(ctx)
 	if err != nil {
 		return repository.Transaction{}, err
@@ -204,6 +223,10 @@ func (t *TransactionService) CreateTransaction(ctx context.Context, params repos
 		return repository.Transaction{}, err
 	}
 
+	if transaction.ID == uuid.Nil {
+		panic("transaction ID invariant violated")
+	}
+
 	err = accRepo.UpdateAccountBalance(ctx, repository.UpdateAccountBalanceParams{
 		ID:      params.AccountID,
 		Balance: decimal.NewNullDecimal(params.Amount),
@@ -212,19 +235,13 @@ func (t *TransactionService) CreateTransaction(ctx context.Context, params repos
 		return repository.Transaction{}, err
 	}
 
-	// Commit the transaction
 	if err = tx.Commit(ctx); err != nil {
 		return repository.Transaction{}, err
 	}
 
-	// // Apply rules to the newly created transaction
-	// if h.rulesService != nil {
-	// 	err = h.rulesService.AutoApplyRulesToNewTransaction(ctx, transaction.ID, userID)
-	// 	if err != nil {
-	// 		// Log the error but don't fail the transaction creation
-	// 		h.logger.Error().Err(err).Str("transaction_id", transaction.ID.String()).Msg("Failed to apply rules to transaction")
-	// 	}
-	// }
+	if transaction.ID == uuid.Nil {
+		panic("post-commit: transaction ID invariant violated")
+	}
 
 	// // If this is a recurring transaction, create the recurring template and enqueue job
 	// if req.IsRecurring != nil && *req.IsRecurring && req.RecurringConfig != nil {
@@ -296,6 +313,9 @@ func (t *TransactionService) CreateTransaction(ctx context.Context, params repos
 }
 
 func (t *TransactionService) UpdateTransaction(ctx context.Context, params repository.UpdateTransactionParams) (repository.Transaction, error) {
+	ctx, cancel := context.WithTimeout(ctx, dbTimeoutMs*time.Millisecond)
+	defer cancel()
+
 	tx, err := t.db.Begin(ctx)
 	if err != nil {
 		return repository.Transaction{}, err
@@ -444,10 +464,17 @@ func (t *TransactionService) UpdateTransaction(ctx context.Context, params repos
 		return repository.Transaction{}, err
 	}
 
+	if updatedTx.ID == uuid.Nil {
+		panic("post-commit: transaction ID invariant violated")
+	}
+
 	return updatedTx, nil
 }
 
 func (t *TransactionService) CreateTransfertTransaction(ctx context.Context, params transactions.TransfertParams) (repository.Transaction, error) {
+	ctx, cancel := context.WithTimeout(ctx, dbTimeoutMs*time.Millisecond)
+	defer cancel()
+
 	tx, err := t.db.Begin(ctx)
 	if err != nil {
 		return repository.Transaction{}, err
@@ -455,7 +482,7 @@ func (t *TransactionService) CreateTransfertTransaction(ctx context.Context, par
 
 	defer func() {
 		if rollbackErr := tx.Rollback(ctx); rollbackErr != nil && rollbackErr != pgx.ErrTxClosed {
-			// r.logger.Error().Err(rollbackErr).Msg("Transaction rollback failed")
+			_ = rollbackErr
 		}
 	}()
 
@@ -486,6 +513,10 @@ func (t *TransactionService) CreateTransfertTransaction(ctx context.Context, par
 	// DECIMAL: The amount for the destination account is positive (it's the original params.Amount).
 	amountInDecimal := params.Amount
 
+	if params.AccountID == uuid.Nil || params.DestinationAccountID == uuid.Nil {
+		panic("account ID invariant violated")
+	}
+
 	transaction, err := trxRepo.CreateTransaction(ctx, repository.CreateTransactionParams{
 		Amount:               amountOutDecimal,
 		Type:                 params.Type,
@@ -499,6 +530,10 @@ func (t *TransactionService) CreateTransfertTransaction(ctx context.Context, par
 	})
 	if err != nil {
 		return repository.Transaction{}, err
+	}
+
+	if transaction.ID == uuid.Nil {
+		panic("transaction ID invariant violated")
 	}
 
 	err = acxRepo.UpdateAccountBalance(ctx, repository.UpdateAccountBalanceParams{
@@ -517,19 +552,13 @@ func (t *TransactionService) CreateTransfertTransaction(ctx context.Context, par
 		return repository.Transaction{}, err
 	}
 
-	// Commit the transaction
 	if err = tx.Commit(ctx); err != nil {
 		return repository.Transaction{}, err
 	}
 
-	// // Apply rules to the newly created transaction
-	// if h.rulesService != nil {
-	// 	err = h.rulesService.AutoApplyRulesToNewTransaction(ctx, transaction.ID, userID)
-	// 	if err != nil {
-	// 		// Log the error but don't fail the transaction creation
-	// 		h.logger.Error().Err(err).Str("transaction_id", transaction.ID.String()).Msg("Failed to apply rules to transaction")
-	// 	}
-	// }
+	if transaction.ID == uuid.Nil || params.AccountID == uuid.Nil || params.DestinationAccountID == uuid.Nil {
+		panic("post-commit: transaction/account ID invariant violated")
+	}
 
 	return transaction, nil
 }

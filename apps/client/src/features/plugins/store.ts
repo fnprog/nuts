@@ -1,7 +1,7 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { PluginConfig } from './types';
-import { loadPluginModule } from './loader';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { PluginConfig } from "./types";
+import { loadPluginModule } from "./loader";
 
 interface PluginState {
   pluginConfigs: PluginConfig[];
@@ -41,23 +41,23 @@ export const usePluginStore = create<PluginState>()(
             description: pluginModule.description,
             version: pluginModule.version,
             author: pluginModule.author,
-            iconName: pluginModule.icon.name || 'Plugin',
+            iconName: pluginModule.icon.name || "Plugin",
             enabled: true,
-            routeConfigs: pluginModule.routes.map(route => ({
+            routeConfigs: pluginModule.routes.map((route) => ({
               path: route.path,
               label: route.label,
-              iconName: route.icon.name || 'Route',
-              subroutes: route.subroutes?.map(subroute => ({
+              iconName: route.icon.name || "Route",
+              subroutes: route.subroutes?.map((subroute) => ({
                 path: subroute.path,
                 label: subroute.label,
               })),
             })),
-            chartConfigs: pluginModule.charts.map(chart => ({
+            chartConfigs: pluginModule.charts.map((chart) => ({
               id: chart.id,
               type: chart.type,
               title: chart.title,
               defaultSize: chart.defaultSize,
-            }))
+            })),
           };
 
           set((state) => ({
@@ -78,17 +78,13 @@ export const usePluginStore = create<PluginState>()(
 
       enablePlugin: (id) => {
         set((state) => ({
-          pluginConfigs: state.pluginConfigs.map((config) =>
-            config.id === id ? { ...config, enabled: true } : config
-          ),
+          pluginConfigs: state.pluginConfigs.map((config) => (config.id === id ? { ...config, enabled: true } : config)),
         }));
       },
 
       disablePlugin: (id) => {
         set((state) => ({
-          pluginConfigs: state.pluginConfigs.map((config) =>
-            config.id === id ? { ...config, enabled: false } : config
-          ),
+          pluginConfigs: state.pluginConfigs.map((config) => (config.id === id ? { ...config, enabled: false } : config)),
         }));
       },
 
@@ -101,7 +97,7 @@ export const usePluginStore = create<PluginState>()(
       },
     }),
     {
-      name: 'plugin-storage',
+      name: "plugin-storage",
     }
   )
 );

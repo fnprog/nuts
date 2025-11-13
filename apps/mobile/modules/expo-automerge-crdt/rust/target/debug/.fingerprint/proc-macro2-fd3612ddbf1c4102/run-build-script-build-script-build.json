@@ -1,0 +1,21 @@
+{
+  "rustc": 10128419115332751062,
+  "features": "",
+  "declared_features": "",
+  "target": 0,
+  "profile": 0,
+  "path": 0,
+  "deps": [[14285738760999836560, "build_script_build", false, 2853155776764308016]],
+  "local": [
+    {
+      "RerunIfChanged": {
+        "output": "debug/build/proc-macro2-fd3612ddbf1c4102/output",
+        "paths": ["src/probe/proc_macro_span.rs"]
+      }
+    },
+    { "RerunIfEnvChanged": { "var": "RUSTC_BOOTSTRAP", "val": null } }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 0,
+  "compile_kind": 0
+}

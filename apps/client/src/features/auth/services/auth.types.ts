@@ -1,56 +1,62 @@
-import { UserInfo } from "@/features/preferences/services/user";
-import { z } from "zod";
+import { UserInfo } from "@/features/preferences/services/user.service";
+import { type } from "@nuts/validation";
 
-export const signupSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address." }),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters long")
-    .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?])[A-Za-z\d!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]{8,}$/,
-      "Password must contain at least one lowercase letter, one uppercase letter, one number and one special character"
-    ),
-  confirmPassword: z.string(),
-})
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-  });
+const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?])[A-Za-z\d!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]{8,}$/;
 
-export const loginSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address." }),
-  password: z.string().min(4, "this password is too short"),
-  two_fa_code: z.string().optional(),
+export const signupSchema = type({
+  email: "string.email",
+  password: "string>=8",
+  confirmPassword: "string",
+}).narrow((data, ctx) => {
+  if (!passwordPattern.test(data.password)) {
+    return ctx.reject({
+      path: ["password"],
+      message: "Password must contain at least one lowercase letter, one uppercase letter, one number and one special character",
+    });
+  }
+  if (data.password !== data.confirmPassword) {
+    return ctx.reject({
+      path: ["confirmPassword"],
+      message: "Passwords don't match",
+    });
+  }
+  return true;
 });
 
-export const userSchema = z.object({
-  id: z.string().uuid(),
-  email: z.string().email(),
-  first_name: z.string().optional(),
-  last_name: z.string().optional(),
-  created_at: z.date(),
-  updated_at: z.date(),
+export const loginSchema = type({
+  email: "string.email",
+  password: "string>=4",
+  "two_fa_code?": "string",
 });
 
-
-export const userSessionSchema = z.object({
-  id: z.string().uuid(),
-  browser_name: z.string().email(),
-  device_name: z.string().optional(),
-  ip_address: z.string().optional(),
-  last_used_at: z.string(),
-  location: z.string(),
-  os_name: z.string(),
-
+export const userSchema = type({
+  id: "string",
+  email: "string.email",
+  "first_name?": "string",
+  "last_name?": "string",
+  created_at: "Date",
+  updated_at: "Date",
 });
 
-export type User = z.infer<typeof userSchema>;
-export type SignupFormValues = z.infer<typeof signupSchema>;
-export type LoginFormValues = z.infer<typeof loginSchema>;
-export type SessionSchema = z.infer<typeof userSessionSchema>
+export const userSessionSchema = type({
+  id: "string",
+  browser_name: "string",
+  "device_name?": "string",
+  "ip_address?": "string",
+  last_used_at: "string",
+  location: "string",
+  os_name: "string",
+});
+
+export type User = typeof userSchema.infer;
+export type SignupFormValues = typeof signupSchema.infer;
+export type LoginFormValues = typeof loginSchema.infer;
+export type SessionSchema = typeof userSessionSchema.infer;
 
 export interface LoginResponse {
   two_fa_required?: boolean;
+  access_token?: string;
+  refresh_token?: string;
 }
 
 export interface ErrorResponse {
@@ -58,12 +64,14 @@ export interface ErrorResponse {
   success: boolean;
 }
 
-export interface InitMFASchema { qr_code_url: string; secret: string }
-
+export interface InitMFASchema {
+  qr_code_url: string;
+  secret: string;
+}
 
 export type AuthNullable = UserInfo | null;
 
-
 export interface RefreshAuthRes {
-  token: string;
+  access_token: string;
+  refresh_token: string;
 }

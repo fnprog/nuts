@@ -1,19 +1,25 @@
-import z from "zod";
+import { type } from "@nuts/validation";
 
-export const categorySchema = z.object({
-  id: z.string(),
-  name: z.string().min(1, "Name is required"),
-  parent_id: z.string().nullable(),
-  is_default: z.boolean().nullable(),
-  updated_at: z.string(),
-  icon: z.string(),
-  color: z.string().nullable(),
+export const categorySchema = type({
+  id: "string",
+  name: "string>=1",
+  type: "'income' | 'expense'",
+  "parent_id?": "string | null",
+  "is_default?": "boolean | null",
+  "created_at?": "string",
+  updated_at: "string",
+  "icon?": "string",
+  "color?": "string | null",
 });
 
-export const categoryCreateSchema = categorySchema.omit({
-  id: true,
-  updated_at: true,
+export const categoryCreateSchema = type({
+  name: "string>=1",
+  type: "'income' | 'expense'",
+  "parent_id?": "string | null",
+  "is_default?": "boolean | null",
+  "icon?": "string",
+  "color?": "string | null",
 });
 
-export type Category = z.infer<typeof categorySchema>;
-export type CategoryCreate = z.infer<typeof categoryCreateSchema>;
+export type Category = typeof categorySchema.infer;
+export type CategoryCreate = typeof categoryCreateSchema.infer;

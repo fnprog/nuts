@@ -35,7 +35,7 @@ type Details struct {
 type SubTransaction struct {
 	Description string           `json:"description"`
 	Amount      decimal.Decimal  `json:"amount"`
-	Quantity    int              `json:"quantity,omitempty"`
+	Quantity    int32            `json:"quantity,omitempty"`
 	UnitPrice   *decimal.Decimal `json:"unit_price,omitempty"`
 	Category    string           `json:"category,omitempty"`
 }
@@ -179,7 +179,7 @@ type Currency struct {
 	Code          string    `json:"code" db:"code"`
 	Name          string    `json:"name" db:"name"`
 	Symbol        *string   `json:"symbol,omitempty" db:"symbol"`
-	DecimalPlaces int       `json:"decimal_places" db:"decimal_places"`
+	DecimalPlaces int32     `json:"decimal_places" db:"decimal_places"`
 	IsActive      bool      `json:"is_active" db:"is_active"`
 	CreatedAt     time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at" db:"updated_at"`
@@ -468,7 +468,7 @@ type TransactionRule struct {
 	ID         uuid.UUID       `json:"id"`
 	Name       string          `json:"name"`
 	IsActive   bool            `json:"is_active"`
-	Priority   int             `json:"priority"`
+	Priority   int32           `json:"priority"`
 	Conditions []RuleCondition `json:"conditions"`
 	Actions    []RuleAction    `json:"actions"`
 	CreatedBy  uuid.UUID       `json:"created_by"`
@@ -499,7 +499,7 @@ type TransactionData struct {
 type RuleMatch struct {
 	RuleID       uuid.UUID    `json:"rule_id"`
 	RuleName     string       `json:"rule_name"`
-	RulePriority int          `json:"rule_priority"`
+	RulePriority int32        `json:"rule_priority"`
 	Actions      []RuleAction `json:"actions"`
 	Applied      bool         `json:"applied"`
 	Error        string       `json:"error,omitempty"`
@@ -509,7 +509,7 @@ type RuleMatch struct {
 type CreateTransactionRuleRequest struct {
 	Name       string          `json:"name" validate:"required,min=1,max=255"`
 	IsActive   bool            `json:"is_active"`
-	Priority   int             `json:"priority"`
+	Priority   int32           `json:"priority"`
 	Conditions []RuleCondition `json:"conditions" validate:"required,min=1"`
 	Actions    []RuleAction    `json:"actions" validate:"required,min=1"`
 }
@@ -518,7 +518,7 @@ type CreateTransactionRuleRequest struct {
 type UpdateTransactionRuleRequest struct {
 	Name       *string          `json:"name,omitempty" validate:"omitempty,min=1,max=255"`
 	IsActive   *bool            `json:"is_active,omitempty"`
-	Priority   *int             `json:"priority,omitempty"`
+	Priority   *int32           `json:"priority,omitempty"`
 	Conditions *[]RuleCondition `json:"conditions,omitempty" validate:"omitempty,min=1"`
 	Actions    *[]RuleAction    `json:"actions,omitempty" validate:"omitempty,min=1"`
 }

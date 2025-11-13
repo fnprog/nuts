@@ -9,6 +9,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createTag = `-- name: CreateTag :one
@@ -112,6 +113,45 @@ func (q *Queries) GetTagsByUserId(ctx context.Context, userID uuid.UUID) ([]GetT
 	for rows.Next() {
 		var i GetTagsByUserIdRow
 		if err := rows.Scan(&i.ID, &i.Name, &i.Color); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getTagsSince = `-- name: GetTagsSince :many
+SELECT id, user_id, name, color, created_at
+FROM tags
+WHERE
+    user_id = $1
+    AND created_at > $2
+`
+
+type GetTagsSinceParams struct {
+	UserID uuid.UUID          `json:"user_id"`
+	Since  pgtype.Timestamptz `json:"since"`
+}
+
+func (q *Queries) GetTagsSince(ctx context.Context, arg GetTagsSinceParams) ([]Tag, error) {
+	rows, err := q.db.Query(ctx, getTagsSince, arg.UserID, arg.Since)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Tag{}
+	for rows.Next() {
+		var i Tag
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Name,
+			&i.Color,
+			&i.CreatedAt,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

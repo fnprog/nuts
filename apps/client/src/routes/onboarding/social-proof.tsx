@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { Star, Users, ArrowRight } from "lucide-react";
 
 import { Button } from "@/core/components/ui/button";
+import { H2, P, Small } from "@/core/components/ui/typography";
 import { useOnboardingStore } from "@/features/onboarding/stores/onboarding.store";
 
 const testimonials = [
@@ -47,16 +48,12 @@ function RouteComponent() {
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
-      <div className="text-center space-y-2">
-        <div className="w-16 h-16 bg-primary-nuts-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Users className="w-8 h-8 text-primary-nuts-600" />
+      <div className="space-y-2 text-center">
+        <div className="bg-primary-nuts-100 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+          <Users className="text-primary-nuts-600 h-8 w-8" />
         </div>
-        <h2 className="text-xl font-semibold text-gray-900">
-          How Nuts has helped others
-        </h2>
-        <p className="text-gray-600">
-          Join thousands of users who have transformed their financial lives
-        </p>
+        <H2>How Nuts has helped others</H2>
+        <P variant="muted">Join thousands of users who have transformed their financial lives</P>
       </div>
 
       <div className="space-y-4 pt-2">
@@ -66,59 +63,54 @@ function RouteComponent() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 + 0.1 }}
-            className="bg-white rounded-lg p-4 shadow-sm border border-gray-100"
+            className="rounded-lg border border-gray-100 bg-white p-4 shadow-sm"
           >
             <div className="flex items-start space-x-3">
               <div className="flex-shrink-0">
-                <div className="w-10 h-10 bg-primary-nuts-100 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-medium text-primary-nuts-700">
-                    {testimonial.name.charAt(0)}
-                  </span>
+                <div className="bg-primary-nuts-100 flex h-10 w-10 items-center justify-center rounded-full">
+                  <span className="text-primary-nuts-700 text-sm font-medium">{testimonial.name.charAt(0)}</span>
                 </div>
               </div>
               <div className="flex-1">
-                <div className="flex items-center space-x-1 mb-1">
+                <div className="mb-1 flex items-center space-x-1">
                   {Array.from({ length: testimonial.rating }).map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                    <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                   ))}
                 </div>
-                <p className="text-sm text-gray-700 mb-2">{testimonial.content}</p>
-                <div className="text-xs text-gray-500">
+                <Small className="mb-2 text-gray-700">{testimonial.content}</Small>
+                <Small variant="muted">
                   <span className="font-medium">{testimonial.name}</span>
                   <span className="mx-1">•</span>
                   <span>{testimonial.role}</span>
-                </div>
+                </Small>
               </div>
             </div>
           </motion.div>
         ))}
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="pt-4"
-      >
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="pt-4">
         <Button
           onClick={handleContinue}
-          className="w-full bg-gradient-to-r from-primary-nuts-600 to-primary-nuts-700 hover:from-primary-nuts-700 hover:to-primary-nuts-800 text-white shadow-lg flex items-center justify-center gap-2"
+          className="from-primary-nuts-600 to-primary-nuts-700 hover:from-primary-nuts-700 hover:to-primary-nuts-800 flex w-full items-center justify-center gap-2 bg-gradient-to-r text-white shadow-lg"
         >
           Continue
-          <ArrowRight className="w-4 h-4" />
+          <ArrowRight className="h-4 w-4" />
         </Button>
       </motion.div>
 
       <div className="text-center">
-        <div className="flex justify-center space-x-2 mt-6">
-          <div className="w-2 h-2 bg-primary-nuts-600 rounded-full"></div>
-          <div className="w-2 h-2 bg-primary-nuts-600 rounded-full"></div>
-          <div className="w-2 h-2 bg-primary-nuts-600 rounded-full"></div>
-          <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-          <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-          <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
+        <div className="mt-6 flex justify-center space-x-2">
+          <div className="bg-primary-nuts-600 h-2 w-2 rounded-full"></div>
+          <div className="bg-primary-nuts-600 h-2 w-2 rounded-full"></div>
+          <div className="bg-primary-nuts-600 h-2 w-2 rounded-full"></div>
+          <div className="h-2 w-2 rounded-full bg-gray-300"></div>
+          <div className="h-2 w-2 rounded-full bg-gray-300"></div>
+          <div className="h-2 w-2 rounded-full bg-gray-300"></div>
         </div>
-        <p className="text-sm text-gray-500 mt-2">Step 3 of 6</p>
+        <Small variant="muted" className="mt-2">
+          Step 3 of 6
+        </Small>
       </div>
     </motion.div>
   );

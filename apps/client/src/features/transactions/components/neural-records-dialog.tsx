@@ -3,21 +3,19 @@ import { useState, useCallback } from "react";
 import { Label } from "@/core/components/ui/label";
 import { Button } from "@/core/components/ui/button";
 import { Root } from "@radix-ui/react-visually-hidden";
-import {
-  DialogDescription,
-  InnerDialog,
-  InnerDialogContent,
-  InnerDialogHeader,
-  InnerDialogTitle,
-  InnerDialogTrigger,
-} from "@/core/components/ui/dialog";
+import { DialogDescription, InnerDialog, InnerDialogContent, InnerDialogHeader, InnerDialogTitle, InnerDialogTrigger } from "@/core/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/components/ui/select";
 import { Input } from "@/core/components/ui/input";
 import { RecordsSubmit } from "@/features/transactions/services/transaction.types";
 import { Textarea } from "@/core/components/ui/textarea";
 import { Sparkles, Pencil } from "lucide-react";
-import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogTrigger } from "@/core/components/ui/dialog-sheet";
-
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogTrigger,
+} from "@/core/components/ui/dialog-sheet";
 
 interface NeuralDialogProps extends React.PropsWithChildren {
   open?: boolean;
@@ -72,7 +70,6 @@ export function RecordsForm() {
   //     },
   //   },
   // });
-
 
   const handleSubmit = useCallback(() => {
     // This is where you'd integrate with a natural language processing service

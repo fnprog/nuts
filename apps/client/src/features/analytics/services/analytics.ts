@@ -1,4 +1,5 @@
 import { api } from "@/lib/axios";
+import { ResultAsync, ServiceError } from "@/lib/result";
 
 export interface IncomeExpenseData {
   period: string;
@@ -25,53 +26,39 @@ export interface BudgetData {
   variance: number;
 }
 
-/**
- * Get income vs expenses data for a specific timeframe
- * @param timeframe The time period to get data for (day, week, month, quarter, year, all)
- * @returns Promise with income and expense data
- */
-const getIncomeExpense = async (timeframe: string): Promise<IncomeExpenseData[]> => {
-  const { data } = await api.get(`/analytics/income-expense?timeframe=${timeframe}`);
-  return data;
+const getIncomeExpense = (timeframe: string) => {
+  return ResultAsync.fromPromise(
+    api.get(`/analytics/income-expense?timeframe=${timeframe}`).then((res) => res.data),
+    ServiceError.fromAxiosError
+  );
 };
 
-/**
- * Get assets vs liabilities data (net worth) for a specific timeframe
- * @param timeframe The time period to get data for (day, week, month, quarter, year, all)
- * @returns Promise with asset and liability data
- */
-const getAssetsLiabilities = async (timeframe: string): Promise<AssetLiabilityData[]> => {
-  const { data } = await api.get(`/analytics/assets-liabilities?timeframe=${timeframe}`);
-  return data;
+const getAssetsLiabilities = (timeframe: string) => {
+  return ResultAsync.fromPromise(
+    api.get(`/analytics/assets-liabilities?timeframe=${timeframe}`).then((res) => res.data),
+    ServiceError.fromAxiosError
+  );
 };
 
-/**
- * Get spending by category for a specific timeframe
- * @param timeframe The time period to get data for (day, week, month, quarter, year, all)
- * @returns Promise with category spending data
- */
-const getCategorySpending = async (timeframe: string): Promise<CategorySpendingData[]> => {
-  const { data } = await api.get(`/analytics/category-spending?timeframe=${timeframe}`);
-  return data;
+const getCategorySpending = (timeframe: string) => {
+  return ResultAsync.fromPromise(
+    api.get(`/analytics/category-spending?timeframe=${timeframe}`).then((res) => res.data),
+    ServiceError.fromAxiosError
+  );
 };
 
-/**
- * Get budget vs actual spending for a specific timeframe
- * @param timeframe The time period to get data for (day, week, month, quarter, year, all)
- * @returns Promise with budget data
- */
-const getBudgetComparison = async (timeframe: string): Promise<BudgetData[]> => {
-  const { data } = await api.get(`/analytics/budget-comparison?timeframe=${timeframe}`);
-  return data;
+const getBudgetComparison = (timeframe: string) => {
+  return ResultAsync.fromPromise(
+    api.get(`/analytics/budget-comparison?timeframe=${timeframe}`).then((res) => res.data),
+    ServiceError.fromAxiosError
+  );
 };
 
-/**
- * Get financial health score data
- * @returns Promise with financial health score and metrics
- */
-const getFinancialHealth = async () => {
-  const { data } = await api.get("/analytics/financial-health");
-  return data;
+const getFinancialHealth = () => {
+  return ResultAsync.fromPromise(
+    api.get("/analytics/financial-health").then((res) => res.data),
+    ServiceError.fromAxiosError
+  );
 };
 
 export const analyticsService = {

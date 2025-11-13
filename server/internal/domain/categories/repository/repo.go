@@ -2,10 +2,12 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	"github.com/Fantasy-Programming/nuts/server/internal/repository"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -13,6 +15,7 @@ type Category interface {
 	WithTx(tx pgx.Tx) Category
 
 	ListCategories(ctx context.Context, userID uuid.UUID) ([]repository.Category, error)
+	GetCategoriesSince(ctx context.Context, userID uuid.UUID, since time.Time) ([]repository.Category, error)
 	CreateCategory(ctx context.Context, params repository.CreateCategoryParams) (repository.Category, error)
 	UpdateCategory(ctx context.Context, params repository.UpdateCategoryParams) (repository.Category, error)
 	DeleteCategory(ctx context.Context, id uuid.UUID) error
@@ -38,6 +41,16 @@ func (r *repo) WithTx(tx pgx.Tx) Category {
 
 func (r *repo) ListCategories(ctx context.Context, userID uuid.UUID) ([]repository.Category, error) {
 	return r.queries.ListCategories(ctx, userID)
+}
+
+func (r *repo) GetCategoriesSince(ctx context.Context, userID uuid.UUID, since time.Time) ([]repository.Category, error) {
+	return r.queries.GetCategoriesSince(ctx, repository.GetCategoriesSinceParams{
+		UserID: userID,
+		Since: pgtype.Timestamptz{
+			Time:  since,
+			Valid: true,
+		},
+	})
 }
 
 func (r *repo) CreateCategory(ctx context.Context, params repository.CreateCategoryParams) (repository.Category, error) {

@@ -1,51 +1,70 @@
 import { createFileRoute, useRouteContext } from "@tanstack/react-router";
-import { z } from 'zod'
+import { type } from "@nuts/types";
 import { RecordsTable } from "@/features/transactions/components/records-table";
 import { CalendarView } from "@/features/transactions/components/calendar-view";
 import { Spinner } from "@/core/components/ui/spinner";
 import { Button } from "@/core/components/ui/button";
 import { useState, Suspense } from "react";
+import { H2, Small } from "@/core/components/ui/typography";
 
 import { RecordsDialog } from "@/features/transactions/components/add-records-dialog";
 import { NeuralRecordsDialog } from "@/features/transactions/components/neural-records-dialog";
 import { RulesDialog } from "@/features/transactions/components/rules-dialog";
-import { getTransactions } from "@/features/transactions/services/transaction"
-import { categoryService } from "@/features/categories/services/category"
-import { accountService } from "@/features/accounts/services/account";
 import { LayoutDashboard, Plus, Sparkles, List, Calendar, BarChart3, ChevronDown, Settings } from "lucide-react";
 import { SidebarTrigger } from "@/core/components/ui/sidebar";
-import { EmptyStateGuide } from "@/core/components/EmptyStateGuide";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/core/components/ui/dropdown-menu";
-import { ErrorBoundary } from "@/core/components/error-boundary";
-import { TableLoader } from "@/core/components/loading";
+import { ErrorBoundary } from "@/core/components/ui/error-boundary";
+import { TableLoader } from "@/core/components/ui/loading";
+import { EmptyStateGuide } from "@/core/components/ui/emtpy-state-guide";
+import { transactionService } from "@/features/transactions/services/transaction.service";
+import { categoryService } from "@/features/categories/services/category.service";
+import { accountService } from "@/features/accounts/services/account";
 
-const transactionFilterSchema = z.object({
-  page: z.number().catch(1),
-})
+const transactionFilterSchema = type({
+  page: "number",
+});
 
-export type TransactionSearch = z.infer<typeof transactionFilterSchema>
+export type TransactionSearch = typeof transactionFilterSchema.infer;
 
 export const Route = createFileRoute("/dashboard/records")({
   component: RouteComponent,
   pendingComponent: Spinner,
-  validateSearch: transactionFilterSchema,
+  validateSearch: (search: Record<string, unknown>) => {
+    const result = transactionFilterSchema(search);
+    if (result instanceof type.errors) {
+      return { page: 1 };
+    }
+    return result;
+  },
   loader: ({ context }) => {
     const queryClient = context.queryClient;
     const defaultParams = { page: 1, q: "", group_by: "date" };
 
     queryClient.prefetchQuery({
       queryKey: ["transactions", defaultParams],
-      queryFn: () => getTransactions(defaultParams),
+      queryFn: async () => {
+        const result = await transactionService.getTransactions(defaultParams);
+        if (result.isErr()) throw result.error;
+        return result.value;
+      },
     });
 
     queryClient.prefetchQuery({
       queryKey: ["categories"],
-      queryFn: categoryService.getCategories,
+      queryFn: async () => {
+        const result = await categoryService.getCategories();
+        if (result.isErr()) throw result.error;
+        return result.value;
+      },
     });
 
     queryClient.prefetchQuery({
       queryKey: ["accounts"],
-      queryFn: accountService.getAccounts,
+      queryFn: async () => {
+        const result = await accountService.getAccounts();
+        if (result.isErr()) throw result.error;
+        return result.value;
+      },
     });
   },
   errorComponent: ({ error }) => <div>Error loading transactions: {error.message}</div>,
@@ -125,7 +144,6 @@ function RouteComponent() {
 
   return (
     <>
-
       {!hasAccounts && (
         <EmptyStateGuide
           Icon={LayoutDashboard}
@@ -134,13 +152,13 @@ function RouteComponent() {
           ctaText="Add your first account"
         />
       )}
-      <div className="border-b border-b-bg-nuts-500/20 py-1 flex gap-2 items-center md:hidden -mx-4 px-3">
+      <div className="border-b-bg-nuts-500/20 -mx-4 flex items-center gap-2 border-b px-3 py-1 md:hidden">
         <SidebarTrigger />
-        <span className="font-semibold text-sm tracking-tight">Transactions</span>
+        <Small className="font-semibold tracking-tight">Transactions</Small>
       </div>
-      <header className="hidden md:flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear">
+      <header className="hidden h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear md:flex">
         <div className="flex w-full items-center justify-between gap-2">
-          <h2 className="text-2xl font-bold tracking-tight">Transactions</h2>
+          <H2 className="text-2xl">Transactions</H2>
           <div className="flex items-center gap-2">
             <RulesDialog>
               <Button variant="outline" className="hidden items-center gap-2 sm:flex">
@@ -166,14 +184,14 @@ function RouteComponent() {
       </header >
 
       <div className="flex flex-1">
-        <div className="h-full w-full space-y-8  py-2">
+        <div className="h-full w-full space-y-8 py-2">
           <div className="space-y-8">
             {renderCurrentView()}
           </div>
         </div>
       </div>
 
-      <div className="fixed bottom-6 right-6 z-50 sm:hidden">
+      <div className="fixed right-6 bottom-6 z-50 sm:hidden">
         <RecordsDialog>
           <Button size="icon" className="h-14 w-14 rounded-full shadow-lg">
             <Plus className="size-6" />

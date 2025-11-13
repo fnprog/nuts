@@ -1,64 +1,74 @@
-import z from "zod";
+import { type } from "@nuts/validation";
 
-const accountType = z.enum(["cash", "savings", "investment", "credit", "checking"], { message: "Invalid account type" })
+const accountType = type("'cash' | 'momo' | 'credit' | 'investment' | 'checking' | 'savings' | 'loan' | 'other'");
 
-export const accountSchema = z.object({
-  id: z.string(),
-  name: z.string().min(1, "Name is required"),
+const accountMeta = type({
+  "notes?": "string",
+  "institution?": "string",
+  "institution_name?": "string",
+  "logo?": "string",
+});
+
+export const accountSchema = type({
+  id: "string",
+  name: "string>=1",
   type: accountType,
-  meta: z.object({
-    notes: z.string().optional(),
-    institution: z.string().optional(),
-    institution_name: z.string().optional(),
-    logo: z.string().optional(),
-  }).optional().nullable(),
-  balance: z.number(),
-  is_external: z.boolean(),
-  currency: z.string().min(1, "Currency is required"),
-  updated_at: z.string(),
+  "subtype?": "string",
+  "meta?": accountMeta.or("null"),
+  balance: "number",
+  is_external: "boolean",
+  currency: "string>=1",
+  updated_at: "string",
 });
 
-export const accountWTrendSchema = accountSchema.extend({
-  trend: z.number(),
-  balance_timeseries: z.array(z.object({
-    date: z.coerce.date(),
-    balance: z.number()
-  }))
-})
-
-export const accountBalanceTimelineSchema = z.object({
-  balance: z.number(),
-  month: z.coerce.date()
-})
-
-export const accountCreateSchema = accountSchema.omit({
-  id: true,
-  updated_at: true,
-  is_external: true
+const balanceTimeseriesItem = type({
+  date: "Date",
+  balance: "number",
 });
 
-export const accountFormSchema = accountSchema.omit({
-  id: true,
-  updated_at: true,
-  is_external: true
-  // meta: true,
-})
-
-
-export const groupedAccountSchema = z.object({
+export const accountWTrendSchema = type({
+  id: "string",
+  name: "string>=1",
   type: accountType,
-  total: z.number(),
-  trend: z.number(),
-  accounts: z.array(accountWTrendSchema)
+  "subtype?": "string",
+  "meta?": accountMeta.or("null"),
+  balance: "number",
+  is_external: "boolean",
+  currency: "string>=1",
+  updated_at: "string",
+  trend: "number",
+  balance_timeseries: type([balanceTimeseriesItem, "[]"]),
 });
 
+export const accountBalanceTimelineSchema = type({
+  balance: "number",
+  month: "Date | string.date",
+});
 
-export type Account = z.infer<typeof accountSchema>;
-export type AccountWTrend = z.infer<typeof accountWTrendSchema>;
-export type GroupedAccount = z.infer<typeof groupedAccountSchema>;
-export type AccountBalanceTimeline = z.infer<typeof accountBalanceTimelineSchema>;
-export type AccountCreate = z.infer<typeof accountCreateSchema>;
-export type AccountFormSchema = z.infer<typeof accountFormSchema>;
+export const accountCreateSchema = type({
+  name: "string>=1",
+  type: accountType,
+  "subtype?": "string",
+  "meta?": accountMeta.or("null"),
+  balance: "number",
+  currency: "string>=1",
+});
+
+export const accountFormSchema = accountCreateSchema;
+
+export const groupedAccountSchema = type({
+  type: accountType,
+  total: "number",
+  trend: "number",
+  accounts: type([accountWTrendSchema, "[]"]),
+});
+
+export type Account = typeof accountSchema.infer;
+export type AccountWTrend = typeof accountWTrendSchema.infer;
+export type GroupedAccount = typeof groupedAccountSchema.infer;
+export type AccountBalanceTimeline = typeof accountBalanceTimelineSchema.infer;
+export type AccountCreate = typeof accountCreateSchema.infer;
+export type AccountFormSchema = typeof accountFormSchema.infer;
 export type AccountSubmit = (values: AccountFormSchema) => void;
 export type AccountUpdate = (id: string, values: AccountFormSchema) => void;
 export type AccountDelete = (id: string) => void;

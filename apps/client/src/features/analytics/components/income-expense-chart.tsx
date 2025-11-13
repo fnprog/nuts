@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react"
-import { Line, LineChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { useEffect, useState } from "react";
+import { Line, LineChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 // Mock data for the chart
 const data = [
@@ -15,17 +15,17 @@ const data = [
   { month: "Oct", income: 7500, expenses: 5700 },
   { month: "Nov", income: 7800, expenses: 5900 },
   { month: "Dec", income: 8200, expenses: 6100 },
-]
+];
 
 export default function IncomeExpenseChart() {
-  const [mounted, setMounted] = useState(false)
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   if (!mounted) {
-    return <div className="h-[350px] flex items-center justify-center">Loading chart...</div>
+    return <div className="flex h-[350px] items-center justify-center">Loading chart...</div>;
   }
 
   return (
@@ -43,26 +43,9 @@ export default function IncomeExpenseChart() {
           }}
         />
         <Legend />
-        <Line
-          type="monotone"
-          dataKey="income"
-          name="Income"
-          stroke="#10b981"
-          strokeWidth={2}
-          dot={{ r: 4 }}
-          activeDot={{ r: 6, strokeWidth: 2 }}
-        />
-        <Line
-          type="monotone"
-          dataKey="expenses"
-          name="Expenses"
-          stroke="#f43f5e"
-          strokeWidth={2}
-          dot={{ r: 4 }}
-          activeDot={{ r: 6, strokeWidth: 2 }}
-        />
+        <Line type="monotone" dataKey="income" name="Income" stroke="#10b981" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6, strokeWidth: 2 }} />
+        <Line type="monotone" dataKey="expenses" name="Expenses" stroke="#f43f5e" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6, strokeWidth: 2 }} />
       </LineChart>
     </ResponsiveContainer>
-  )
+  );
 }
-

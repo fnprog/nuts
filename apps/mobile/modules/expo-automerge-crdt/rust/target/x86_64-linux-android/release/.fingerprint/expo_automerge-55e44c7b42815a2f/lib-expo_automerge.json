@@ -1,0 +1,27 @@
+{
+  "rustc": 8022303366561187541,
+  "features": "[]",
+  "declared_features": "[]",
+  "target": 10454032388352285038,
+  "profile": 15155485675402522373,
+  "path": 10763286916239946207,
+  "deps": [
+    [503842845364652431, "chrono", false, 4348488304339925360],
+    [10627010365419051417, "automerge", false, 13296733386845227869],
+    [12832915883349295919, "serde_json", false, 14414848692627986481],
+    [13385779688343444241, "jni", false, 12806099499278762854],
+    [13548984313718623784, "serde", false, 8063037238637007903],
+    [15267671913832104935, "uuid", false, 4058403127065905530]
+  ],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "x86_64-linux-android/release/.fingerprint/expo_automerge-55e44c7b42815a2f/dep-lib-expo_automerge",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 10255546481339591553,
+  "compile_kind": 13862352012247744383
+}

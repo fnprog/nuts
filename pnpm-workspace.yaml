@@ -1,0 +1,13 @@
+packages:
+  - "packages/*"
+  - "client"
+  - "mobile"
+overrides:
+  lightningcss: "1.30.2"
+
+onlyBuiltDependencies:
+  - '@swc/core'
+  - '@tailwindcss/oxide'
+  - esbuild
+  - "@shopify/react-native-skia"
+  - "unrs-resolver"

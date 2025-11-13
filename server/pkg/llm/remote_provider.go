@@ -31,7 +31,7 @@ func NewRemoteProvider(config Config, logger *zerolog.Logger) *RemoteProvider {
 
 // GeminiRequest represents the request structure for Google Gemini API
 type GeminiRequest struct {
-	Contents []GeminiContent `json:"contents"`
+	Contents         []GeminiContent        `json:"contents"`
 	GenerationConfig GeminiGenerationConfig `json:"generationConfig"`
 }
 
@@ -44,8 +44,8 @@ type GeminiPart struct {
 }
 
 type GeminiGenerationConfig struct {
-	Temperature   float32 `json:"temperature,omitempty"`
-	MaxOutputTokens int   `json:"maxOutputTokens,omitempty"`
+	Temperature     float32 `json:"temperature,omitempty"`
+	MaxOutputTokens int     `json:"maxOutputTokens,omitempty"`
 }
 
 // GeminiResponse represents the response from Gemini API
@@ -59,10 +59,10 @@ type GeminiCandidate struct {
 
 // OpenAIRequest represents the request structure for OpenAI-compatible APIs
 type OpenAIRequest struct {
-	Model       string           `json:"model"`
-	Messages    []OpenAIMessage  `json:"messages"`
-	Temperature float32          `json:"temperature,omitempty"`
-	MaxTokens   int              `json:"max_tokens,omitempty"`
+	Model       string          `json:"model"`
+	Messages    []OpenAIMessage `json:"messages"`
+	Temperature float32         `json:"temperature,omitempty"`
+	MaxTokens   int             `json:"max_tokens,omitempty"`
 }
 
 type OpenAIMessage struct {
@@ -120,7 +120,7 @@ func (p *RemoteProvider) generateGeminiCompletion(ctx context.Context, prompt st
 		return "", fmt.Errorf("failed to marshal gemini request: %w", err)
 	}
 
-	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s", 
+	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s",
 		p.config.RemoteModel, p.config.RemoteAPIKey)
 
 	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(jsonData))
@@ -194,7 +194,7 @@ func (p *RemoteProvider) generateOpenAICompatibleCompletion(ctx context.Context,
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	
+
 	// Set appropriate authorization header based on provider
 	switch p.config.RemoteProvider {
 	case "openai", "openrouter":

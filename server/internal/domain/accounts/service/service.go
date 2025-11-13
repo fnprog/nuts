@@ -24,8 +24,16 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+const (
+	maxAccounts          = 1000
+	maxBatchSize         = 100
+	dbTimeoutMs          = 5000
+	externalAPITimeoutMs = 30000
+)
+
 type Account interface {
 	ListAccounts(ctx context.Context, userID uuid.UUID) ([]repository.GetAccountsRow, error)
+	ListAccountsSince(ctx context.Context, userID uuid.UUID, since time.Time) ([]repository.GetAccountsSinceRow, error)
 	GetAccount(ctx context.Context, accountID uuid.UUID) (repository.GetAccountByIdRow, error)
 	CreateAccount(ctx context.Context, hasBalance bool, account repository.CreateAccountParams) (repository.Account, error)
 
@@ -74,11 +82,18 @@ func (a *AccountService) ListAccounts(ctx context.Context, userID uuid.UUID) ([]
 	return a.repo.GetAccounts(ctx, userID)
 }
 
+func (a *AccountService) ListAccountsSince(ctx context.Context, userID uuid.UUID, since time.Time) ([]repository.GetAccountsSinceRow, error) {
+	return a.repo.GetAccountsSince(ctx, userID, since)
+}
+
 func (a *AccountService) GetAccount(ctx context.Context, accountID uuid.UUID) (repository.GetAccountByIdRow, error) {
 	return a.repo.GetAccountByID(ctx, accountID)
 }
 
 func (a *AccountService) CreateAccount(ctx context.Context, hasBalance bool, params repository.CreateAccountParams) (repository.Account, error) {
+	ctx, cancel := context.WithTimeout(ctx, dbTimeoutMs*time.Millisecond)
+	defer cancel()
+
 	tx, err := a.db.Begin(ctx)
 	if err != nil {
 		return repository.Account{}, err
@@ -96,10 +111,17 @@ func (a *AccountService) CreateAccount(ctx context.Context, hasBalance bool, par
 	tscx := a.trcRepo.WithTx(tx)
 	ctgx := a.ctgRepo.WithTx(tx)
 
-	// Create the account
+	if params.CreatedBy == nil || *params.CreatedBy == uuid.Nil {
+		panic("createdBy invariant violated")
+	}
+
 	account, err := actx.CreateAccount(ctx, params)
 	if err != nil {
 		return repository.Account{}, err
+	}
+
+	if account.ID == uuid.Nil {
+		panic("account ID invariant violated")
 	}
 
 	if !hasBalance {
@@ -145,9 +167,12 @@ func (a *AccountService) CreateAccount(ctx context.Context, hasBalance bool, par
 		return repository.Account{}, err
 	}
 
-	// Commit the transaction
 	if err = tx.Commit(ctx); err != nil {
 		return repository.Account{}, err
+	}
+
+	if account.ID == uuid.Nil {
+		panic("post-commit: account ID invariant violated")
 	}
 
 	return account, nil
@@ -166,6 +191,13 @@ func (a *AccountService) GetAccountsTrends(ctx context.Context, userID *uuid.UUI
 }
 
 func (a *AccountService) LinkTeller(ctx context.Context, userID uuid.UUID, req accounts.TellerConnectRequest) error {
+	ctx, cancel := context.WithTimeout(ctx, externalAPITimeoutMs*time.Millisecond)
+	defer cancel()
+
+	if userID == uuid.Nil {
+		panic("userID invariant violated")
+	}
+
 	provider, err := a.openFinanceManager.GetProvider("teller")
 	if err != nil {
 		return err
@@ -176,27 +208,51 @@ func (a *AccountService) LinkTeller(ctx context.Context, userID uuid.UUID, req a
 		return err
 	}
 
-	encryptedAccessToken, err := a.encrypt.Encrypt([]byte(req.AccessToken))
+	if len(accounts) > maxAccounts {
+		panic(fmt.Sprintf("account count %d exceeds max %d", len(accounts), maxAccounts))
+	}
+
+	connection, err := a.createTellerConnection(ctx, userID, req, accounts, provider)
 	if err != nil {
 		return err
+	}
+
+	accountCreationErrors := a.createAccountsFromProvider(ctx, userID, req, accounts, connection, provider.GetProviderName())
+
+	if len(accountCreationErrors) > 0 {
+		a.logger.Warn().Errs("errors", accountCreationErrors).Msg("Some accounts could not be created from Teller")
+	}
+
+	if err = a.scheduler.EnqueueBankSync(ctx, userID, connection.ID, "full"); err != nil {
+		a.logger.Error().Err(err).Msg("Failed to schedule bank sync")
+	}
+
+	return err
+}
+
+func (a *AccountService) createTellerConnection(ctx context.Context, userID uuid.UUID, req accounts.TellerConnectRequest, accounts []finance.Account, provider finance.Provider) (repository.UserFinancialConnection, error) {
+	encryptedAccessToken, err := a.encrypt.Encrypt([]byte(req.AccessToken))
+	if err != nil {
+		return repository.UserFinancialConnection{}, err
 	}
 
 	var institutionID, institutionName *string
 
 	if len(accounts) > 0 {
+		if accounts[0].InstitutionID == "" || accounts[0].InstitutionName == "" {
+			panic("institution data invariant violated")
+		}
 		institutionID = &accounts[0].InstitutionID
 		institutionName = &accounts[0].InstitutionName
 	}
 
 	status := "active"
-	providerName := provider.GetProviderName()
-	isExternal := true
 
 	connParams := repository.CreateConnectionParams{
 		UserID:               userID,
-		ProviderName:         providerName,
+		ProviderName:         provider.GetProviderName(),
 		AccessTokenEncrypted: encryptedAccessToken,
-		ItemID:               nil, // Teller itemId is the accessID
+		ItemID:               nil,
 		InstitutionID:        institutionID,
 		InstitutionName:      institutionName,
 		Status:               &status,
@@ -204,22 +260,25 @@ func (a *AccountService) LinkTeller(ctx context.Context, userID uuid.UUID, req a
 		ExpiresAt:            pgtype.Timestamptz{Valid: false},
 	}
 
-	connection, err := a.repo.CreateConnection(ctx, connParams)
-	if err != nil {
-		return err
-	}
+	return a.repo.CreateConnection(ctx, connParams)
+}
 
-	var createdAccounts []repository.Account
+func (a *AccountService) createAccountsFromProvider(ctx context.Context, userID uuid.UUID, req accounts.TellerConnectRequest, accounts []finance.Account, connection repository.UserFinancialConnection, providerName string) []error {
 	var accountCreationErrors []error
+	isExternal := true
 
-	for _, providerAccount := range accounts {
+	for i, providerAccount := range accounts {
+		if i >= maxBatchSize {
+			a.logger.Warn().Int("totalAccounts", len(accounts)).Msg("Batch size limit reached")
+			break
+		}
 
 		balance := decimal.NullDecimal{
 			Decimal: decimal.NewFromFloat(providerAccount.Balance),
 			Valid:   true,
 		}
 
-		newAccount, err := a.repo.CreateAccount(ctx, repository.CreateAccountParams{
+		_, err := a.repo.CreateAccount(ctx, repository.CreateAccountParams{
 			CreatedBy:         &userID,
 			Name:              providerAccount.Name,
 			Type:              providerAccount.Type,
@@ -235,24 +294,16 @@ func (a *AccountService) LinkTeller(ctx context.Context, userID uuid.UUID, req a
 		})
 		if err != nil {
 			accountCreationErrors = append(accountCreationErrors, fmt.Errorf("account %s (%s): %w", providerAccount.Name, providerAccount.ID, err))
-			continue
 		}
-
-		createdAccounts = append(createdAccounts, newAccount)
 	}
 
-	if len(accountCreationErrors) > 0 {
-		a.logger.Warn().Errs("errors", accountCreationErrors).Msg("Some accounts could not be created from Teller")
-	}
-
-	if err = a.scheduler.EnqueueBankSync(ctx, userID, connection.ID, "full"); err != nil {
-		a.logger.Error().Err(err).Msg("Failed to schedule bank sync")
-	}
-
-	return err
+	return accountCreationErrors
 }
 
 func (a *AccountService) LinkMono(ctx context.Context, userID uuid.UUID, req accounts.MonoConnectRequest) error {
+	ctx, cancel := context.WithTimeout(ctx, externalAPITimeoutMs*time.Millisecond)
+	defer cancel()
+
 	provider, err := a.openFinanceManager.GetProvider("mono")
 	if err != nil {
 		return err

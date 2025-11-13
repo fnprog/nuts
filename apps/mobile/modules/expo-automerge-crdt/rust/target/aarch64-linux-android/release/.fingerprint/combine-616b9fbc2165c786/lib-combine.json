@@ -1,0 +1,23 @@
+{
+  "rustc": 8022303366561187541,
+  "features": "[\"alloc\", \"bytes\", \"default\", \"std\"]",
+  "declared_features": "[\"alloc\", \"bytes\", \"bytes_05\", \"default\", \"futures-03\", \"futures-core-03\", \"futures-io-03\", \"mp4\", \"pin-project\", \"pin-project-lite\", \"regex\", \"std\", \"tokio\", \"tokio-02\", \"tokio-02-dep\", \"tokio-03\", \"tokio-03-dep\", \"tokio-dep\", \"tokio-util\"]",
+  "target": 2090804380371586739,
+  "profile": 12693162527509728243,
+  "path": 5564371829533766880,
+  "deps": [
+    [198136567835728122, "memchr", false, 16358229687646118710],
+    [16066129441945555748, "bytes", false, 6476460682877308210]
+  ],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "aarch64-linux-android/release/.fingerprint/combine-616b9fbc2165c786/dep-lib-combine",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 10255546481339591553,
+  "compile_kind": 6373778340919622063
+}

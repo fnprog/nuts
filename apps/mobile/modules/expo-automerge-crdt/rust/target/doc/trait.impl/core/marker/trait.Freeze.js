@@ -1,0 +1,365 @@
+(function () {
+  var implementors = Object.fromEntries([
+    [
+      'automerge',
+      [
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="enum" href="automerge/enum.LoadChangeError.html" title="enum automerge::LoadChangeError">LoadError</a>',
+          1,
+          ['automerge::change::LoadError'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="enum" href="automerge/enum.ObjId.html" title="enum automerge::ObjId">ExId</a>',
+          1,
+          ['automerge::exid::ExId'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="enum" href="automerge/enum.ObjIdFromBytesError.html" title="enum automerge::ObjIdFromBytesError">ObjIdFromBytesError</a>',
+          1,
+          ['automerge::exid::ObjIdFromBytesError'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="enum" href="automerge/enum.ObjType.html" title="enum automerge::ObjType">ObjType</a>',
+          1,
+          ['automerge::types::ObjType'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="enum" href="automerge/enum.OnPartialLoad.html" title="enum automerge::OnPartialLoad">OnPartialLoad</a>',
+          1,
+          ['automerge::automerge::OnPartialLoad'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="enum" href="automerge/enum.OpType.html" title="enum automerge::OpType">OpType</a>',
+          1,
+          ['automerge::types::OpType'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="enum" href="automerge/enum.ParseChangeHashError.html" title="enum automerge::ParseChangeHashError">ParseChangeHashError</a>',
+          1,
+          ['automerge::types::ParseChangeHashError'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="enum" href="automerge/enum.Prop.html" title="enum automerge::Prop">Prop</a>',
+          1,
+          ['automerge::types::Prop'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="enum" href="automerge/enum.ScalarValue.html" title="enum automerge::ScalarValue">ScalarValue</a>',
+          1,
+          ['automerge::value::ScalarValue'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="enum" href="automerge/enum.StringMigration.html" title="enum automerge::StringMigration">StringMigration</a>',
+          1,
+          ['automerge::automerge::StringMigration'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="enum" href="automerge/enum.VerificationMode.html" title="enum automerge::VerificationMode">VerificationMode</a>',
+          1,
+          ['automerge::storage::load::reconstruct_document::VerificationMode'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="enum" href="automerge/error/enum.AutomergeError.html" title="enum automerge::error::AutomergeError">AutomergeError</a>',
+          1,
+          ['automerge::error::AutomergeError'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="enum" href="automerge/error/enum.HydrateError.html" title="enum automerge::error::HydrateError">HydrateError</a>',
+          1,
+          ['automerge::error::HydrateError'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="enum" href="automerge/error/enum.InvalidOpType.html" title="enum automerge::error::InvalidOpType">InvalidOpType</a>',
+          1,
+          ['automerge::error::InvalidOpType'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="enum" href="automerge/error/enum.UpdateObjectError.html" title="enum automerge::error::UpdateObjectError">UpdateObjectError</a>',
+          1,
+          ['automerge::error::UpdateObjectError'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="enum" href="automerge/hydrate/enum.Value.html" title="enum automerge::hydrate::Value">Value</a>',
+          1,
+          ['automerge::hydrate::Value'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="enum" href="automerge/iter/enum.Span.html" title="enum automerge::iter::Span">Span</a>',
+          1,
+          ['automerge::iter::spans::Span'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="enum" href="automerge/marks/enum.ExpandMark.html" title="enum automerge::marks::ExpandMark">ExpandMark</a>',
+          1,
+          ['automerge::marks::ExpandMark'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="enum" href="automerge/patches/enum.PatchAction.html" title="enum automerge::patches::PatchAction">PatchAction</a>',
+          1,
+          ['automerge::patches::patch::PatchAction'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="enum" href="automerge/patches/enum.TextRepresentation.html" title="enum automerge::patches::TextRepresentation">TextRepresentation</a>',
+          1,
+          ['automerge::patches::TextRepresentation'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="enum" href="automerge/sync/enum.Capability.html" title="enum automerge::sync::Capability">Capability</a>',
+          1,
+          ['automerge::sync::Capability'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="enum" href="automerge/sync/enum.DecodeStateError.html" title="enum automerge::sync::DecodeStateError">DecodeError</a>',
+          1,
+          ['automerge::sync::state::DecodeError'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="enum" href="automerge/sync/enum.MessageVersion.html" title="enum automerge::sync::MessageVersion">MessageVersion</a>',
+          1,
+          ['automerge::sync::MessageVersion'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="enum" href="automerge/sync/enum.ReadMessageError.html" title="enum automerge::sync::ReadMessageError">ReadMessageError</a>',
+          1,
+          ['automerge::sync::ReadMessageError'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/error/struct.InvalidActorId.html" title="struct automerge::error::InvalidActorId">InvalidActorId</a>',
+          1,
+          ['automerge::error::InvalidActorId'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/error/struct.InvalidChangeHashSlice.html" title="struct automerge::error::InvalidChangeHashSlice">InvalidChangeHashSlice</a>',
+          1,
+          ['automerge::error::InvalidChangeHashSlice'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/error/struct.InvalidElementId.html" title="struct automerge::error::InvalidElementId">InvalidElementId</a>',
+          1,
+          ['automerge::error::InvalidElementId'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/error/struct.InvalidObjectId.html" title="struct automerge::error::InvalidObjectId">InvalidObjectId</a>',
+          1,
+          ['automerge::error::InvalidObjectId'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/error/struct.InvalidOpId.html" title="struct automerge::error::InvalidOpId">InvalidOpId</a>',
+          1,
+          ['automerge::error::InvalidOpId'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/hydrate/struct.List.html" title="struct automerge::hydrate::List">List</a>',
+          1,
+          ['automerge::hydrate::list::List'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/hydrate/struct.ListValue.html" title="struct automerge::hydrate::ListValue">ListValue</a>',
+          1,
+          ['automerge::hydrate::list::ListValue'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/hydrate/struct.Map.html" title="struct automerge::hydrate::Map">Map</a>',
+          1,
+          ['automerge::hydrate::map::Map'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/hydrate/struct.MapValue.html" title="struct automerge::hydrate::MapValue">MapValue</a>',
+          1,
+          ['automerge::hydrate::map::MapValue'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/hydrate/struct.Text.html" title="struct automerge::hydrate::Text">Text</a>',
+          1,
+          ['automerge::hydrate::text::Text'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/marks/struct.MarkData.html" title="struct automerge::marks::MarkData">MarkData</a>',
+          1,
+          ['automerge::marks::MarkData'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/marks/struct.MarkSet.html" title="struct automerge::marks::MarkSet">MarkSet</a>',
+          1,
+          ['automerge::marks::MarkSet'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/patches/struct.Patch.html" title="struct automerge::patches::Patch">Patch</a>',
+          1,
+          ['automerge::patches::patch::Patch'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/patches/struct.PatchLog.html" title="struct automerge::patches::PatchLog">PatchLog</a>',
+          1,
+          ['automerge::patches::patch_log::PatchLog'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/struct.ActorId.html" title="struct automerge::ActorId">ActorId</a>',
+          1,
+          ['automerge::types::ActorId'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/struct.AutoCommit.html" title="struct automerge::AutoCommit">AutoCommit</a>',
+          1,
+          ['automerge::autocommit::AutoCommit'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/struct.Automerge.html" title="struct automerge::Automerge">Automerge</a>',
+          1,
+          ['automerge::automerge::Automerge'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/struct.Change.html" title="struct automerge::Change">Change</a>',
+          1,
+          ['automerge::change::Change'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/struct.ChangeHash.html" title="struct automerge::ChangeHash">ChangeHash</a>',
+          1,
+          ['automerge::types::ChangeHash'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/struct.Cursor.html" title="struct automerge::Cursor">Cursor</a>',
+          1,
+          ['automerge::cursor::Cursor'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/struct.ExpandedChange.html" title="struct automerge::ExpandedChange">Change</a>',
+          1,
+          ['automerge::legacy::Change'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/struct.Parent.html" title="struct automerge::Parent">Parent</a>',
+          1,
+          ['automerge::parents::Parent'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/struct.SaveOptions.html" title="struct automerge::SaveOptions">SaveOptions</a>',
+          1,
+          ['automerge::automerge::SaveOptions'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/sync/struct.BloomFilter.html" title="struct automerge::sync::BloomFilter">BloomFilter</a>',
+          1,
+          ['automerge::sync::bloom::BloomFilter'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/sync/struct.ChunkList.html" title="struct automerge::sync::ChunkList">ChunkList</a>',
+          1,
+          ['automerge::sync::ChunkList'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/sync/struct.DecodeBloomError.html" title="struct automerge::sync::DecodeBloomError">DecodeError</a>',
+          1,
+          ['automerge::sync::bloom::DecodeError'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/sync/struct.Have.html" title="struct automerge::sync::Have">Have</a>',
+          1,
+          ['automerge::sync::state::Have'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/sync/struct.Message.html" title="struct automerge::sync::Message">Message</a>',
+          1,
+          ['automerge::sync::Message'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/sync/struct.State.html" title="struct automerge::sync::State">State</a>',
+          1,
+          ['automerge::sync::state::State'],
+        ],
+        [
+          'impl <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/transaction/struct.CommitOptions.html" title="struct automerge::transaction::CommitOptions">CommitOptions</a>',
+          1,
+          ['automerge::transaction::commit::CommitOptions'],
+        ],
+        [
+          'impl&lt;\'a&gt; <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="enum" href="automerge/enum.Value.html" title="enum automerge::Value">Value</a>&lt;\'a&gt;',
+          1,
+          ['automerge::value::Value'],
+        ],
+        [
+          'impl&lt;\'a&gt; <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="enum" href="automerge/transaction/enum.BlockOrText.html" title="enum automerge::transaction::BlockOrText">BlockOrText</a>&lt;\'a&gt;',
+          1,
+          ['automerge::transaction::transactable::BlockOrText'],
+        ],
+        [
+          'impl&lt;\'a&gt; <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/iter/struct.Keys.html" title="struct automerge::iter::Keys">Keys</a>&lt;\'a&gt;',
+          1,
+          ['automerge::iter::keys::Keys'],
+        ],
+        [
+          'impl&lt;\'a&gt; <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/iter/struct.ListRangeItem.html" title="struct automerge::iter::ListRangeItem">ListRangeItem</a>&lt;\'a&gt;',
+          1,
+          ['automerge::iter::list_range::ListRangeItem'],
+        ],
+        [
+          'impl&lt;\'a&gt; <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/iter/struct.MapRangeItem.html" title="struct automerge::iter::MapRangeItem">MapRangeItem</a>&lt;\'a&gt;',
+          1,
+          ['automerge::iter::map_range::MapRangeItem'],
+        ],
+        [
+          'impl&lt;\'a&gt; <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/iter/struct.Spans.html" title="struct automerge::iter::Spans">Spans</a>&lt;\'a&gt;',
+          1,
+          ['automerge::iter::spans::Spans'],
+        ],
+        [
+          'impl&lt;\'a&gt; <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/iter/struct.Values.html" title="struct automerge::iter::Values">Values</a>&lt;\'a&gt;',
+          1,
+          ['automerge::iter::values::Values'],
+        ],
+        [
+          'impl&lt;\'a&gt; <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/marks/struct.Mark.html" title="struct automerge::marks::Mark">Mark</a>&lt;\'a&gt;',
+          1,
+          ['automerge::marks::Mark'],
+        ],
+        [
+          'impl&lt;\'a&gt; <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/struct.LoadOptions.html" title="struct automerge::LoadOptions">LoadOptions</a>&lt;\'a&gt;',
+          1,
+          ['automerge::automerge::LoadOptions'],
+        ],
+        [
+          'impl&lt;\'a&gt; <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/struct.Parents.html" title="struct automerge::Parents">Parents</a>&lt;\'a&gt;',
+          1,
+          ['automerge::parents::Parents'],
+        ],
+        [
+          'impl&lt;\'a&gt; <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/transaction/struct.Transaction.html" title="struct automerge::transaction::Transaction">Transaction</a>&lt;\'a&gt;',
+          1,
+          ['automerge::transaction::manual_transaction::Transaction'],
+        ],
+        [
+          'impl&lt;\'a, R&gt; <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/iter/struct.ListRange.html" title="struct automerge::iter::ListRange">ListRange</a>&lt;\'a, R&gt;<div class="where">where\n    R: <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a>,</div>',
+          1,
+          ['automerge::iter::list_range::ListRange'],
+        ],
+        [
+          'impl&lt;\'a, R&gt; <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/iter/struct.MapRange.html" title="struct automerge::iter::MapRange">MapRange</a>&lt;\'a, R&gt;<div class="where">where\n    R: <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a>,</div>',
+          1,
+          ['automerge::iter::map_range::MapRange'],
+        ],
+        [
+          'impl&lt;\'a, R&gt; <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/struct.AutoSerde.html" title="struct automerge::AutoSerde">AutoSerde</a>&lt;\'a, R&gt;',
+          1,
+          ['automerge::autoserde::AutoSerde'],
+        ],
+        [
+          'impl&lt;E&gt; <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/transaction/struct.Failure.html" title="struct automerge::transaction::Failure">Failure</a>&lt;E&gt;<div class="where">where\n    E: <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a>,</div>',
+          1,
+          ['automerge::transaction::result::Failure'],
+        ],
+        [
+          'impl&lt;O&gt; <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="automerge/transaction/struct.Success.html" title="struct automerge::transaction::Success">Success</a>&lt;O&gt;<div class="where">where\n    O: <a class="trait" href="https://doc.rust-lang.org/1.91.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a>,</div>',
+          1,
+          ['automerge::transaction::result::Success'],
+        ],
+      ],
+    ],
+  ]);
+  if (window.register_implementors) {
+    window.register_implementors(implementors);
+  } else {
+    window.pending_implementors = implementors;
+  }
+})();
+//{"start":57,"fragment_lengths":[23044]}

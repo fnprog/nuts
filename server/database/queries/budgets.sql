@@ -26,4 +26,10 @@ SET
     updated_at = $7
 WHERE id = $8;
 
+-- name: GetBudgetsSince :many
+SELECT *
+FROM budgets
+WHERE
+    user_id = sqlc.arg('user_id')
+    AND updated_at > sqlc.arg('since');
 

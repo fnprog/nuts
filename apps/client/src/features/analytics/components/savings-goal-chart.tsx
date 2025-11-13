@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react"
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Cell } from "recharts"
+import { useEffect, useState } from "react";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Cell } from "recharts";
 
 // Mock data for the chart
 const data = [
@@ -7,17 +7,17 @@ const data = [
   { name: "Vacation", target: 5000, current: 3200, color: "#3b82f6" },
   { name: "New Car", target: 25000, current: 6800, color: "#f59e0b" },
   { name: "Home Down Payment", target: 60000, current: 12800, color: "#8b5cf6" },
-]
+];
 
 export default function SavingsGoalChart() {
-  const [mounted, setMounted] = useState(false)
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   if (!mounted) {
-    return <div className="h-[300px] flex items-center justify-center">Loading chart...</div>
+    return <div className="flex h-[300px] items-center justify-center">Loading chart...</div>;
   }
 
   return (
@@ -42,6 +42,5 @@ export default function SavingsGoalChart() {
         </Bar>
       </BarChart>
     </ResponsiveContainer>
-  )
+  );
 }
-

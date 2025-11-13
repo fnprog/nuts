@@ -1,208 +1,220 @@
-import { z } from "zod";
+import { type } from "@nuts/validation";
 import { categorySchema } from "@/features/categories/services/category.types";
 import { accountSchema } from "@/features/accounts/services/account.types";
 
-// Recurring transaction schema
-const recurringConfigSchema = z.object({
-  frequency: z.enum(["daily", "weekly", "biweekly", "monthly", "yearly", "custom"]),
-  frequency_interval: z.number().min(1).max(999),
-  frequency_data: z.object({
-    day_of_week: z.number().min(0).max(6).optional(),
-    day_of_month: z.number().min(1).max(31).optional(),
-    week_of_month: z.number().min(-1).max(5).optional(),
-    month_of_year: z.number().min(1).max(12).optional(),
-    week_days: z.array(z.number().min(0).max(6)).optional(),
-    specific_dates: z.array(z.number().min(1).max(31)).optional(),
-    pattern: z.string().optional(),
-  }).optional(),
-  start_date: z.coerce.date(),
-  end_date: z.coerce.date().optional(),
-  auto_post: z.boolean(),
-  max_occurrences: z.number().min(1).optional(),
-  template_name: z.string().optional(),
-  tags: z.array(z.string()).optional(),
+const recurringFrequency = type("'daily' | 'weekly' | 'biweekly' | 'monthly' | 'yearly' | 'custom'");
+
+const recurringFrequencyData = type({
+  "day_of_week?": "number | string.numeric.parse", // min 0 max 6 
+  "day_of_month?": "number | string.numeric.parse", // min 1 max 31 
+  "week_of_month?": "number | string.numeric.parse", // min -1 max 5 
+  "month_of_year?": "number | string.numeric.parse", // min 1 max 12 
+  "week_days?": "number[]", // for the num min0 max 6 
+  "specific_dates?": "number[]", // for the num min1 max 31
+  "pattern?": "string",
+});
+
+const recurringConfigSchema = type({
+  frequency: recurringFrequency,
+  frequency_interval: "number | string.numeric.parse", // Add min 1 max 999
+  "frequency_data?": recurringFrequencyData,
+  start_date: "Date | string.date.parse",
+  "end_date?": "Date | string.date.parse",
+  auto_post: "boolean",
+  "max_occurrences?": "number | string.numeric.parse", // min(1)
+  "template_name?": "string",
+  "tags?": "string[]"
 });
 
 
-const recordDetailsSchema = z.object({
-  payment_medium: z.string().optional(),
-  location: z.string().optional(),
-  note: z.string().optional(),
-  payment_status: z.string().optional(),
+const recordDetailsSchema = type({
+  "payment_medium?": "string",
+  "location?": "string",
+  "note?": "string",
+  "payment_status?": "string",
 });
 
-const baseRecordSchema = z.object({
-  id: z.string(),
-  amount: z.coerce.number(),
-  transaction_datetime: z.coerce.date(),
-  description: z.string().min(1, "Description is required"),
-  category_id: z.string().min(1, "Category is required").optional(),
-  account_id: z.string().min(1, "Account is required"),
-  details: recordDetailsSchema.optional(),
-  updated_at: z.coerce.date(),
-  is_external: z.boolean(),
-  transaction_currency: z.string(),
-  original_amount: z.number(),
-  // Optional recurring fields
-  is_recurring: z.boolean().optional(),
-  recurring_config: recurringConfigSchema.optional(),
-  // Additional recurring status fields
-  recurring_transaction_id: z.string().optional(),
-  recurring_instance_date: z.coerce.date().optional(),
-  auto_post: z.boolean().optional(),
-  template_name: z.string().optional(),
+const recordStandardSchema = type({
+  id: "string",
+  amount: "number | string.numeric.parse",
+  transaction_datetime: "Date | string.date.parse",
+  description: "string>=1",
+  "category_id?": "string>=1",
+  account_id: "string>=1",
+  "details?": recordDetailsSchema,
+  updated_at: "Date | string.date.parse",
+  is_external: "boolean",
+  transaction_currency: "string",
+  original_amount: "number",
+  "is_recurring?": "boolean",
+  "recurring_config?": recurringConfigSchema,
+  "auto_post?": "boolean",
+  "template_name?": "boolean",
+  type: "'expense' | 'income'",
 });
 
-const baseExtendedRecordSchema = z.object({
-  id: z.string(),
-  amount: z.coerce.number(),
-  transaction_datetime: z.coerce.date(),
-  description: z.string().min(1, "Description is required"),
-  category: categorySchema.optional(),
+const recordTransferSchema = type({
+  id: "string",
+  amount: "number | string.numeric.parse",
+  transaction_datetime: "Date | string.date.parse",
+  description: "string>=1",
+  "category_id?": "string>=1",
+  account_id: "string>=1",
+  "details?": recordDetailsSchema,
+  updated_at: "Date | string.date.parse",
+  is_external: "boolean",
+  transaction_currency: "string",
+  original_amount: "number",
+  type: "'transfer'",
+  destination_account_id: "string>=1",
+});
+
+const extendedRecordStandardSchema = type({
+  id: "string",
+  amount: "number | string.numeric.parse",
+  transaction_datetime: "Date | string.date.parse",
+  description: "string>=1",
+  "category?": categorySchema,
   account: accountSchema,
-  details: recordDetailsSchema.optional(),
-  updated_at: z.coerce.date(),
-  is_external: z.boolean(),
-  transaction_currency: z.string(),
-  original_amount: z.number(),
-  // Optional recurring fields
-  is_recurring: z.boolean().optional().nullable(),
-  recurring_config: recurringConfigSchema.optional().nullable(),
-  // Additional recurring status fields
-  recurring_transaction_id: z.string().optional().nullable(),
-  recurring_instance_date: z.coerce.date().optional().nullable(),
-  auto_post: z.boolean().optional().nullable(),
-  template_name: z.string().optional().nullable(),
+
+  "is_recurring?": "boolean", // also nullable
+  "recurring_config?": recurringConfigSchema, //also nullable
+  "auto_post?": "boolean", //also nullable
+  "template_name?": "boolean", // also nullable
+
+  "details?": recordDetailsSchema,
+  updated_at: "Date | string.date.parse",
+  is_external: "boolean",
+  transaction_currency: "string",
+  original_amount: "number",
+  type: "'expense' | 'income'",
 });
 
-const recordStandardSchema = baseRecordSchema.extend({
-  type: z.enum(["expense", "income"]),
-});
-
-const recordTransferSchema = baseRecordSchema.extend({
-  type: z.literal("transfer"),
-  destination_account_id: z.string().min(1, "Destination account is required"),
-});
-
-const extendedRecordStandardSchema = baseExtendedRecordSchema.extend({
-  type: z.enum(["expense", "income"]),
-});
-
-const extendedRecordTransferSchema = baseExtendedRecordSchema.extend({
-  type: z.literal("transfer"),
+const extendedRecordTransferSchema = type({
+  id: "string",
+  amount: "number | string.numeric.parse",
+  transaction_datetime: "Date | string.date.parse",
+  description: "string>=1",
+  "category?": categorySchema,
+  account: accountSchema,
+  "details?": recordDetailsSchema,
+  updated_at: "Date | string.date.parse",
+  is_external: "boolean",
+  transaction_currency: "string",
+  original_amount: "number",
+  type: "'transfer'",
   destination_account: accountSchema,
 });
 
+export const recordSchema = recordStandardSchema.or(recordTransferSchema);
+export const extendedRecordSchema = extendedRecordStandardSchema.or(extendedRecordTransferSchema);
 
-export const recordSchema = z.discriminatedUnion("type", [recordTransferSchema, recordStandardSchema]);
-export const extendedRecordSchema = z.discriminatedUnion("type", [extendedRecordTransferSchema, extendedRecordStandardSchema]);
+export const recordsSchema = type([recordSchema, "[]"]);
+export const extendedRecordsSchema = type([extendedRecordSchema, "[]"]);
 
-export const recordsSchema = recordSchema.array();
-export const extendedRecordsSchema = extendedRecordSchema.array();
-
-export const tableRecordSchema = z
-  .discriminatedUnion("type", [
-    extendedRecordTransferSchema
-      .omit({
-        details: true,
-        updated_at: true,
-        transaction_currency: true,
-        original_amount: true,
-      }),
-
-    extendedRecordStandardSchema.omit({
-      details: true,
-      updated_at: true,
-      transaction_currency: true,
-      original_amount: true,
-    })
-  ])
-  .transform((record) => ({
-    ...record,
-    amount: record.type === "expense" && record.amount > 0 ? -record.amount : record.amount,
-  }));
-
-export const tableRecordsSchema = z.object({
-  id: z.string(),
-  date: z.coerce.date(),
-  total: z.number(),
-  transactions: tableRecordSchema.array(),
+const tableRecordStandardSchema = type({
+  id: "string",
+  amount: "number | string.numeric.parse",
+  transaction_datetime: "Date | string.date.parse",
+  description: "string>=1",
+  "category?": categorySchema,
+  account: accountSchema,
+  is_external: "boolean",
+  type: "'expense' | 'income'",
 });
 
-export const tableRecordsArraySchema = tableRecordsSchema.array();
-
-export const paginationSchema = z.object({
-  total_items: z.number(),
-  total_pages: z.number(),
-  page: z.number(),
-  limit: z.number(),
+const tableRecordTransferSchema = type({
+  id: "string",
+  amount: "number | string.numeric.parse",
+  transaction_datetime: "Date | string.date.parse",
+  description: "string>=1",
+  "category?": categorySchema,
+  account: accountSchema,
+  is_external: "boolean",
+  type: "'transfer'",
+  destination_account: accountSchema,
 });
 
+export const tableRecordSchema = tableRecordStandardSchema.or(tableRecordTransferSchema).pipe((record) => ({
+  ...record,
+  amount: record.type === "expense" && record.amount > 0 ? -record.amount : record.amount,
+}));
 
-export const transactionsResponseSchema = z.object({
+export const tableRecordsSchema = type({
+  id: "string",
+  date: "Date | string.date.parse",
+  total: "number",
+  transactions: type([tableRecordSchema, "[]"]),
+});
+
+export const tableRecordsArraySchema = type([tableRecordsSchema, "[]"]);
+
+export const paginationSchema = type({
+  total_items: "number",
+  total_pages: "number",
+  page: "number",
+  limit: "number",
+});
+
+export const transactionsResponseSchema = type({
   data: tableRecordsArraySchema,
   pagination: paginationSchema,
 });
 
+const recordCreateStandardSchema = type({
+  amount: "number | string.numeric.parse",
+  transaction_datetime: "Date | string.date.parse",
+  description: "string>=1",
+  "category_id?": "string>=1",
+  account_id: "string>=1",
+  "details?": recordDetailsSchema,
+  type: "'expense' | 'income'",
+});
 
-export const recordCreateSchema = z
-  .discriminatedUnion("type", [
-    recordTransferSchema
-      .omit({
-        id: true,
-        is_external: true,
-        updated_at: true,
-        transaction_currency: true,
-        original_amount: true,
-      }),
+const recordCreateTransferSchema = type({
+  amount: "number | string.numeric.parse",
+  transaction_datetime: "Date | string.date.parse",
+  description: "string>=1",
+  "category_id?": "string>=1",
+  account_id: "string>=1",
+  "details?": recordDetailsSchema,
+  type: "'transfer'",
+  destination_account_id: "string>=1",
+});
 
-    recordStandardSchema.omit({
-      id: true,
-      is_external: true,
-      updated_at: true,
-      transaction_currency: true,
-      original_amount: true,
-    })
-  ])
-  .transform((record) => ({
-    ...record,
-    amount: record.type === "expense" && record.amount > 0 ? -record.amount : record.amount,
-  }));
+export const recordCreateSchema = recordCreateStandardSchema.or(recordCreateTransferSchema).pipe((record) => ({
+  ...record,
+  amount: record.type === "expense" && record.amount > 0 ? -record.amount : record.amount,
+}));
+
+export const recordUpdateSchema = recordCreateStandardSchema.or(recordCreateTransferSchema).pipe((record) => ({
+  ...record,
+  amount: record.type === "expense" && record.amount > 0 ? -record.amount : record.amount,
+}));
+
+export type RecordSchema = typeof recordSchema.infer;
+export type ExtendedRecordSchema = typeof extendedRecordSchema.infer;
+export type TableRecordSchema = typeof tableRecordSchema.infer;
+export type TableRecordsSchema = typeof tableRecordsSchema.infer;
+export type TableRecordsArraySchema = typeof tableRecordsArraySchema.infer;
+export type Pagination = typeof paginationSchema.infer;
+export type TransactionsResponse = typeof transactionsResponseSchema.infer;
+export type RecurringConfigSchema = typeof recurringConfigSchema.infer;
+
+// recordStandardSchema.omit({
+//   id: true,
+//   is_external: true,
+//   updated_at: true,
+//   transaction_currency: true,
+//   original_amount: true,
+// })
+//   ])
+//   .transform((record) => ({
+//   ...record,
+//   amount: record.type === "expense" && record.amount > 0 ? -record.amount : record.amount,
+// }));
 
 
-export const recordUpdateSchema = z
-  .discriminatedUnion("type", [
-    recordTransferSchema
-      .omit({
-        id: true,
-        is_external: true,
-        updated_at: true,
-        transaction_currency: true,
-        original_amount: true,
-      }),
-
-    recordStandardSchema.omit({
-      id: true,
-      is_external: true,
-      updated_at: true,
-      transaction_currency: true,
-      original_amount: true,
-    })
-  ])
-  .transform((record) => ({
-    ...record,
-    amount: record.type === "expense" && record.amount > 0 ? -record.amount : record.amount,
-  }));
-
-export type RecordSchema = z.infer<typeof recordSchema>;
-export type ExtendedRecordSchema = z.infer<typeof extendedRecordSchema>;
-export type TableRecordSchema = z.infer<typeof tableRecordSchema>;
-export type TableRecordsSchema = z.infer<typeof tableRecordsSchema>;
-export type TableRecordsArraySchema = z.infer<typeof tableRecordsArraySchema>;
-export type Pagination = z.infer<typeof paginationSchema>;
-export type TransactionsResponse = z.infer<typeof transactionsResponseSchema>;
-
-export type RecordCreateSchema = z.infer<typeof recordCreateSchema>;
-export type RecordUpdateSchema = z.infer<typeof recordUpdateSchema>;
-export type RecurringConfigSchema = z.infer<typeof recurringConfigSchema>;
+export type RecordCreateSchema = typeof recordCreateSchema.infer;
+export type RecordUpdateSchema = typeof recordUpdateSchema.infer;
 export type RecordsSubmit = (values: RecordCreateSchema) => void;
