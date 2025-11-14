@@ -7,7 +7,7 @@
 
 import { connectivityService } from "@/core/sync/connectivity";
 import { authApi } from "@/features/auth/api";
-import { userService } from "@/features/preferences/services/user.service";
+import { userService } from "@/features/users/services/user.service";
 import { useAuthStore } from "@/features/auth/stores/auth.store";
 import type { AuthNullable, RefreshAuthRes } from "@/features/auth/services/auth.types";
 import { Result, ok, err, ServiceError } from "@/lib/result";

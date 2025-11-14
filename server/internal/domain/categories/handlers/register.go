@@ -17,11 +17,6 @@ func RegisterHTTPHandlers(service service.Category, tkn *jwt.Service, validator 
 	router := router.NewRouter()
 	router.Use(middleware.Verify)
 
-	router.Get("/", h.List)
-	router.Post("/", h.Create)
-	// router.Get("/{id}", h.Get)
-	router.Put("/{id}", h.Update)
-	router.Delete("/{id}", h.Delete)
 	router.Post("/predict", h.Predict)
 
 	return router

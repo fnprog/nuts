@@ -5,9 +5,9 @@ import { TrendingUp, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/core/components/ui/button";
-import { H2, P, H3, Small } from "@/core/components/ui/typography";
+import { H2, P, H3, Small, Muted } from "@/core/components/ui/typography";
 import { useOnboardingStore } from "@/features/onboarding/stores/onboarding.store";
-import { userService } from "@/features/preferences/services/user.service";
+import { userService } from "@/features/users/services/user.service";
 
 export const Route = createFileRoute("/onboarding/complexity")({
   component: RouteComponent,
@@ -77,7 +77,7 @@ function RouteComponent() {
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
           <Button
             onClick={() => handleAnswer(true)}
-            className="from-primary-nuts-600 to-primary-nuts-700 hover:from-primary-nuts-700 hover:to-primary-nuts-800 flex h-16 w-full flex-col items-start justify-center bg-gradient-to-r px-6 text-left text-white shadow-lg"
+            className="from-primary-nuts-600 to-primary-nuts-700 hover:from-primary-nuts-700 hover:to-primary-nuts-800 flex h-16 w-full flex-col items-start justify-center bg-linear-to-r px-6 text-left text-white shadow-lg"
           >
             <span className="font-medium">Yes, they've gotten more complex</span>
             <Small className="text-primary-nuts-100 mt-1">We'll provide detailed insights and organization tools</Small>
@@ -91,9 +91,9 @@ function RouteComponent() {
             className="flex h-16 w-full flex-col items-start justify-center border-2 border-gray-200 bg-white px-6 text-left hover:border-gray-300 hover:bg-gray-50"
           >
             <span className="font-medium text-gray-900">No, they're fairly simple</span>
-            <Small variant="muted" className="mt-1">
+            <Muted className="mt-1">
               We'll focus on clean, simple overviews
-            </Small>
+            </Muted>
           </Button>
         </motion.div>
       </div>
@@ -105,7 +105,7 @@ function RouteComponent() {
         className="bg-primary-nuts-50 border-primary-nuts-200 rounded-lg border p-4"
       >
         <div className="flex items-center space-x-3">
-          <CheckCircle className="text-primary-nuts-600 h-6 w-6 flex-shrink-0" />
+          <CheckCircle className="text-primary-nuts-600 h-6 w-6 shrink-0" />
           <div>
             <H3 className="text-primary-nuts-900">Almost done!</H3>
             <Small className="text-primary-nuts-700">After this question, you'll be ready to start managing your finances with Nuts.</Small>
@@ -122,9 +122,9 @@ function RouteComponent() {
           <div className="bg-primary-nuts-600 h-2 w-2 rounded-full"></div>
           <div className="bg-primary-nuts-600 h-2 w-2 rounded-full"></div>
         </div>
-        <Small variant="muted" className="mt-2">
+        <Muted className="mt-2">
           Step 6 of 6
-        </Small>
+        </Muted>
       </div>
     </motion.div>
   );

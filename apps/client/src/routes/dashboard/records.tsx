@@ -1,5 +1,5 @@
 import { createFileRoute, useRouteContext } from "@tanstack/react-router";
-import { type } from "@nuts/types";
+import { type } from "@nuts/validation";
 import { RecordsTable } from "@/features/transactions/components/records-table";
 import { CalendarView } from "@/features/transactions/components/calendar-view";
 import { Spinner } from "@/core/components/ui/spinner";

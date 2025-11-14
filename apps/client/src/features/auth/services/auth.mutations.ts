@@ -1,7 +1,7 @@
 import { LoginFormValues } from "./auth.types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { authApi } from "../api";
-import { userService } from "@/features/preferences/services/user.service";
+import { userService } from "@/features/users/services/user.service";
 import { useAuthStore } from "../stores/auth.store";
 import { logger } from "@/lib/logger";
 

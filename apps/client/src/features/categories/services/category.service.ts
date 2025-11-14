@@ -2,8 +2,8 @@ import { crdtService } from "@/core/sync/crdt";
 import { kyselyQueryService } from "@/core/sync/query";
 import { CRDTCategory } from "@nuts/types";
 import { Category, CategoryCreate } from "./category.types";
-import { generateId } from "@/lib/generate-id";
 import { Result, ok, err, ServiceError } from "@/lib/result";
+import { uuidV7 } from "@nuts/utils";
 
 export function createCategoryService() {
   let isInitialized = false;
@@ -44,7 +44,7 @@ export function createCategoryService() {
     const initResult = await ensureInitialized();
     if (initResult.isErr()) return err(initResult.error);
 
-    const id = generateId();
+    const id = uuidV7();
     const crdtCategory = convertToCRDTFormat({
       parent_id: null,
       is_default: false,

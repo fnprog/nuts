@@ -1,4 +1,4 @@
-import { UserInfo } from "@/features/preferences/services/user.service";
+import { UserInfo } from "@/features/users/services/user.service";
 import { type } from "@nuts/validation";
 
 const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?])[A-Za-z\d!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]{8,}$/;

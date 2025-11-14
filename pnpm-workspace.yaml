@@ -1,7 +1,6 @@
 packages:
   - "packages/*"
-  - "client"
-  - "mobile"
+  - "apps/*"
 overrides:
   lightningcss: "1.30.2"
 

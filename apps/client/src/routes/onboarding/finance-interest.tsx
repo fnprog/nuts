@@ -3,7 +3,7 @@ import { motion } from "motion/react";
 import { TrendingUp, SkipForward } from "lucide-react";
 
 import { Button } from "@/core/components/ui/button";
-import { H2, P, Small } from "@/core/components/ui/typography";
+import { Muted } from "@/core/components/ui/typography";
 import { useOnboardingStore } from "@/features/onboarding/stores/onboarding.store";
 
 export const Route = createFileRoute("/onboarding/finance-interest")({
@@ -54,7 +54,7 @@ function RouteComponent() {
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
           <Button
             onClick={handleYes}
-            className="from-primary-nuts-600 to-primary-nuts-700 hover:from-primary-nuts-700 hover:to-primary-nuts-800 h-12 w-full bg-gradient-to-r text-white shadow-lg"
+            className="from-primary-nuts-600 to-primary-nuts-700 hover:from-primary-nuts-700 hover:to-primary-nuts-800 h-12 w-full bg-linear-to-r text-white shadow-lg"
           >
             Yes, I want to learn more
           </Button>
@@ -83,9 +83,9 @@ function RouteComponent() {
           <div className="h-2 w-2 rounded-full bg-gray-300"></div>
           <div className="h-2 w-2 rounded-full bg-gray-300"></div>
         </div>
-        <Small variant="muted" className="mt-2">
+        <Muted className="mt-2">
           Step 2 of 6
-        </Small>
+        </Muted>
       </div>
     </motion.div>
   );

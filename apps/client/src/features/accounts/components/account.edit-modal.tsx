@@ -1,5 +1,5 @@
 import { useCallback, useId, useEffect, useRef, useState } from "react";
-import { arktypeResolver } from "@/lib/arktype-resolver";
+import { arktypeResolver } from "@hookform/resolvers/arktype";
 import { useForm } from "react-hook-form";
 import { accountTypeOptions } from "./account.constants";
 
@@ -153,7 +153,7 @@ export default function EditAccountModal({
                         <>
                           <span ref={spanRef} className="sr-only" aria-hidden="true" />
                           <div className="relative">
-                            <span 
+                            <span
                               className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 flex -translate-y-1/2 items-center justify-center text-sm peer-disabled:opacity-50"
                             >
                               {getCurrencySymbol(account.currency)}

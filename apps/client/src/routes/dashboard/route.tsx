@@ -62,8 +62,9 @@ import { Theme } from "@/features/preferences/contexts/theme.context";
 import { Spinner } from "@/core/components/ui/spinner";
 import { useLogout } from "@/features/auth/services/auth.mutations";
 import { getAllAccounts } from "@/features/accounts/services/account.queries";
-import { ErrorBoundary, ComponentErrorFallback } from "@/core/components/error-boundary";
+import { ErrorBoundary, ComponentErrorFallback } from "@/core/components/ui/error-boundary";
 import { useAuthStore } from "@/features/auth/stores/auth.store";
+import { userService } from "@/features/users/services/user.service";
 
 export type ValidRoutes = keyof FileRoutesByTo;
 

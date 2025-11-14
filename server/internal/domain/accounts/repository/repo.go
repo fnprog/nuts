@@ -2,10 +2,8 @@ package repository
 
 import (
 	"context"
-	"encoding/json"
 	"time"
 
-	"github.com/Fantasy-Programming/nuts/server/internal/domain/accounts"
 	"github.com/Fantasy-Programming/nuts/server/internal/repository"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -24,11 +22,6 @@ type Account interface {
 	UpdateAccount(ctx context.Context, account repository.UpdateAccountParams) (repository.Account, error)
 	DeleteAccount(ctx context.Context, id uuid.UUID) error
 	UpdateAccountBalance(ctx context.Context, params repository.UpdateAccountBalanceParams) error
-
-	// GetAccountsBTimeline
-	GetAccountsBTimeline(ctx context.Context, userID uuid.UUID) ([]repository.GetAccountsBalanceTimelineRow, error)
-	GetAccountBTimeline(ctx context.Context, userID uuid.UUID, accountID uuid.UUID) ([]repository.GetAccountBalanceTimelineRow, error)
-	GetAccountsTrends(ctx context.Context, userID *uuid.UUID, startTime time.Time, endTime time.Time) ([]accounts.AccountWithTrend, error)
 
 	// Connection management
 	CreateConnection(ctx context.Context, params repository.CreateConnectionParams) (repository.UserFinancialConnection, error)
@@ -97,55 +90,6 @@ func (r *repo) DeleteAccount(ctx context.Context, id uuid.UUID) error {
 
 func (r *repo) UpdateAccountBalance(ctx context.Context, params repository.UpdateAccountBalanceParams) error {
 	return r.queries.UpdateAccountBalance(ctx, params)
-}
-
-func (r *repo) GetAccountsBTimeline(ctx context.Context, userID uuid.UUID) ([]repository.GetAccountsBalanceTimelineRow, error) {
-	return r.queries.GetAccountsBalanceTimeline(ctx, userID)
-}
-
-func (r *repo) GetAccountBTimeline(ctx context.Context, userID uuid.UUID, accountID uuid.UUID) ([]repository.GetAccountBalanceTimelineRow, error) {
-	return r.queries.GetAccountBalanceTimeline(ctx, repository.GetAccountBalanceTimelineParams{
-		AccountID: accountID,
-		UserID:    userID,
-	})
-}
-
-func (r *repo) GetAccountsTrends(ctx context.Context, userID *uuid.UUID, startTime time.Time, endTime time.Time) ([]accounts.AccountWithTrend, error) {
-	rows, err := r.db.Query(ctx, getAccountsWithTrendSQL, startTime, endTime, userID)
-	if err != nil {
-		return nil, err
-	}
-
-	defer rows.Close()
-
-	results := []accounts.AccountWithTrend{}
-
-	for rows.Next() {
-		var rawTimeseries json.RawMessage
-		var rawMeta []byte // raw value from DB
-		var a accounts.AccountWithTrend
-
-		err := rows.Scan(
-			&a.ID, &a.Name, &a.Type, &a.Balance, &a.Currency,
-			&rawMeta, &a.UpdatedAt, &a.IsExternal, &a.Trend, &rawTimeseries,
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		if err := json.Unmarshal(rawTimeseries, &a.BalanceTimeseries); err != nil {
-			return nil, err
-		}
-
-		if len(rawMeta) > 0 {
-			if err := json.Unmarshal(rawMeta, &a.Meta); err != nil {
-				return nil, err
-			}
-		}
-
-		results = append(results, a)
-	}
-	return results, nil
 }
 
 func (r *repo) CreateConnection(ctx context.Context, params repository.CreateConnectionParams) (repository.UserFinancialConnection, error) {

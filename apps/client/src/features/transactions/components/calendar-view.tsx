@@ -6,7 +6,7 @@ import { Badge } from "@/core/components/ui/badge";
 import { Button } from "@/core/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { format, startOfMonth, endOfMonth, addMonths, subMonths } from "date-fns";
-import { getTransactions } from "@/features/transactions/services/transaction";
+import transactionService from "@/features/transactions/services/transaction.service";
 import { TableRecordSchema } from "@/features/transactions/services/transaction.types";
 
 interface CalendarViewProps {
@@ -23,15 +23,15 @@ export function CalendarView({ initialPage = 1 }: CalendarViewProps) {
 
   // Fetch transactions for the current month
   const { data: transactionsData, isLoading } = useQuery({
-    queryKey: ["transactions", { 
-      page: initialPage, 
+    queryKey: ["transactions", {
+      page: initialPage,
       q: "",
       group_by: "date",
       start_date: monthStart.toISOString().split('T')[0],
       end_date: monthEnd.toISOString().split('T')[0]
     }],
-    queryFn: () => getTransactions({ 
-      page: initialPage, 
+    queryFn: () => transactionService.getTransactions({
+      page: initialPage,
       q: "",
       group_by: "date",
       start_date: monthStart.toISOString().split('T')[0],
@@ -42,14 +42,14 @@ export function CalendarView({ initialPage = 1 }: CalendarViewProps) {
   // Create a map of dates to transactions for easy lookup
   const transactionsByDate = useMemo(() => {
     if (!transactionsData?.data) return new Map();
-    
+
     const map = new Map<string, TableRecordSchema[]>();
-    
+
     transactionsData.data.forEach((dayGroup) => {
       const dateKey = format(dayGroup.date, 'yyyy-MM-dd');
       map.set(dateKey, dayGroup.transactions);
     });
-    
+
     return map;
   }, [transactionsData]);
 
@@ -154,15 +154,14 @@ export function CalendarView({ initialPage = 1 }: CalendarViewProps) {
                     <div className="flex-1">
                       <div className="flex items-center space-x-2">
                         <p className="font-medium text-sm">{transaction.description}</p>
-                        <Badge 
-                          variant="outline" 
-                          className={`text-xs ${
-                            getTransactionTypeColor(transaction.type, transaction.amount) === 'red' 
-                              ? 'border-red-200 text-red-700' 
-                              : getTransactionTypeColor(transaction.type, transaction.amount) === 'green'
+                        <Badge
+                          variant="outline"
+                          className={`text-xs ${getTransactionTypeColor(transaction.type, transaction.amount) === 'red'
+                            ? 'border-red-200 text-red-700'
+                            : getTransactionTypeColor(transaction.type, transaction.amount) === 'green'
                               ? 'border-green-200 text-green-700'
                               : 'border-blue-200 text-blue-700'
-                          }`}
+                            }`}
                         >
                           {transaction.type}
                         </Badge>
@@ -177,9 +176,8 @@ export function CalendarView({ initialPage = 1 }: CalendarViewProps) {
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className={`font-semibold ${
-                        transaction.amount >= 0 ? 'text-green-600' : 'text-red-600'
-                      }`}>
+                      <p className={`font-semibold ${transaction.amount >= 0 ? 'text-green-600' : 'text-red-600'
+                        }`}>
                         {transaction.amount >= 0 ? '+' : ''}{formatCurrency(transaction.amount)}
                       </p>
                     </div>

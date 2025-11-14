@@ -1,4 +1,4 @@
-import { userService } from "@/features/preferences/services/user.service";
+import { userService } from "@/features/users/services/user.service";
 import { authApi } from "../api";
 import { useAuthenticatedQuery } from "@/core/hooks/use-auth";
 

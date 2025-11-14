@@ -9,7 +9,7 @@ import { CheckCircle, AlertTriangle, DollarSign } from "lucide-react";
 import { TableRecordSchema } from "../services/transaction.types";
 import { getTransactionStatus } from "../utils/transaction-status";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { bulkUpdateManualTransactions } from "../services/transaction";
+import { bulkUpdateManualTransactions } from "../services/transaction.service";
 import { toast } from "sonner";
 
 interface BulkApprovalDialogProps {

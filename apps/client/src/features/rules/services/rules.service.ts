@@ -3,7 +3,7 @@ import { kyselyQueryService } from "@/core/sync/query";
 import { CRDTRule } from "@nuts/types";
 import { CreateTransactionRule, UpdateTransactionRule, TransactionRule } from "./rule.types";
 import { Result, ok, err, ServiceError } from "@/lib/result";
-import { generateId } from "@/lib/generate-id";
+import { uuidV7 } from "@nuts/utils";
 import { anonymousUserService } from "@/features/auth/services/anonymous-user.service";
 
 export function createRulesService() {
@@ -74,7 +74,7 @@ export function createRulesService() {
 
     try {
       const userId = anonymousUserService.getUserId();
-      const ruleId = generateId();
+      const ruleId = uuidV7();
 
       const crdtRule: Omit<CRDTRule, "created_at" | "updated_at"> = {
         id: ruleId,

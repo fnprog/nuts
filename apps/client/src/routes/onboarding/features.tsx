@@ -4,7 +4,7 @@ import { PieChart, Target, TrendingUp, Shield, Smartphone, ArrowRight, BarChart3
 
 import { Button } from "@/core/components/ui/button";
 import { ScrollArea } from "@/core/components/ui/scroll-area";
-import { H2, P, H3, Small } from "@/core/components/ui/typography";
+import { H2, P, H3, Muted } from "@/core/components/ui/typography";
 import { useOnboardingStore } from "@/features/onboarding/stores/onboarding.store";
 
 const features = [
@@ -91,14 +91,14 @@ function RouteComponent() {
                 transition={{ delay: index * 0.05 + 0.1 }}
                 className="flex items-start space-x-4 rounded-lg border border-gray-100 p-4 transition-colors hover:bg-gray-50"
               >
-                <div className="flex-shrink-0">
+                <div className="shrink-0">
                   <div className="bg-primary-nuts-100 flex h-12 w-12 items-center justify-center rounded-lg">
                     <Icon className="text-primary-nuts-600 h-6 w-6" />
                   </div>
                 </div>
                 <div className="flex-1">
                   <H3 className="mb-1">{feature.title}</H3>
-                  <Small variant="muted">{feature.description}</Small>
+                  <Muted>{feature.description}</Muted>
                 </div>
               </motion.div>
             );
@@ -109,7 +109,7 @@ function RouteComponent() {
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="pt-4">
         <Button
           onClick={handleContinue}
-          className="from-primary-nuts-600 to-primary-nuts-700 hover:from-primary-nuts-700 hover:to-primary-nuts-800 flex w-full items-center justify-center gap-2 bg-gradient-to-r text-white shadow-lg"
+          className="from-primary-nuts-600 to-primary-nuts-700 hover:from-primary-nuts-700 hover:to-primary-nuts-800 flex w-full items-center justify-center gap-2 bg-linear-to-r text-white shadow-lg"
         >
           Continue
           <ArrowRight className="h-4 w-4" />
@@ -125,9 +125,9 @@ function RouteComponent() {
           <div className="h-2 w-2 rounded-full bg-gray-300"></div>
           <div className="h-2 w-2 rounded-full bg-gray-300"></div>
         </div>
-        <Small variant="muted" className="mt-2">
+        <Muted className="mt-2">
           Step 4 of 6
-        </Small>
+        </Muted>
       </div>
     </motion.div>
   );

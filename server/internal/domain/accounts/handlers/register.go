@@ -17,8 +17,8 @@ func RegisterHTTPHandlers(service service.Account, validator *validation.Validat
 	router := router.NewRouter()
 	router.Use(middleware.Verify)
 
+	// Just for testing
 	router.Get("/", h.List)
-	router.Get("/{id}", h.Get)
 	router.Post("/", h.Create)
 	router.Put("/{id}", h.Update)
 	router.Delete("/{id}", h.Delete)
@@ -50,11 +50,6 @@ func RegisterHTTPHandlers(service service.Account, validator *validation.Validat
 	// router.Post("/plaid/create_link_token", handlers.CreateLinkToken)
 	// router.Post("/plaid/exchange_public_token", handlers.ExchangePublicToken)
 	// router.Post("/plaid/webhook", handlers.HandlePlaidWebhook)
-
-	// Complex queries
-	router.Get("/timeline", h.ListBalanceTimelines)
-	router.Get("/trends", h.GetTrends)
-	router.Get("/timeline/{id}", h.GetBalanceTimeline)
 
 	return router
 }

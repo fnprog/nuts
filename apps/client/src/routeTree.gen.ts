@@ -30,7 +30,6 @@ import { Route as DashboardAccountsRouteImport } from './routes/dashboard/accoun
 import { Route as DashboardSplatRouteImport } from './routes/dashboard/$'
 import { Route as DashboardSettingsRouteRouteImport } from './routes/dashboard_/settings/route'
 import { Route as DashboardSettingsIndexRouteImport } from './routes/dashboard_/settings/index'
-import { Route as DashboardSettingsWebhooksRouteImport } from './routes/dashboard_/settings/webhooks'
 import { Route as DashboardSettingsTagsRouteImport } from './routes/dashboard_/settings/tags'
 import { Route as DashboardSettingsSecurityRouteImport } from './routes/dashboard_/settings/security'
 import { Route as DashboardSettingsRulesRouteImport } from './routes/dashboard_/settings/rules'
@@ -151,12 +150,6 @@ const DashboardSettingsIndexRoute = DashboardSettingsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DashboardSettingsRouteRoute,
 } as any)
-const DashboardSettingsWebhooksRoute =
-  DashboardSettingsWebhooksRouteImport.update({
-    id: '/webhooks',
-    path: '/webhooks',
-    getParentRoute: () => DashboardSettingsRouteRoute,
-  } as any)
 const DashboardSettingsTagsRoute = DashboardSettingsTagsRouteImport.update({
   id: '/tags',
   path: '/tags',
@@ -266,7 +259,6 @@ export interface FileRoutesByFullPath {
   '/dashboard/settings/rules': typeof DashboardSettingsRulesRoute
   '/dashboard/settings/security': typeof DashboardSettingsSecurityRoute
   '/dashboard/settings/tags': typeof DashboardSettingsTagsRoute
-  '/dashboard/settings/webhooks': typeof DashboardSettingsWebhooksRoute
   '/dashboard/settings/': typeof DashboardSettingsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -300,7 +292,6 @@ export interface FileRoutesByTo {
   '/dashboard/settings/rules': typeof DashboardSettingsRulesRoute
   '/dashboard/settings/security': typeof DashboardSettingsSecurityRoute
   '/dashboard/settings/tags': typeof DashboardSettingsTagsRoute
-  '/dashboard/settings/webhooks': typeof DashboardSettingsWebhooksRoute
   '/dashboard/settings': typeof DashboardSettingsIndexRoute
 }
 export interface FileRoutesById {
@@ -338,7 +329,6 @@ export interface FileRoutesById {
   '/dashboard_/settings/rules': typeof DashboardSettingsRulesRoute
   '/dashboard_/settings/security': typeof DashboardSettingsSecurityRoute
   '/dashboard_/settings/tags': typeof DashboardSettingsTagsRoute
-  '/dashboard_/settings/webhooks': typeof DashboardSettingsWebhooksRoute
   '/dashboard_/settings/': typeof DashboardSettingsIndexRoute
 }
 export interface FileRouteTypes {
@@ -377,7 +367,6 @@ export interface FileRouteTypes {
     | '/dashboard/settings/rules'
     | '/dashboard/settings/security'
     | '/dashboard/settings/tags'
-    | '/dashboard/settings/webhooks'
     | '/dashboard/settings/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -411,7 +400,6 @@ export interface FileRouteTypes {
     | '/dashboard/settings/rules'
     | '/dashboard/settings/security'
     | '/dashboard/settings/tags'
-    | '/dashboard/settings/webhooks'
     | '/dashboard/settings'
   id:
     | '__root__'
@@ -448,7 +436,6 @@ export interface FileRouteTypes {
     | '/dashboard_/settings/rules'
     | '/dashboard_/settings/security'
     | '/dashboard_/settings/tags'
-    | '/dashboard_/settings/webhooks'
     | '/dashboard_/settings/'
   fileRoutesById: FileRoutesById
 }
@@ -609,13 +596,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/dashboard/settings/'
       preLoaderRoute: typeof DashboardSettingsIndexRouteImport
-      parentRoute: typeof DashboardSettingsRouteRoute
-    }
-    '/dashboard_/settings/webhooks': {
-      id: '/dashboard_/settings/webhooks'
-      path: '/webhooks'
-      fullPath: '/dashboard/settings/webhooks'
-      preLoaderRoute: typeof DashboardSettingsWebhooksRouteImport
       parentRoute: typeof DashboardSettingsRouteRoute
     }
     '/dashboard_/settings/tags': {
@@ -782,7 +762,6 @@ interface DashboardSettingsRouteRouteChildren {
   DashboardSettingsRulesRoute: typeof DashboardSettingsRulesRoute
   DashboardSettingsSecurityRoute: typeof DashboardSettingsSecurityRoute
   DashboardSettingsTagsRoute: typeof DashboardSettingsTagsRoute
-  DashboardSettingsWebhooksRoute: typeof DashboardSettingsWebhooksRoute
   DashboardSettingsIndexRoute: typeof DashboardSettingsIndexRoute
 }
 
@@ -800,7 +779,6 @@ const DashboardSettingsRouteRouteChildren: DashboardSettingsRouteRouteChildren =
     DashboardSettingsRulesRoute: DashboardSettingsRulesRoute,
     DashboardSettingsSecurityRoute: DashboardSettingsSecurityRoute,
     DashboardSettingsTagsRoute: DashboardSettingsTagsRoute,
-    DashboardSettingsWebhooksRoute: DashboardSettingsWebhooksRoute,
     DashboardSettingsIndexRoute: DashboardSettingsIndexRoute,
   }
 

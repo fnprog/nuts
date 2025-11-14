@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
 import { useAuthStore } from "@/features/auth/stores/auth.store";
 import { config } from "./env";
-import { userService } from "@/features/preferences/services/user.service";
+import { userService } from "@/features/users/services/user.service";
 import { connectivityService } from "@/core/sync/connectivity";
 import { authService } from "@/features/auth/services/auth.service";
 

@@ -10,7 +10,6 @@ import (
 	athService "github.com/Fantasy-Programming/nuts/server/internal/domain/auth/service"
 	"github.com/Fantasy-Programming/nuts/server/internal/domain/mail"
 
-	"github.com/Fantasy-Programming/nuts/server/internal/domain/meta"
 	syncHandler "github.com/Fantasy-Programming/nuts/server/internal/domain/sync/handlers"
 	"github.com/Fantasy-Programming/nuts/server/internal/domain/tags"
 	"github.com/Fantasy-Programming/nuts/server/internal/domain/webhooks"
@@ -143,11 +142,6 @@ func (s *Server) initWebHooks() {
 func (s *Server) initMail() {
 	MailDomain := mail.RegisterHTTPHandlers(s.db, s.validator, s.jwt, s.mailer, s.logger)
 	s.router.Mount("/mail", MailDomain)
-}
-
-func (s *Server) initMeta() {
-	MetaDomain := meta.RegisterHTTPHandlers(s.db, s.logger)
-	s.router.Mount("/meta", MetaDomain)
 }
 
 func (s *Server) initHealth() {

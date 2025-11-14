@@ -17,6 +17,8 @@ export const crdtDocumentSchema = type({
   tags: "Record<string, unknown>",
   preferences: "Record<string, unknown>",
   rules: "Record<string, unknown>",
+  recurring_transactions: "Record<string, unknown>",
+  notifications: "Record<string, unknown>",
   indices: crdtIndicesSchema,
 });
 
@@ -150,6 +152,68 @@ export const crdtRuleSchema = type({
   "deleted_at?": "string",
 });
 
+const crdtFrequencyDataSchema = type({
+  "day_of_week?": "number",
+  "day_of_month?": "number",
+  "week_of_month?": "number",
+  "month_of_year?": "number",
+  "week_days?": "number[]",
+  "specific_dates?": "number[]",
+  "pattern?": "string",
+});
+
+export const crdtRecurringTransactionSchema = type({
+  id: "string",
+  user_id: "string",
+  account_id: "string",
+  "category_id?": "string",
+  "destination_account_id?": "string",
+  amount: "number",
+  type: "'income' | 'expense' | 'transfer'",
+  "description?": "string",
+  "details?": crdtDetailsSchema,
+  frequency: "'daily' | 'weekly' | 'biweekly' | 'monthly' | 'yearly' | 'custom'",
+  frequency_interval: "number",
+  "frequency_data?": crdtFrequencyDataSchema,
+  start_date: "string",
+  "end_date?": "string",
+  "last_generated_date?": "string",
+  next_due_date: "string",
+  auto_post: "boolean",
+  is_paused: "boolean",
+  "max_occurrences?": "number",
+  occurrences_count: "number",
+  "template_name?": "string",
+  "tags?": "string[]",
+  created_at: "string",
+  updated_at: "string",
+  "deleted_at?": "string",
+});
+
+export const crdtNotificationSchema = type({
+  id: "string",
+  user_id: "string",
+  type: "'recurring_transaction_due' | 'recurring_transaction_failed' | 'transaction_needs_review' | 'budget_warning' | 'budget_exceeded' | 'system_announcement' | 'account_sync_failed'",
+  status: "'unread' | 'read' | 'archived' | 'actioned'",
+  priority: "'low' | 'medium' | 'high' | 'urgent'",
+  title: "string",
+  "message?": "string",
+  "data?": "Record<string, unknown> | null",
+  "action_url?": "string",
+  "action_label?": "string",
+  "action_taken_at?": "string",
+  "related_transaction_id?": "string",
+  "related_recurring_id?": "string",
+  "related_account_id?": "string",
+  created_at: "string",
+  "read_at?": "string",
+  "archived_at?": "string",
+  "expires_at?": "string",
+  hlc: "number",
+  node_id: "string",
+  "deleted_at?": "string",
+});
+
 export type CRDTDocument = typeof crdtDocumentSchema.infer;
 export type CRDTTransaction = typeof crdtTransactionSchema.infer;
 export type CRDTAccount = typeof crdtAccountSchema.infer;
@@ -158,10 +222,12 @@ export type CRDTBudget = typeof crdtBudgetSchema.infer;
 export type CRDTTag = typeof crdtTagSchema.infer;
 export type CRDTPreference = typeof crdtPreferenceSchema.infer;
 export type CRDTRule = typeof crdtRuleSchema.infer;
+export type CRDTRecurringTransaction = typeof crdtRecurringTransactionSchema.infer;
+export type CRDTNotification = typeof crdtNotificationSchema.infer;
 
 export interface CRDTOperation {
   type: "create" | "update" | "delete";
-  collection: "transactions" | "accounts" | "categories" | "budgets" | "tags" | "preferences" | "rules";
+  collection: "transactions" | "accounts" | "categories" | "budgets" | "tags" | "preferences" | "rules" | "recurring_transactions" | "notifications";
   id: string;
   data?: any;
   timestamp: string;

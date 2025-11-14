@@ -12,7 +12,7 @@ import { SidebarTrigger } from "@/core/components/ui/sidebar";
 import { Button } from "@/core/components/ui/button";
 import { LayoutDashboard, PlusCircle } from "lucide-react";
 import { EmptyStateGuide } from "@/core/components/ui/emtpy-state-guide";
-import { ErrorBoundary } from "@/core/components/error-boundary";
+import { ErrorBoundary } from "@/core/components/ui/error-boundary";
 import { H2, Small, Muted } from "@/core/components/ui/typography";
 
 
@@ -68,7 +68,6 @@ function RouteComponent() {
         <div className="flex flex-1 h-full">
           <div className="h-full w-full ">
             {chartOrder.length === 0 ? (
-
               <div className="col-span-2 text-center py-12 flex flex-col justify-center items-center text-muted-foreground">
                 <img src="/nuts_empty.png" className="md:w-60 w-50 grayscale" />
                 <Muted>Your dashboard is empty. Add some charts using the button above!</Muted>
@@ -101,10 +100,11 @@ function RouteComponent() {
                       </Suspense>
                     </ErrorBoundary>
                   );
+
                 })}
               </DashboardGrid>
-            )
             )}
+            )
           </div >
         </div >
 

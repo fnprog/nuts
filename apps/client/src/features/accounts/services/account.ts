@@ -10,7 +10,7 @@ import { crdtService } from "@/core/sync/crdt";
 import { kyselyQueryService } from "@/core/sync/query";
 import { CRDTAccount } from "@nuts/types";
 import { Account, AccountCreate, AccountWTrend, AccountBalanceTimeline } from "@/features/accounts/services/account.types";
-import { generateId } from "@/lib/generate-id";
+import { uuidV7 } from "@nuts/utils";
 import { Result, ok, err, ServiceError } from "@/lib/result";
 
 export function createAccountService() {
@@ -195,7 +195,7 @@ export function createAccountService() {
     const initResult = await ensureInitialized();
     if (initResult.isErr()) return err(initResult.error);
 
-    const id = generateId();
+    const id = uuidV7();
     console.log("[ACCOUNT] Creating account with ID:", id, "data:", accountData);
 
     const crdtAccount = convertToCRDTFormat({

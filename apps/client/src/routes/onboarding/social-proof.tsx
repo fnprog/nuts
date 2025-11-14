@@ -3,7 +3,7 @@ import { motion } from "motion/react";
 import { Star, Users, ArrowRight } from "lucide-react";
 
 import { Button } from "@/core/components/ui/button";
-import { H2, P, Small } from "@/core/components/ui/typography";
+import { H2, P, Small, Muted } from "@/core/components/ui/typography";
 import { useOnboardingStore } from "@/features/onboarding/stores/onboarding.store";
 
 const testimonials = [
@@ -66,7 +66,7 @@ function RouteComponent() {
             className="rounded-lg border border-gray-100 bg-white p-4 shadow-sm"
           >
             <div className="flex items-start space-x-3">
-              <div className="flex-shrink-0">
+              <div className="shrink-0">
                 <div className="bg-primary-nuts-100 flex h-10 w-10 items-center justify-center rounded-full">
                   <span className="text-primary-nuts-700 text-sm font-medium">{testimonial.name.charAt(0)}</span>
                 </div>
@@ -78,11 +78,11 @@ function RouteComponent() {
                   ))}
                 </div>
                 <Small className="mb-2 text-gray-700">{testimonial.content}</Small>
-                <Small variant="muted">
+                <Muted>
                   <span className="font-medium">{testimonial.name}</span>
                   <span className="mx-1">•</span>
                   <span>{testimonial.role}</span>
-                </Small>
+                </Muted>
               </div>
             </div>
           </motion.div>
@@ -92,7 +92,7 @@ function RouteComponent() {
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="pt-4">
         <Button
           onClick={handleContinue}
-          className="from-primary-nuts-600 to-primary-nuts-700 hover:from-primary-nuts-700 hover:to-primary-nuts-800 flex w-full items-center justify-center gap-2 bg-gradient-to-r text-white shadow-lg"
+          className="from-primary-nuts-600 to-primary-nuts-700 hover:from-primary-nuts-700 hover:to-primary-nuts-800 flex w-full items-center justify-center gap-2 bg-linear-to-r text-white shadow-lg"
         >
           Continue
           <ArrowRight className="h-4 w-4" />
@@ -108,9 +108,9 @@ function RouteComponent() {
           <div className="h-2 w-2 rounded-full bg-gray-300"></div>
           <div className="h-2 w-2 rounded-full bg-gray-300"></div>
         </div>
-        <Small variant="muted" className="mt-2">
+        <Muted className="mt-2">
           Step 3 of 6
-        </Small>
+        </Muted>
       </div>
     </motion.div>
   );

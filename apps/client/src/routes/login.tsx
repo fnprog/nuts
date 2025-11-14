@@ -8,7 +8,7 @@ import { config } from "@/lib/env";
 import { logger } from "@/lib/logger";
 import { parseApiError } from "@/lib/error";
 import { type LoginFormValues, loginSchema } from "@/features/auth/services/auth.types";
-import { userService } from "@/features/preferences/services/user.service";
+import { userService } from "@/features/users/services/user.service";
 import { isOnboardingRequired, getOnboardingEntryPoint } from "@/features/onboarding/services/onboarding";
 import { dataMigrationService } from "@/core/sync/data-migration";
 
@@ -25,7 +25,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/core/components/ui/inpu
 import { useState } from "react";
 import { useAuthStore } from "@/features/auth/stores/auth.store";
 import { arktypeResolver } from "@hookform/resolvers/arktype";
-import { H1, P, Small } from "@/core/components/ui/typography";
+import { H1, Muted, P, Small } from "@/core/components/ui/typography";
 
 const searchSchema = type({
   "redirect?": "string",
@@ -235,7 +235,7 @@ function RouteComponent() {
               <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
                 <Button
                   type="submit"
-                  className="from-primary-nuts-600 to-primary-nuts-700 hover:from-primary-nuts-500 hover:to-primary-nuts-600 hover:shadow-primary-nuts-600/25 w-full bg-gradient-to-br shadow-lg transition-all duration-300 hover:-translate-y-0.5"
+                  className="from-primary-nuts-600 to-primary-nuts-700 hover:from-primary-nuts-500 hover:to-primary-nuts-600 hover:shadow-primary-nuts-600/25 w-full bg-linear-to-br shadow-lg transition-all duration-300 hover:-translate-y-0.5"
                   disabled={loginMutation.isPending || isMigrating}
                 >
                   {isMigrating ? "Migrating data..." : loginMutation.isPending ? "Verifying..." : isTwoFactorStep ? "Verify Code" : "Login"}
@@ -244,7 +244,7 @@ function RouteComponent() {
 
               <div className="flex items-center gap-2">
                 <Separator className="flex-1" />
-                <Small variant="muted">or authorize with</Small>
+                <Muted>or authorize with</Muted>
                 <Separator className="flex-1" />
               </div>
 
@@ -288,12 +288,12 @@ function RouteComponent() {
                     </Button>
                   </motion.div>
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}>
-                    <Small variant="muted">
+                    <Muted>
                       {"Don't have an account? "}
                       <Link to="/signup" className="text-primary-nuts-700 hover:text-primary-nuts-600 transition-colors">
                         Sign up
                       </Link>
-                    </Small>
+                    </Muted>
                   </motion.div>
                 </>
               )}

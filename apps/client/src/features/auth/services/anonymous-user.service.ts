@@ -1,5 +1,5 @@
-import { generateId } from "@/lib/generate-id";
 import { Result, ok, err, ServiceError } from "@/lib/result";
+import { uuidV7 } from "@nuts/utils";
 
 export interface AnonymousUser {
   id: string;
@@ -41,7 +41,7 @@ export function createAnonymousUserService() {
 
   const createAnonymousUser = (): AnonymousUser => {
     const user: AnonymousUser = {
-      id: generateId(),
+      id: uuidV7(),
       isAnonymous: true,
       createdAt: new Date().toISOString(),
     };

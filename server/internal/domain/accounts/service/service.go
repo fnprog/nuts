@@ -40,10 +40,6 @@ type Account interface {
 	UpdateAccount(ctx context.Context, account repository.UpdateAccountParams) (repository.Account, error)
 	DeleteAccount(ctx context.Context, id uuid.UUID) error
 
-	GetAccountsBalanceTimeline(ctx context.Context, userID uuid.UUID) ([]repository.GetAccountsBalanceTimelineRow, error)
-	GetAccountBalanceTimeline(ctx context.Context, userID uuid.UUID, accountID uuid.UUID) ([]repository.GetAccountBalanceTimelineRow, error)
-	GetAccountsTrends(ctx context.Context, userID *uuid.UUID, startTime time.Time, endTime time.Time) ([]accounts.AccountWithTrend, error)
-
 	// Linking
 	LinkTeller(ctx context.Context, userID uuid.UUID, req accounts.TellerConnectRequest) error
 	LinkMono(ctx context.Context, userID uuid.UUID, req accounts.MonoConnectRequest) error
@@ -176,18 +172,6 @@ func (a *AccountService) CreateAccount(ctx context.Context, hasBalance bool, par
 	}
 
 	return account, nil
-}
-
-func (a *AccountService) GetAccountsBalanceTimeline(ctx context.Context, userID uuid.UUID) ([]repository.GetAccountsBalanceTimelineRow, error) {
-	return a.repo.GetAccountsBTimeline(ctx, userID)
-}
-
-func (a *AccountService) GetAccountBalanceTimeline(ctx context.Context, userID uuid.UUID, accountID uuid.UUID) ([]repository.GetAccountBalanceTimelineRow, error) {
-	return a.repo.GetAccountBTimeline(ctx, userID, accountID)
-}
-
-func (a *AccountService) GetAccountsTrends(ctx context.Context, userID *uuid.UUID, startTime time.Time, endTime time.Time) ([]accounts.AccountWithTrend, error) {
-	return a.repo.GetAccountsTrends(ctx, userID, startTime, endTime)
 }
 
 func (a *AccountService) LinkTeller(ctx context.Context, userID uuid.UUID, req accounts.TellerConnectRequest) error {

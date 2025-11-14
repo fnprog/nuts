@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CreateTransactionRule, UpdateTransactionRule } from "./rule.types";
 import { rulesService } from "./rules.service";
-import { rulesApi } from "../api";
 import { rulesQueryKeys } from "./rules.keys";
 
 export const useCreateRule = () => {
@@ -68,16 +67,6 @@ export const useToggleRule = () => {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: rulesQueryKeys.list() });
       queryClient.invalidateQueries({ queryKey: rulesQueryKeys.detail(data.id) });
-    },
-  });
-};
-
-export const useApplyRulesToTransaction = () => {
-  return useMutation({
-    mutationFn: async (transactionId: string) => {
-      const result = await rulesApi.applyToTransaction(transactionId);
-      if (result.isErr()) throw result.error;
-      return result.value;
     },
   });
 };

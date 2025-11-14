@@ -14,7 +14,7 @@ import { transactionService } from "@/features/transactions/services/transaction
 import { accountService } from "@/features/accounts/services/account";
 import { categoryService } from "@/features/categories/services/category.service";
 import { preferencesService } from "@/features/preferences/services/preferences.service";
-import { userService } from "@/features/preferences/services/user.service";
+import { userService } from "@/features/users/services/user.service";
 import { logger } from "@/lib/logger";
 
 //NOTE: We have a weird redunduncy concerning data flow here. The default categories are in sqlite, we then put them in crdt then rebuild the db from the crdt again

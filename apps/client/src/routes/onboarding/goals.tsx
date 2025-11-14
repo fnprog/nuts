@@ -113,9 +113,8 @@ function RouteComponent() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 + 0.1 }}
               onClick={() => handleGoalToggle(goal.id)}
-              className={`relative rounded-lg border-2 p-4 text-left transition-all duration-200 ${
-                isSelected ? "border-primary-nuts-400 bg-primary-nuts-50" : "border-gray-200 bg-white hover:border-gray-300"
-              } `}
+              className={`relative rounded-lg border-2 p-4 text-left transition-all duration-200 ${isSelected ? "border-primary-nuts-400 bg-primary-nuts-50" : "border-gray-200 bg-white hover:border-gray-300"
+                } `}
             >
               <div className="flex items-start space-x-3">
                 <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${goal.color}`}>
@@ -139,7 +138,7 @@ function RouteComponent() {
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="pt-4">
         <Button
           onClick={handleContinue}
-          className="from-primary-nuts-600 to-primary-nuts-700 hover:from-primary-nuts-700 hover:to-primary-nuts-800 flex w-full items-center justify-center gap-2 bg-gradient-to-r text-white shadow-lg"
+          className="from-primary-nuts-600 to-primary-nuts-700 hover:from-primary-nuts-700 hover:to-primary-nuts-800 flex w-full items-center justify-center gap-2 bg-linear-to-r text-white shadow-lg"
           disabled={localSelectedGoals.length === 0}
         >
           Continue {localSelectedGoals.length > 0 && `(${localSelectedGoals.length} selected)`}

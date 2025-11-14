@@ -15,15 +15,11 @@ export const queryClient = new QueryClient({
         }
         return failureCount < 3;
       },
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 10, // 10 minutes (formerly cacheTime)
       refetchOnWindowFocus: false,
       refetchOnReconnect: true,
-      // Improved network handling
       networkMode: 'offlineFirst',
     },
     mutations: {
-      // Improved error handling for mutations
       retry: (failureCount, error: unknown) => {
         const Axerror = error as AxiosError
         // Don't retry on client errors (4xx)
@@ -43,15 +39,11 @@ export const router = createRouter({
     queryClient,
     auth: undefined!,
   },
-  // Improved preloading strategy
   defaultPreload: "intent",
   defaultPreloadStaleTime: 0,
   defaultPreloadGcTime: 5 * 60 * 1000, // 5 minutes
-
-  // Enable preloading of viewport routes
   defaultViewTransition: true,
 
-  // Improved error handling
   defaultErrorComponent: ({ error }) => (
     <div className="p-4 text-center" role="alert">
       <h2 className="text-lg font-semibold text-destructive mb-2">Something went wrong</h2>
@@ -67,7 +59,6 @@ export const router = createRouter({
     </div>
   ),
 
-  // Default pending component for better UX
   defaultPendingComponent: () => (
     <div className="flex items-center justify-center min-h-[200px]" role="status" aria-live="polite">
       <div className="text-center">

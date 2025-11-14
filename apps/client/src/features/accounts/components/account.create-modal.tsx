@@ -1,6 +1,6 @@
 import { useState, useId, useCallback, useMemo, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { arktypeResolver } from "@/lib/arktype-resolver";
+import { arktypeResolver } from "@hookform/resolvers/arktype";
 import { useQuery } from "@tanstack/react-query";
 import { accountFormSchema, AccountSubmit, AccountFormSchema } from "../services/account.types";
 import { currencyService } from "@/features/preferences/services/currency.service";
@@ -55,9 +55,9 @@ export function AddAccountModal({ children, onClose, onAddAccount }: { children:
   const authStore = useAuthStore();
   const monoCustomer = authStore.user
     ? {
-        name: authStore.user.first_name && authStore.user.last_name ? `${authStore.user.first_name} ${authStore.user.last_name}` : undefined,
-        email: authStore.user.email,
-      }
+      name: authStore.user.first_name && authStore.user.last_name ? `${authStore.user.first_name} ${authStore.user.last_name}` : undefined,
+      email: authStore.user.email,
+    }
     : undefined;
 
   const { openMono, context, isMonoReady } = useMono({

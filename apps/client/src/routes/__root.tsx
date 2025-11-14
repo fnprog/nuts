@@ -4,9 +4,9 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Toaster } from "@/core/components/ui/sonner";
 import { ThemeProvider } from "@/features/preferences/contexts/theme.provider";
 import type { QueryClient } from "@tanstack/react-query";
-import { AuthInterceptor } from "@/features/auth/components/auth-interceptor";
-import { PreferencesProvider } from "@/features/preferences/components/preferences-provider";
-import { ErrorBoundary, RouteErrorFallback } from "@/core/components/error-boundary";
+import { AuthInterceptor } from "@/features/auth/components/auth.interceptor";
+import { PreferencesProvider } from "@/features/preferences/components/preference.provider";
+import { ErrorBoundary, RouteErrorFallback } from "@/core/components/ui/error-boundary";
 import { preferencesQueryOptions } from "@/features/preferences/services/preferences.queries";
 
 interface RouterContext {

@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
-import { type, arktypeResolver } from "@nuts/validation";
+import { type } from "@nuts/validation";
 import { motion } from "motion/react";
+import { arktypeResolver } from "@hookform/resolvers/arktype";
 import { User } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
@@ -10,7 +11,7 @@ import { Button } from "@/core/components/ui/button";
 import { Input } from "@/core/components/ui/input";
 import { Label } from "@/core/components/ui/label";
 import { useOnboardingStore } from "@/features/onboarding/stores/onboarding.store";
-import { userService } from "@/features/preferences/services/user.service";
+import { userService } from "@/features/users/services/user.service";
 import { shouldSkipNameStep } from "@/features/onboarding/services/onboarding";
 import { H2, P, Small } from "@/core/components/ui/typography";
 
@@ -115,7 +116,7 @@ function RouteComponent() {
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="pt-4">
           <Button
             type="submit"
-            className="from-primary-nuts-600 to-primary-nuts-700 hover:from-primary-nuts-700 hover:to-primary-nuts-800 w-full bg-gradient-to-r text-white shadow-lg"
+            className="from-primary-nuts-600 to-primary-nuts-700 hover:from-primary-nuts-700 hover:to-primary-nuts-800 w-full bg-linear-to-r text-white shadow-lg"
             disabled={form.formState.isSubmitting}
           >
             Continue

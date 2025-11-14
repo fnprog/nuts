@@ -1,4 +1,4 @@
-import { UserInfo } from "@/features/preferences/services/user";
+import { UserInfo } from "@/features/users/services/user.service";
 import { logger } from "@/lib/logger";
 
 /**

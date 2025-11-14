@@ -98,7 +98,7 @@ services:
     image: "nuts/client"
     container_name: "nuts_client"
     build:
-      context: ./client
+      context: ./apps/client
       dockerfile: Dockerfile
       args:
         VITE_API_URL: ${API_URL}

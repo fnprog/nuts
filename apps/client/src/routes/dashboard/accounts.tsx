@@ -1,9 +1,8 @@
 import { createFileRoute, useRouteContext } from "@tanstack/react-router";
-import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 
 import { DraggableAccountGroups } from "@/features/accounts/components/account";
 import { AccountsLoading } from "@/features/accounts/components/account.loading";
-import { AccountFormSchema } from "@/features/accounts/services/account.types";
 import { AddAccountModal } from "@/features/accounts/components/account.create-modal";
 import { NetWorthCard } from "@/features/accounts/components/account.net-worth";
 import { SummaryCard } from "@/features/accounts/components/account.summary-card";
@@ -14,9 +13,8 @@ import { groupAccountsByType } from "@/features/accounts/components/account.util
 import { SidebarTrigger } from "@/core/components/ui/sidebar";
 import { getAllAccountsWithTrends } from "@/features/accounts/services/account.queries";
 import { EmptyStateGuide } from "@/core/components/ui/emtpy-state-guide";
-import { ErrorBoundary } from "@/core/components/error-boundary";
-import { EmptyStateGuide } from "@/core/components/ui/emtpy-state-guide";
-import { accountService } from "@/features/accounts/services/account";
+import { ErrorBoundary } from "@/core/components/ui/error-boundary";
+import { useCreateAccount, useUpdateAccount, useDeleteAccount } from "@/features/accounts/services/account.mutations";
 
 export const Route = createFileRoute("/dashboard/accounts")({
   component: RouteComponent,
@@ -43,44 +41,15 @@ function RouteComponent() {
     queryClient.invalidateQueries({ queryKey: ["accounts"] });
   };
 
-  const createAccount = useMutation({
-    mutationFn: async (account: AccountFormSchema) => {
-      const result = await accountService.createAccount(account);
-      if (result.isErr()) throw result.error;
-      return result.value;
-    },
-    onSuccess: () => {
-      onCloseModal();
-    },
-  });
+  const createAccount = useCreateAccount();
+  const updateAccount = useUpdateAccount();
+  const deleteAccount = useDeleteAccount();
 
-  const updateAccount = useMutation({
-    mutationFn: async ({ id, account }: { id: string; account: AccountFormSchema }) => {
-      const result = await accountService.updateAccount(id, account);
-      if (result.isErr()) throw result.error;
-      return result.value;
-    },
-    onSuccess: () => {
-      onCloseModal();
-    },
-  });
-
-  const deleteAccount = useMutation({
-    mutationFn: async (id: string) => {
-      const result = await accountService.deleteAccount(id);
-      if (result.isErr()) throw result.error;
-      return result.value;
-    },
-    onSuccess: () => {
-      onCloseModal();
-    },
-  });
-
-  const onCreate = (values: AccountFormSchema) => {
+  const onCreate = (values: any) => {
     createAccount.mutate(values);
   };
 
-  const onUpdate = (id: string, values: AccountFormSchema) => {
+  const onUpdate = (id: string, values: any) => {
     updateAccount.mutate({ id, account: values });
   };
 

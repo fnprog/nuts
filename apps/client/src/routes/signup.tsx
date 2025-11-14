@@ -22,7 +22,7 @@ import { Google } from "@/core/components/icons/google";
 import { Github } from "@/core/components/icons/github";
 import { AtSignIcon, Lock } from "lucide-react";
 import { parseApiError } from "@/lib/error";
-import { H1, P, Small } from "@/core/components/ui/typography";
+import { H1, Muted, P, Small } from "@/core/components/ui/typography";
 
 const searchSchema = type({
   "redirect?": "string",
@@ -211,7 +211,7 @@ function RouteComponent() {
 
               <div className="flex items-center gap-2">
                 <Separator className="flex-1" />
-                <Small variant="muted">or authorize with</Small>
+                <Muted >or authorize with</Muted>
                 <Separator className="flex-1" />
               </div>
 
@@ -241,12 +241,12 @@ function RouteComponent() {
               </motion.div>
 
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}>
-                <Small variant="muted">
+                <Muted>
                   Already have an account?{" "}
                   <Link to="/login" className="text-emerald-700 transition-colors hover:text-emerald-600">
                     Log in
                   </Link>
-                </Small>
+                </Muted>
               </motion.div>
             </form>
           </div>
