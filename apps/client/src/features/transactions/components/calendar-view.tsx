@@ -1,12 +1,11 @@
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Calendar } from "@/core/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
 import { Badge } from "@/core/components/ui/badge";
 import { Button } from "@/core/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { format, startOfMonth, endOfMonth, addMonths, subMonths } from "date-fns";
-import transactionService from "@/features/transactions/services/transaction.service";
+import { useTransactions } from "../services/transaction.queries";
 import { TableRecordSchema } from "@/features/transactions/services/transaction.types";
 
 interface CalendarViewProps {
@@ -21,22 +20,12 @@ export function CalendarView({ initialPage = 1 }: CalendarViewProps) {
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
 
-  // Fetch transactions for the current month
-  const { data: transactionsData, isLoading } = useQuery({
-    queryKey: ["transactions", {
-      page: initialPage,
-      q: "",
-      group_by: "date",
-      start_date: monthStart.toISOString().split('T')[0],
-      end_date: monthEnd.toISOString().split('T')[0]
-    }],
-    queryFn: () => transactionService.getTransactions({
-      page: initialPage,
-      q: "",
-      group_by: "date",
-      start_date: monthStart.toISOString().split('T')[0],
-      end_date: monthEnd.toISOString().split('T')[0]
-    }),
+  const { data: transactionsData, isLoading } = useTransactions({
+    page: initialPage,
+    q: "",
+    group_by: "date",
+    start_date: monthStart.toISOString().split('T')[0],
+    end_date: monthEnd.toISOString().split('T')[0]
   });
 
   // Create a map of dates to transactions for easy lookup

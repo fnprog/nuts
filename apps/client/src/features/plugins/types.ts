@@ -1,4 +1,5 @@
 import { LucideIcon } from "lucide-react";
+import type { PluginMigration, PluginContext, PluginConfig as PluginConfigBase } from "@nuts/migrations";
 
 export interface PluginRouteConfig {
   path: string;
@@ -17,11 +18,10 @@ export interface PluginChartConfig {
   defaultSize: 1 | 2 | 3;
 }
 
-export interface PluginConfigExternal {
-  id: string;
-  name: string;
+export type { PluginMigration, PluginContext, PluginConfigBase };
+
+export interface PluginConfigExternal extends PluginConfigBase {
   description: string;
-  version: string;
   author: string;
   icon: React.FC | LucideIcon;
   routes: PluginRouteConfigExternal[];
@@ -38,7 +38,7 @@ export interface PluginRouteConfigExternal {
     path: string;
     label: string;
     icon: React.FC | LucideIcon;
-    component: React.FC; // Changed from string to match the parent component type
+    component: React.FC;
   }[];
 }
 

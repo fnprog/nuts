@@ -5,6 +5,23 @@ const crdtIndicesSchema = type({
   version: "number",
 });
 
+export const crdtPluginSchema = type({
+  id: "string",
+  name: "string",
+  version: "string",
+  status: "'installed' | 'enabled' | 'disabled' | 'uninstalling'",
+  installed_at: "string",
+  updated_at: "string",
+  "config?": "Record<string, unknown>",
+  "migration_version?": "number",
+});
+
+const crdtPluginMigrationStateSchema = type({
+  plugin_id: "string",
+  version: "number",
+  applied_at: "string",
+});
+
 export const crdtDocumentSchema = type({
   version: "string",
   created_at: "string",
@@ -19,6 +36,9 @@ export const crdtDocumentSchema = type({
   rules: "Record<string, unknown>",
   recurring_transactions: "Record<string, unknown>",
   notifications: "Record<string, unknown>",
+  plugins: "Record<string, unknown>",
+  plugin_data: "Record<string, Record<string, unknown>>",
+  plugin_migrations: "Record<string, unknown>",
   indices: crdtIndicesSchema,
 });
 
@@ -84,6 +104,7 @@ export const crdtCategorySchema = type({
   color: "string",
   "icon?": "string",
   "parent_id?": "string",
+  "plugin_id?": "string",
   is_active: "boolean",
   created_at: "string",
   updated_at: "string",
@@ -224,10 +245,12 @@ export type CRDTPreference = typeof crdtPreferenceSchema.infer;
 export type CRDTRule = typeof crdtRuleSchema.infer;
 export type CRDTRecurringTransaction = typeof crdtRecurringTransactionSchema.infer;
 export type CRDTNotification = typeof crdtNotificationSchema.infer;
+export type CRDTPlugin = typeof crdtPluginSchema.infer;
+export type CRDTPluginMigrationState = typeof crdtPluginMigrationStateSchema.infer;
 
 export interface CRDTOperation {
   type: "create" | "update" | "delete";
-  collection: "transactions" | "accounts" | "categories" | "budgets" | "tags" | "preferences" | "rules" | "recurring_transactions" | "notifications";
+  collection: "transactions" | "accounts" | "categories" | "budgets" | "tags" | "preferences" | "rules" | "recurring_transactions" | "notifications" | "plugins";
   id: string;
   data?: any;
   timestamp: string;

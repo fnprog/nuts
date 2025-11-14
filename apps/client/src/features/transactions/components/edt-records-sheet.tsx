@@ -4,8 +4,9 @@ import { arktypeResolver } from '@hookform/resolvers/arktype';
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { logger } from "@/lib/logger";
 import { transactionService } from "@/features/transactions/services/transaction.service";
+import { useTransaction } from "../services/transaction.queries";
 import { categoryService } from "@/features/categories/services/category.service";
-import { accountService } from "@/features/accounts/services/account";
+import { getAllAccounts } from "@/features/accounts/services/account.queries";
 import { cn, debounce } from "@/lib/utils";
 
 import { Button } from "@/core/components/ui/button";
@@ -52,17 +53,8 @@ export default function EditTransactionSheet({ isOpen, onClose, transactionId }:
   const [recurringType, setRecurringType] = useState<string>("one-time");
   const queryClient = useQueryClient();
 
-  const { data: transaction, isFetching: detailFetching } = useQuery({
-    queryKey: ["transaction", transactionId],
-    queryFn: async () => {
-      const result = await transactionService.getTransaction(transactionId!);
-      if (result.isErr()) throw result.error;
-      return result.value;
-    },
+  const { data: transaction, isFetching: detailFetching } = useTransaction(transactionId!, {
     enabled: !!transactionId,
-    initialData: () => queryClient.getQueryData(["transaction", transactionId]),
-    staleTime: 0,
-    gcTime: 5 * 60_000,
   });
 
   const { data: categories } = useQuery({
@@ -79,17 +71,8 @@ export default function EditTransactionSheet({ isOpen, onClose, transactionId }:
   });
 
   const { data: accounts, isLoading: accountsLoading } = useQuery({
-    queryKey: ["accounts"],
-    queryFn: async () => {
-      const result = await accountService.getAccounts();
-      if (result.isErr()) throw result.error;
-      return result.value;
-    },
-    gcTime: 1000 * 60 * 5,
-    staleTime: 1000 * 60 * 2,
+    ...getAllAccounts(),
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    retry: 1,
   });
 
   const form = useForm<RecordUpdateSchema>({

@@ -96,6 +96,11 @@ class CRDTService {
           tags: {},
           preferences: {},
           rules: {},
+          recurring_transactions: {},
+          notifications: {},
+          plugins: {},
+          plugin_data: {},
+          plugin_migrations: {},
           indices: {
             version: 1,
           },
@@ -210,10 +215,10 @@ class CRDTService {
 
       this.doc = Automerge.change(this.doc, (doc) => {
         if (doc.transactions[id]) {
-          const tx = doc.transactions[id];
+          const tx = doc.transactions[id] as any;
 
           for (const [key, value] of Object.entries(updates)) {
-            (tx as any)[key] = value;
+            tx[key] = value;
           }
 
           tx.updated_at = timestamp;
@@ -345,10 +350,10 @@ class CRDTService {
       logger.info("[CRDT] Step 1: Updating account in Automerge document...");
       this.doc = Automerge.change(this.doc, (doc) => {
         if (doc.accounts[id]) {
-          const tx = doc.accounts[id];
+          const tx = doc.accounts[id] as any;
 
           for (const [key, value] of Object.entries(updates)) {
-            (tx as any)[key] = value;
+            tx[key] = value;
           }
 
           tx.updated_at = timestamp;
@@ -429,10 +434,10 @@ class CRDTService {
       this.doc = Automerge.change(this.doc, (doc) => {
         if (doc.categories[id]) {
 
-          const tx = doc.categories[id];
+          const tx = doc.categories[id] as any;
 
           for (const [key, value] of Object.entries(updates)) {
-            (tx as any)[key] = value;
+            tx[key] = value;
           }
 
           tx.updated_at = timestamp;
@@ -532,10 +537,10 @@ class CRDTService {
       this.doc = Automerge.change(this.doc, (doc) => {
         if (doc.budgets[id]) {
 
-          const tx = doc.budgets[id];
+          const tx = doc.budgets[id] as any;
 
           for (const [key, value] of Object.entries(updates)) {
-            (tx as any)[key] = value;
+            tx[key] = value;
           }
 
           tx.updated_at = timestamp;
@@ -632,10 +637,10 @@ class CRDTService {
 
       this.doc = Automerge.change(this.doc, (doc) => {
         if (doc.preferences[id]) {
-          const tx = doc.preferences[id];
+          const tx = doc.preferences[id] as any;
 
           for (const [key, value] of Object.entries(updates)) {
-            (tx as any)[key] = value;
+            tx[key] = value;
           }
 
           tx.updated_at = timestamp;
@@ -714,10 +719,10 @@ class CRDTService {
       logger.info("[CRDT] Step 1: Updating rule in Automerge document...");
       this.doc = Automerge.change(this.doc, (doc) => {
         if (doc.rules[id]) {
-          const tx = doc.rules[id];
+          const tx = doc.rules[id] as any;
 
           for (const [key, value] of Object.entries(updates)) {
-            (tx as any)[key] = value;
+            tx[key] = value;
           }
 
           tx.updated_at = timestamp;
@@ -801,6 +806,429 @@ class CRDTService {
     return rule && !rule.deleted_at ? rule : null;
   }
 
+  async createRecurringTransaction(recurring: any): Promise<Result<string, ServiceError>> {
+    return this.withMutationLock(async () => {
+      if (!this.doc) throw new Error("CRDT document not initialized");
+
+      const timestamp = new Date().toISOString();
+      const recurringWithTimestamps = {
+        ...recurring,
+        created_at: timestamp,
+        updated_at: timestamp,
+      };
+
+      this.doc = Automerge.change(this.doc, (doc) => {
+        (doc as any).recurring_transactions[recurring.id] = recurringWithTimestamps;
+        doc.updated_at = timestamp;
+      });
+
+      const persistResult = await this.persist();
+      if (persistResult.isErr()) {
+        logger.error("Failed to persist recurring transaction:", persistResult.error);
+        return err(persistResult.error);
+      }
+
+      this.notifySyncService("create", "transaction", recurringWithTimestamps);
+      return ok(recurring.id);
+    });
+  }
+
+  async updateRecurringTransaction(id: string, updates: any): Promise<Result<void, ServiceError>> {
+    return this.withMutationLock(async () => {
+      if (!this.doc) throw new Error("CRDT document not initialized");
+
+      const timestamp = new Date().toISOString();
+
+      this.doc = Automerge.change(this.doc, (doc) => {
+        const recurring = (doc as any).recurring_transactions[id];
+        if (recurring) {
+          for (const [key, value] of Object.entries(updates)) {
+            recurring[key] = value;
+          }
+          recurring.updated_at = timestamp;
+          doc.updated_at = timestamp;
+        }
+      });
+
+      const persistResult = await this.persist();
+      if (persistResult.isErr()) {
+        logger.error("Failed to persist recurring transaction update:", persistResult.error);
+        return err(persistResult.error);
+      }
+
+      const updatedRecurring = this.getRecurringTransaction(id);
+      if (updatedRecurring) {
+        this.notifySyncService("update", "transaction", updatedRecurring);
+      }
+
+      return ok(undefined);
+    });
+  }
+
+  async deleteRecurringTransaction(id: string): Promise<Result<void, ServiceError>> {
+    return this.withMutationLock(async () => {
+      if (!this.doc) throw new Error("CRDT document not initialized");
+
+      const timestamp = new Date().toISOString();
+
+      this.doc = Automerge.change(this.doc, (doc) => {
+        const recurring = (doc as any).recurring_transactions[id];
+        if (recurring) {
+          recurring.deleted_at = timestamp;
+          doc.updated_at = timestamp;
+        }
+      });
+
+      const persistResult = await this.persist();
+      if (persistResult.isErr()) {
+        logger.error("Failed to persist recurring transaction deletion:", persistResult.error);
+        return err(persistResult.error);
+      }
+
+      this.notifySyncService("delete", "transaction", { id, deleted_at: timestamp });
+      return ok(undefined);
+    });
+  }
+
+  getRecurringTransactions(): Record<string, any> {
+    if (!this.doc) return {};
+
+    const currentDoc = this.doc as any;
+    const recurring: Record<string, any> = {};
+
+    for (const [id, rt] of Object.entries(currentDoc.recurring_transactions || {})) {
+      const r = rt as any;
+      if (!r.deleted_at) {
+        recurring[id] = r;
+      }
+    }
+
+    return recurring;
+  }
+
+  getRecurringTransaction(id: string): any | null {
+    if (!this.doc) return null;
+
+    const currentDoc = this.doc as any;
+    const recurring = currentDoc.recurring_transactions?.[id];
+
+    return recurring && !recurring.deleted_at ? recurring : null;
+  }
+
+  async createNotification(notification: any): Promise<Result<string, ServiceError>> {
+    return this.withMutationLock(async () => {
+      if (!this.doc) throw new Error("CRDT document not initialized");
+
+      const timestamp = new Date().toISOString();
+      const notificationWithTimestamps = {
+        ...notification,
+        created_at: timestamp,
+      };
+
+      this.doc = Automerge.change(this.doc, (doc) => {
+        (doc as any).notifications[notification.id] = notificationWithTimestamps;
+        doc.updated_at = timestamp;
+      });
+
+      const persistResult = await this.persist();
+      if (persistResult.isErr()) {
+        logger.error("Failed to persist notification:", persistResult.error);
+        return err(persistResult.error);
+      }
+
+      return ok(notification.id);
+    });
+  }
+
+  async updateNotification(id: string, updates: any): Promise<Result<void, ServiceError>> {
+    return this.withMutationLock(async () => {
+      if (!this.doc) throw new Error("CRDT document not initialized");
+
+      const timestamp = new Date().toISOString();
+
+      this.doc = Automerge.change(this.doc, (doc) => {
+        const notification = (doc as any).notifications[id];
+        if (notification) {
+          for (const [key, value] of Object.entries(updates)) {
+            notification[key] = value;
+          }
+          doc.updated_at = timestamp;
+        }
+      });
+
+      const persistResult = await this.persist();
+      if (persistResult.isErr()) {
+        logger.error("Failed to persist notification update:", persistResult.error);
+        return err(persistResult.error);
+      }
+
+      return ok(undefined);
+    });
+  }
+
+  async deleteNotification(id: string): Promise<Result<void, ServiceError>> {
+    return this.withMutationLock(async () => {
+      if (!this.doc) throw new Error("CRDT document not initialized");
+
+      const timestamp = new Date().toISOString();
+
+      this.doc = Automerge.change(this.doc, (doc) => {
+        const notification = (doc as any).notifications[id];
+        if (notification) {
+          notification.deleted_at = timestamp;
+          doc.updated_at = timestamp;
+        }
+      });
+
+      const persistResult = await this.persist();
+      if (persistResult.isErr()) {
+        logger.error("Failed to persist notification deletion:", persistResult.error);
+        return err(persistResult.error);
+      }
+
+      return ok(undefined);
+    });
+  }
+
+  getNotifications(): Record<string, any> {
+    if (!this.doc) return {};
+
+    const currentDoc = this.doc as any;
+    const notifications: Record<string, any> = {};
+
+    for (const [id, notif] of Object.entries(currentDoc.notifications || {})) {
+      const n = notif as any;
+      if (!n.deleted_at) {
+        notifications[id] = n;
+      }
+    }
+
+    return notifications;
+  }
+
+  getNotification(id: string): any | null {
+    if (!this.doc) return null;
+
+    const currentDoc = this.doc as any;
+    const notification = currentDoc.notifications?.[id];
+
+    return notification && !notification.deleted_at ? notification : null;
+  }
+
+  async createPlugin(plugin: any): Promise<Result<string, ServiceError>> {
+    return this.withMutationLock(async () => {
+      if (!this.doc) throw new Error("CRDT document not initialized");
+
+      const timestamp = new Date().toISOString();
+      const pluginWithTimestamps = {
+        ...plugin,
+        installed_at: timestamp,
+        updated_at: timestamp,
+      };
+
+      this.doc = Automerge.change(this.doc, (doc) => {
+        (doc as any).plugins[plugin.id] = pluginWithTimestamps;
+        doc.updated_at = timestamp;
+      });
+
+      const persistResult = await this.persist();
+      if (persistResult.isErr()) {
+        logger.error("Failed to persist plugin:", persistResult.error);
+        return err(persistResult.error);
+      }
+
+      return ok(plugin.id);
+    });
+  }
+
+  async updatePlugin(id: string, updates: any): Promise<Result<void, ServiceError>> {
+    return this.withMutationLock(async () => {
+      if (!this.doc) throw new Error("CRDT document not initialized");
+
+      const timestamp = new Date().toISOString();
+
+      this.doc = Automerge.change(this.doc, (doc) => {
+        const plugin = (doc as any).plugins[id];
+        if (plugin) {
+          for (const [key, value] of Object.entries(updates)) {
+            plugin[key] = value;
+          }
+          plugin.updated_at = timestamp;
+          doc.updated_at = timestamp;
+        }
+      });
+
+      const persistResult = await this.persist();
+      if (persistResult.isErr()) {
+        logger.error("Failed to persist plugin update:", persistResult.error);
+        return err(persistResult.error);
+      }
+
+      return ok(undefined);
+    });
+  }
+
+  async deletePlugin(id: string): Promise<Result<void, ServiceError>> {
+    return this.withMutationLock(async () => {
+      if (!this.doc) throw new Error("CRDT document not initialized");
+
+      const timestamp = new Date().toISOString();
+
+      this.doc = Automerge.change(this.doc, (doc) => {
+        delete (doc as any).plugins[id];
+        delete (doc as any).plugin_data[id];
+        delete (doc as any).plugin_migrations[id];
+        doc.updated_at = timestamp;
+      });
+
+      const persistResult = await this.persist();
+      if (persistResult.isErr()) {
+        logger.error("Failed to persist plugin deletion:", persistResult.error);
+        return err(persistResult.error);
+      }
+
+      return ok(undefined);
+    });
+  }
+
+  getPlugin(id: string): any | null {
+    if (!this.doc) return null;
+
+    const currentDoc = this.doc as any;
+    return currentDoc.plugins?.[id] || null;
+  }
+
+  getPlugins(): Record<string, any> {
+    if (!this.doc) return {};
+
+    const currentDoc = this.doc as any;
+    return (currentDoc.plugins || {}) as Record<string, any>;
+  }
+
+  getPluginData<T = any>(pluginId: string, collection: string): Record<string, T> {
+    if (!this.doc) return {};
+
+    const currentDoc = this.doc as any;
+    const pluginData = currentDoc.plugin_data?.[pluginId] || {};
+    return pluginData[collection] || {};
+  }
+
+  async setPluginData<T = any>(
+    pluginId: string,
+    collection: string,
+    data: Record<string, T>
+  ): Promise<Result<void, ServiceError>> {
+    return this.withMutationLock(async () => {
+      if (!this.doc) throw new Error("CRDT document not initialized");
+
+      const timestamp = new Date().toISOString();
+
+      this.doc = Automerge.change(this.doc, (doc) => {
+        const docAny = doc as any;
+
+        if (!docAny.plugin_data[pluginId]) {
+          docAny.plugin_data[pluginId] = {};
+        }
+
+        docAny.plugin_data[pluginId][collection] = data;
+        doc.updated_at = timestamp;
+      });
+
+      const persistResult = await this.persist();
+      if (persistResult.isErr()) {
+        logger.error("Failed to persist plugin data:", persistResult.error);
+        return err(persistResult.error);
+      }
+
+      return ok(undefined);
+    });
+  }
+
+  async createPluginRecord<T = any>(
+    pluginId: string,
+    collection: string,
+    id: string,
+    record: T
+  ): Promise<Result<void, ServiceError>> {
+    const collectionData = this.getPluginData(pluginId, collection);
+    collectionData[id] = record;
+    return this.setPluginData(pluginId, collection, collectionData);
+  }
+
+  async updatePluginRecord<T = any>(
+    pluginId: string,
+    collection: string,
+    id: string,
+    updates: Partial<T>
+  ): Promise<Result<void, ServiceError>> {
+    const collectionData = this.getPluginData<T>(pluginId, collection);
+    const existing = collectionData[id];
+
+    if (!existing) {
+      return err(ServiceError.notFound(`plugin record`, id));
+    }
+
+    collectionData[id] = { ...existing, ...updates };
+    return this.setPluginData(pluginId, collection, collectionData);
+  }
+
+  async deletePluginRecord(
+    pluginId: string,
+    collection: string,
+    id: string
+  ): Promise<Result<void, ServiceError>> {
+    const collectionData = this.getPluginData(pluginId, collection);
+    delete collectionData[id];
+    return this.setPluginData(pluginId, collection, collectionData);
+  }
+
+  async initializePluginData(pluginId: string): Promise<Result<void, ServiceError>> {
+    return this.withMutationLock(async () => {
+      if (!this.doc) throw new Error("CRDT document not initialized");
+
+      const timestamp = new Date().toISOString();
+
+      this.doc = Automerge.change(this.doc, (doc) => {
+        const docAny = doc as any;
+
+        if (!docAny.plugin_data[pluginId]) {
+          docAny.plugin_data[pluginId] = {};
+        }
+
+        doc.updated_at = timestamp;
+      });
+
+      const persistResult = await this.persist();
+      if (persistResult.isErr()) {
+        logger.error("Failed to initialize plugin data:", persistResult.error);
+        return err(persistResult.error);
+      }
+
+      return ok(undefined);
+    });
+  }
+
+  async deletePluginData(pluginId: string): Promise<Result<void, ServiceError>> {
+    return this.withMutationLock(async () => {
+      if (!this.doc) throw new Error("CRDT document not initialized");
+
+      const timestamp = new Date().toISOString();
+
+      this.doc = Automerge.change(this.doc, (doc) => {
+        delete (doc as any).plugin_data[pluginId];
+        doc.updated_at = timestamp;
+      });
+
+      const persistResult = await this.persist();
+      if (persistResult.isErr()) {
+        logger.error("Failed to delete plugin data:", persistResult.error);
+        return err(persistResult.error);
+      }
+
+      return ok(undefined);
+    });
+  }
+
   /**
    * Merge changes from another CRDT document (for sync)
    */
@@ -882,6 +1310,11 @@ class CRDTService {
             tags: {},
             preferences: {},
             rules: {},
+            recurring_transactions: {},
+            notifications: {},
+            plugins: {},
+            plugin_data: {},
+            plugin_migrations: {},
             indices: {
               version: 1,
             },

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { userService } from "@/features/preferences/services/user.service";
+import { userService } from "@/features/users/services/user.service";
 import { authApi } from "@/features/auth/api";
 import { Button } from "@/core/components/ui/button";
 import { Input } from "@/core/components/ui/input";

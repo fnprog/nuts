@@ -19,8 +19,8 @@ import { Info } from "lucide-react";
 
 
 import { transactionService } from "@/features/transactions/services/transaction.service";
-import { categoryService } from "@/features/categories/services/category.service";
-import { accountService } from "@/features/accounts/services/account";
+import { useCategoriesQuery } from "@/features/categories/services/category.queries";
+import { getAllAccounts } from "@/features/accounts/services/account.queries";
 
 const bulkEditSchema = type({
   "category_id?": "string",
@@ -56,30 +56,10 @@ export function BulkEditDialog({ isOpen, onClose, selectedTransactions }: BulkEd
     },
   });
 
-  const { data: categories } = useQuery({
-    queryKey: ["categories"],
-    queryFn: async () => {
-      const result = await categoryService.getCategories();
-      if (result.isErr()) throw result.error;
-      return result.value;
-    },
-    gcTime: 1000 * 60 * 5,
-    staleTime: 1000 * 60 * 2,
-    refetchOnMount: false,
-    retry: 1,
-  });
+  const { data: categories } = useCategoriesQuery();
 
   const { data: accounts } = useQuery({
-    queryKey: ["accounts"],
-    queryFn: async () => {
-      const result = await accountService.getAccounts();
-      if (result.isErr()) throw result.error;
-      return result.value;
-    },
-    gcTime: 1000 * 60 * 5,
-    staleTime: 1000 * 60 * 2,
-    refetchOnMount: false,
-    retry: 1,
+    ...getAllAccounts(),
     enabled: editMode === "full",
   });
 

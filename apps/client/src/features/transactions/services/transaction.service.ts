@@ -3,7 +3,7 @@ import { kyselyQueryService } from "@/core/sync/query";
 import { CRDTTransaction } from "@nuts/types";
 import { RecordCreateSchema, RecordUpdateSchema, RecordSchema, TransactionsResponse, TableRecordsSchema } from "./transaction.types";
 import type { GetTransactionsParams } from "./transaction";
-import { generateId } from "@/lib/generate-id";
+import { uuidV7 } from "@nuts/utils";
 import { Result, ok, err, ServiceError } from "@/lib/result";
 
 export function createTransactionService() {
@@ -108,7 +108,7 @@ export function createTransactionService() {
     const initResult = await ensureInitialized();
     if (initResult.isErr()) return err(initResult.error);
 
-    const id = generateId();
+    const id = uuidV7();
     const crdtTransaction = convertToCRDTFormat({
       ...transaction,
       id,

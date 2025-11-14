@@ -7,10 +7,11 @@ import { Input } from "@/core/components/ui/input";
 import { Label } from "@/core/components/ui/label";
 import IconPicker from "@/core/components/ui/icon-picker";
 import { renderIcon } from "@/core/components/ui/icon-picker/index.helper";
-import { MoreHorizontal, Pencil, Trash, AlertCircle } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash } from "lucide-react";
 import { crdtService } from "@/core/sync/crdt";
-import { useTagsQuery, useUpdateTagMutation, useDeleteTagMutation } from "@/features/preferences/services/settings.queries";
 import { logger } from "@/lib/logger";
+import { useTagsQuery } from "@/features/tags/services/tags.queries";
+import { useDeleteTagMutation, useUpdateTagMutation } from "@/features/tags/services/tags.mutations";
 
 export function TagList() {
   const { data: tags, isLoading, error } = useTagsQuery();
@@ -23,14 +24,6 @@ export function TagList() {
     icon: string;
   } | null>(null);
 
-  const refreshTags = () => {
-    const allTags = crdtService.getTags();
-    setTags(allTags);
-  };
-
-  useEffect(() => {
-    refreshTags();
-  }, []);
 
   const tagList = useMemo(() => {
     return Object.values(tags).sort((a, b) => a.name.localeCompare(b.name));

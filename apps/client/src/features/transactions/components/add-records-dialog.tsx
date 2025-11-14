@@ -21,7 +21,7 @@ import { RecurringSelect } from "./recurring-select";
 
 import { transactionService } from "@/features/transactions/services/transaction.service";
 import { categoryService } from "@/features/categories/services/category.service";
-import { accountService } from "@/features/accounts/services/account";
+import { getAllAccounts } from "@/features/accounts/services/account.queries";
 
 
 export function RecordsDialog({ children }: React.PropsWithChildren) {
@@ -96,14 +96,7 @@ export function RecordsForm({ onSubmit }: { onSubmit: RecordsSubmit }) {
 
   const [{ data: accounts, isLoading: loadingAct }, { data: categories, isLoading: loadingCtg }] = useQueries({
     queries: [
-      {
-        queryKey: ["accounts"],
-        queryFn: async () => {
-          const result = await accountService.getAccounts();
-          if (result.isErr()) throw result.error;
-          return result.value;
-        },
-      },
+      getAllAccounts(),
       {
         queryKey: ["categories"],
         queryFn: async () => {

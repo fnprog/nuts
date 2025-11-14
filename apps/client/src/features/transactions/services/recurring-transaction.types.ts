@@ -1,139 +1,156 @@
-import { z } from "zod";
+import { type } from "@nuts/validation";
 
-// Frequency data schema for complex recurrence patterns
-export const frequencyDataSchema = z.object({
-  day_of_week: z.number().min(0).max(6).optional(), // 0=Sunday, 1=Monday, etc.
-  day_of_month: z.number().min(1).max(31).optional(), // 1-31
-  week_of_month: z.number().min(-1).max(5).optional(), // 1=first, 2=second, -1=last
-  month_of_year: z.number().min(1).max(12).optional(), // 1-12
-  week_days: z.array(z.number().min(0).max(6)).optional(), // For patterns like "weekdays only"
-  specific_dates: z.array(z.number().min(1).max(31)).optional(), // For patterns like "1st and 15th"
-  pattern: z.string().optional(), // Natural language pattern
+export const frequencyDataSchema = type({
+  "day_of_week?": "0 <= number <= 6 | string.numeric.parse",
+  "day_of_month?": "1 <= number <= 31 | string.numeric.parse",
+  "week_of_month?": "-1 <= number <= 5 | string.numeric.parse",
+  "month_of_year?": "1 <= number <= 12 | string.numeric.parse",
+  "week_days?": "(0 <= number <= 6)[]",
+  "specific_dates?": "(1 <= number <= 31)[]",
+  "pattern?": "string",
 });
 
-// Base recurring transaction schema
-export const baseRecurringTransactionSchema = z.object({
-  id: z.string(),
-  user_id: z.string(),
-  account_id: z.string(),
-  category_id: z.string().optional(),
-  destination_account_id: z.string().optional(),
-  amount: z.number().positive(),
-  type: z.enum(["income", "expense", "transfer"]),
-  description: z.string().optional(),
-  details: z.object({
-    payment_medium: z.string().optional(),
-    location: z.string().optional(),
-    note: z.string().optional(),
-    payment_status: z.string().optional(),
-  }).optional(),
-  frequency: z.enum(["daily", "weekly", "biweekly", "monthly", "yearly", "custom"]),
-  frequency_interval: z.number().min(1).default(1),
-  frequency_data: frequencyDataSchema.optional(),
-  start_date: z.coerce.date(),
-  end_date: z.coerce.date().optional(),
-  last_generated_date: z.coerce.date().optional(),
-  next_due_date: z.coerce.date(),
-  auto_post: z.boolean().default(false),
-  is_paused: z.boolean().default(false),
-  max_occurrences: z.number().positive().optional(),
-  occurrences_count: z.number().min(0).default(0),
-  template_name: z.string().optional(),
-  tags: z.array(z.string()).optional(),
-  created_at: z.coerce.date(),
-  updated_at: z.coerce.date(),
-  deleted_at: z.coerce.date().optional(),
+const recurringDetailsSchema = type({
+  "payment_medium?": "string",
+  "location?": "string",
+  "note?": "string",
+  "payment_status?": "string",
 });
 
-// Recurring transaction creation schema
-export const recurringTransactionCreateSchema = baseRecurringTransactionSchema.omit({
-  id: true,
-  user_id: true,
-  last_generated_date: true,
-  next_due_date: true,
-  occurrences_count: true,
-  created_at: true,
-  updated_at: true,
-  deleted_at: true,
+export const baseRecurringTransactionSchema = type({
+  id: "string",
+  user_id: "string",
+  account_id: "string",
+  "category_id?": "string",
+  "destination_account_id?": "string",
+  amount: "number > 0",
+  type: "'income' | 'expense' | 'transfer'",
+  "description?": "string",
+  "details?": recurringDetailsSchema,
+  frequency: "'daily' | 'weekly' | 'biweekly' | 'monthly' | 'yearly' | 'custom'",
+  "frequency_interval?": "number >= 1",
+  "frequency_data?": frequencyDataSchema,
+  start_date: "Date | string.date.parse",
+  "end_date?": "Date | string.date.parse",
+  "last_generated_date?": "Date | string.date.parse",
+  next_due_date: "Date | string.date.parse",
+  "auto_post?": "boolean",
+  "is_paused?": "boolean",
+  "max_occurrences?": "number > 0",
+  "occurrences_count?": "number >= 0",
+  "template_name?": "string",
+  "tags?": "string[]",
+  created_at: "Date | string.date.parse",
+  updated_at: "Date | string.date.parse",
+  "deleted_at?": "Date | string.date.parse",
 });
 
-// Recurring transaction update schema
-export const recurringTransactionUpdateSchema = recurringTransactionCreateSchema.extend({
-  update_mode: z.enum(["future_only", "next_only", "split_series"]).default("future_only"),
-}).partial();
-
-// Recurring instance schema
-export const recurringInstanceSchema = z.object({
-  due_date: z.coerce.date(),
-  amount: z.number(),
-  description: z.string().optional(),
-  transaction_id: z.string().optional(),
-  status: z.enum(["pending", "posted", "skipped", "failed"]),
-  is_projected: z.boolean(),
-  can_modify: z.boolean(),
+export const recurringTransactionCreateSchema = type({
+  account_id: "string",
+  "category_id?": "string",
+  "destination_account_id?": "string",
+  amount: "number > 0",
+  type: "'income' | 'expense' | 'transfer'",
+  "description?": "string",
+  "details?": recurringDetailsSchema,
+  frequency: "'daily' | 'weekly' | 'biweekly' | 'monthly' | 'yearly' | 'custom'",
+  "frequency_interval?": "number >= 1",
+  "frequency_data?": frequencyDataSchema,
+  start_date: "Date | string.date.parse",
+  "end_date?": "Date | string.date.parse",
+  "auto_post?": "boolean",
+  "is_paused?": "boolean",
+  "max_occurrences?": "number > 0",
+  "template_name?": "string",
+  "tags?": "string[]",
 });
 
-// Recurring transaction stats schema
-export const recurringTransactionStatsSchema = z.object({
-  total_count: z.number(),
-  active_count: z.number(),
-  paused_count: z.number(),
-  due_count: z.number(),
+export const recurringTransactionUpdateSchema = type({
+  "account_id?": "string",
+  "category_id?": "string",
+  "destination_account_id?": "string",
+  "amount?": "number > 0",
+  "type?": "'income' | 'expense' | 'transfer'",
+  "description?": "string",
+  "details?": recurringDetailsSchema,
+  "frequency?": "'daily' | 'weekly' | 'biweekly' | 'monthly' | 'yearly' | 'custom'",
+  "frequency_interval?": "number >= 1",
+  "frequency_data?": frequencyDataSchema,
+  "start_date?": "Date | string.date.parse",
+  "end_date?": "Date | string.date.parse",
+  "auto_post?": "boolean",
+  "is_paused?": "boolean",
+  "max_occurrences?": "number > 0",
+  "template_name?": "string",
+  "tags?": "string[]",
+  "update_mode?": "'future_only' | 'next_only' | 'split_series'",
 });
 
-// Recurring transaction filters schema
-export const recurringTransactionFiltersSchema = z.object({
-  account_id: z.string().optional(),
-  category_id: z.string().optional(),
-  frequency: z.string().optional(),
-  is_paused: z.boolean().optional(),
-  auto_post: z.boolean().optional(),
-  template_name: z.string().optional(),
-  start_date: z.coerce.date().optional(),
-  end_date: z.coerce.date().optional(),
+export const recurringInstanceSchema = type({
+  due_date: "Date | string.date.parse",
+  amount: "number",
+  "description?": "string",
+  "transaction_id?": "string",
+  status: "'pending' | 'posted' | 'skipped' | 'failed'",
+  is_projected: "boolean",
+  can_modify: "boolean",
 });
 
-// Recurring instances request schema
-export const recurringInstancesRequestSchema = z.object({
-  start_date: z.coerce.date(),
-  end_date: z.coerce.date(),
-  include_projected: z.boolean().default(true),
+export const recurringTransactionStatsSchema = type({
+  total_count: "number",
+  active_count: "number",
+  paused_count: "number",
+  due_count: "number",
 });
 
-// Recurring instances response schema
-export const recurringInstancesResponseSchema = z.object({
-  instances: z.array(recurringInstanceSchema),
-  summary: z.object({
-    total_count: z.number(),
-    pending_count: z.number(),
-    posted_count: z.number(),
-    skipped_count: z.number(),
-    total_amount: z.number(),
+export const recurringTransactionFiltersSchema = type({
+  "account_id?": "string",
+  "category_id?": "string",
+  "frequency?": "string",
+  "is_paused?": "boolean",
+  "auto_post?": "boolean",
+  "template_name?": "string",
+  "start_date?": "Date | string.date.parse",
+  "end_date?": "Date | string.date.parse",
+});
+
+export const recurringInstancesRequestSchema = type({
+  start_date: "Date | string.date.parse",
+  end_date: "Date | string.date.parse",
+  "include_projected?": "boolean",
+});
+
+export const recurringInstancesResponseSchema = type({
+  instances: type([recurringInstanceSchema, "[]"]),
+  summary: type({
+    total_count: "number",
+    pending_count: "number",
+    posted_count: "number",
+    skipped_count: "number",
+    total_amount: "number",
   }),
 });
 
-// Process recurring transaction schema
-export const processRecurringTransactionSchema = z.object({
-  action: z.enum(["post", "skip", "modify"]),
-  transaction_request: z.object({
-    amount: z.number().optional(),
-    description: z.string().optional(),
-    category_id: z.string().optional(),
-    transaction_datetime: z.coerce.date().optional(),
-  }).optional(),
+export const processRecurringTransactionSchema = type({
+  action: "'post' | 'skip' | 'modify'",
+  "transaction_request?": type({
+    "amount?": "number",
+    "description?": "string",
+    "category_id?": "string",
+    "transaction_datetime?": "Date | string.date.parse",
+  }),
 });
 
-// Type exports
-export type FrequencyData = z.infer<typeof frequencyDataSchema>;
-export type RecurringTransaction = z.infer<typeof baseRecurringTransactionSchema>;
-export type RecurringTransactionCreate = z.infer<typeof recurringTransactionCreateSchema>;
-export type RecurringTransactionUpdate = z.infer<typeof recurringTransactionUpdateSchema>;
-export type RecurringInstance = z.infer<typeof recurringInstanceSchema>;
-export type RecurringTransactionStats = z.infer<typeof recurringTransactionStatsSchema>;
-export type RecurringTransactionFilters = z.infer<typeof recurringTransactionFiltersSchema>;
-export type RecurringInstancesRequest = z.infer<typeof recurringInstancesRequestSchema>;
-export type RecurringInstancesResponse = z.infer<typeof recurringInstancesResponseSchema>;
-export type ProcessRecurringTransaction = z.infer<typeof processRecurringTransactionSchema>;
+export type FrequencyData = typeof frequencyDataSchema.infer;
+export type RecurringTransaction = typeof baseRecurringTransactionSchema.infer;
+export type RecurringTransactionCreate = typeof recurringTransactionCreateSchema.infer;
+export type RecurringTransactionUpdate = typeof recurringTransactionUpdateSchema.infer;
+export type RecurringInstance = typeof recurringInstanceSchema.infer;
+export type RecurringTransactionStats = typeof recurringTransactionStatsSchema.infer;
+export type RecurringTransactionFilters = typeof recurringTransactionFiltersSchema.infer;
+export type RecurringInstancesRequest = typeof recurringInstancesRequestSchema.infer;
+export type RecurringInstancesResponse = typeof recurringInstancesResponseSchema.infer;
+export type ProcessRecurringTransaction = typeof processRecurringTransactionSchema.infer;
 
 // Common frequency options for UI
 export const frequencyOptions = [

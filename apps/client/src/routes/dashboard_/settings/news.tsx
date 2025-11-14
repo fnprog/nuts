@@ -4,7 +4,7 @@ import { Badge } from "@/core/components/ui/badge";
 import { Skeleton } from "@/core/components/ui/skeleton";
 import { AlertCircle } from "lucide-react";
 import { useGitHubReleasesQuery } from "@/features/preferences/services/releases.queries";
-import { H3, P, Small } from "@/core/components/ui/typography";
+import { H3, P, Small, Muted } from "@/core/components/ui/typography";
 
 export const Route = createFileRoute("/dashboard_/settings/news")({
   component: RouteComponent,
@@ -81,13 +81,13 @@ function RouteComponent() {
                 <div className="bg-primary absolute top-2 left-0 h-2 w-2 -translate-x-[3px] rounded-full" />
                 <div className="flex items-center gap-2">
                   <Small className="font-semibold">v{update.version}</Small>
-                  <Small variant="muted">{update.date}</Small>
+                  <Muted >{update.date}</Muted>
                   <Badge variant={update.type === "feature" ? "default" : update.type === "improvement" ? "secondary" : "destructive"}>{update.type}</Badge>
                 </div>
                 <H3 className="mt-2 font-medium">{update.title}</H3>
-                <Small variant="muted" className="mt-1">
+                <Muted className="mt-1">
                   {update.description}
-                </Small>
+                </Muted>
               </div>
             ))
           ) : (

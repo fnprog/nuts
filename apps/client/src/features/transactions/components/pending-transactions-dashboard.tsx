@@ -1,10 +1,9 @@
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
 import { Badge } from "@/core/components/ui/badge";
 import { Button } from "@/core/components/ui/button";
 import { CheckCircle, AlertCircle, Calendar, DollarSign } from "lucide-react";
-import { getTransactions } from "../services/transaction";
+import { useTransactions } from "../services/transaction.queries";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { getTransactionStatus } from "../utils/transaction-status";
 
@@ -13,27 +12,19 @@ interface PendingTransactionsDashboardProps {
 }
 
 export function PendingTransactionsDashboard({ className }: PendingTransactionsDashboardProps) {
-  // Get pending transactions
-  const { data: pendingTransactions } = useQuery({
-    queryKey: ["transactions", { is_pending: true, page: 1, limit: 10 }],
-    queryFn: () => getTransactions({ page: 1, is_pending: true, limit: 10 }),
-  });
+  const { data: pendingTransactions } = useTransactions({ page: 1, is_pending: true, limit: 10 });
 
-  // Get recurring transactions stats
-  const { data: recurringTransactions } = useQuery({
-    queryKey: ["transactions", { is_recurring: true, page: 1, limit: 100 }],
-    queryFn: () => getTransactions({ page: 1, is_recurring: true, limit: 100 }),
-  });
+  const { data: recurringTransactions } = useTransactions({ page: 1, is_recurring: true, limit: 100 });
 
   const stats = useMemo(() => {
     const allRecurring = recurringTransactions?.data?.flatMap(group => group.transactions) || [];
-    
+
     const pending = allRecurring.filter(t => getTransactionStatus(t).isPending);
     const autoPosted = allRecurring.filter(t => getTransactionStatus(t).isAutoPosted);
     const totalRecurring = allRecurring.length;
-    
+
     const pendingAmount = pending.reduce((sum, t) => sum + Math.abs(t.amount), 0);
-    
+
     return {
       totalRecurring,
       pendingCount: pending.length,

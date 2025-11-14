@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { arktypeResolver } from "@hookform/resolvers/arktype";
+import { type } from "@nuts/validation";
 import { Button } from "@/core/components/ui/button";
 import { Input } from "@/core/components/ui/input";
 import { Label } from "@/core/components/ui/label";
@@ -12,21 +12,20 @@ import { DatePicker } from "@/core/components/ui/date-picker";
 import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
 import { useMemo, useState } from "react";
 
-const customRecurringSchema = z.object({
-  interval: z.number().min(1).max(365),
-  period: z.enum(["day", "week", "month", "year"]),
-  dayOfWeek: z.array(z.number().min(0).max(6)).optional(),
-  endType: z.enum(["never", "date", "occurrences"]),
-  endDate: z.date().optional(),
-  maxOccurrences: z.number().min(1).optional(),
-  naturalLanguagePattern: z.string().optional(),
-  // Enhanced auto-posting controls
-  autoPostMode: z.enum(["always", "review", "smart", "preview"]).default("review"),
-  smartThreshold: z.number().min(0).optional(),
-  previewDays: z.number().min(1).max(30).optional(),
+const customRecurringSchema = type({
+  interval: "1 <= number <= 365 | string.numeric.parse",
+  period: "'day' | 'week' | 'month' | 'year'",
+  "dayOfWeek?": "(0 <= number <= 6)[]",
+  endType: "'never' | 'date' | 'occurrences'",
+  "endDate?": "Date | string.date.parse",
+  "maxOccurrences?": "number >= 1 | string.numeric.parse",
+  "naturalLanguagePattern?": "string",
+  "autoPostMode?": "'always' | 'review' | 'smart' | 'preview'",
+  "smartThreshold?": "number >= 0 | string.numeric.parse",
+  "previewDays?": "1 <= number <= 30 | string.numeric.parse",
 });
 
-type CustomRecurringData = z.infer<typeof customRecurringSchema>;
+type CustomRecurringData = typeof customRecurringSchema.infer;
 
 interface CustomRecurringModalProps {
   isOpen: boolean;
@@ -35,21 +34,21 @@ interface CustomRecurringModalProps {
   defaultValues?: Partial<CustomRecurringData>;
 }
 
-export function CustomRecurringModal({ 
-  isOpen, 
-  onClose, 
-  onSave, 
-  defaultValues 
+export function CustomRecurringModal({
+  isOpen,
+  onClose,
+  onSave,
+  defaultValues
 }: CustomRecurringModalProps) {
   const [naturalLanguageInput, setNaturalLanguageInput] = useState("");
   const [parsedPattern, setParsedPattern] = useState<string>("");
-  
+
   const form = useForm<CustomRecurringData>({
-    resolver: zodResolver(customRecurringSchema),
+    resolver: arktypeResolver(customRecurringSchema),
     defaultValues: {
       interval: 1,
       period: "week",
-      dayOfWeek: [5], // Default to Friday
+      dayOfWeek: [5],
       endType: "never",
       autoPostMode: "review",
       smartThreshold: 50,
@@ -77,7 +76,7 @@ export function CustomRecurringModal({
         // This is a simple example - you could expand this logic
         const patterns = parseNaturalLanguagePattern(input);
         setParsedPattern(patterns.description);
-        
+
         // Update form values based on parsed pattern
         if (patterns.interval) form.setValue("interval", patterns.interval);
         if (patterns.period) form.setValue("period", patterns.period);
@@ -92,7 +91,7 @@ export function CustomRecurringModal({
 
   const parseNaturalLanguagePattern = (input: string) => {
     const lowercaseInput = input.toLowerCase();
-    
+
     // Simple pattern matching - can be expanded
     if (lowercaseInput.includes("every month on the 14th 18th and 19th")) {
       return {
@@ -103,7 +102,7 @@ export function CustomRecurringModal({
         dayOfWeek: undefined as number[] | undefined
       };
     }
-    
+
     if (lowercaseInput.includes("yearly on the 12 of the 3rd month")) {
       return {
         description: "Yearly on March 12th",
@@ -114,7 +113,7 @@ export function CustomRecurringModal({
         dayOfWeek: undefined as number[] | undefined
       };
     }
-    
+
     // Match "every X weeks/months/days"
     const intervalMatch = lowercaseInput.match(/every (\d+) (week|month|day|year)s?/);
     if (intervalMatch) {
@@ -127,7 +126,7 @@ export function CustomRecurringModal({
         dayOfWeek: undefined as number[] | undefined
       };
     }
-    
+
     // Add more pattern matching logic here
     return {
       description: `Custom pattern: ${input}`,
@@ -141,16 +140,16 @@ export function CustomRecurringModal({
     // If there's a parsed pattern from natural language, use that
     if (parsedPattern) {
       let text = parsedPattern;
-      
+
       if (endType === "date" && endDate) {
         text += ` until ${endDate.toLocaleDateString()}`;
       } else if (endType === "occurrences" && maxOccurrences) {
         text += ` for ${maxOccurrences} occurrences`;
       }
-      
+
       return text;
     }
-    
+
     // Otherwise, use the regular preview logic
     let text = `Repeats every ${interval} ${period}`;
     if (interval > 1) {
@@ -158,19 +157,19 @@ export function CustomRecurringModal({
     } else {
       text = `Repeats every ${period}`;
     }
-    
+
     if (period === "week" && dayOfWeek && dayOfWeek.length > 0) {
       const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
       const selectedDays = dayOfWeek.map(day => dayNames[day]).join(", ");
       text += ` on ${selectedDays}`;
     }
-    
+
     if (endType === "date" && endDate) {
       text += ` until ${endDate.toLocaleDateString()}`;
     } else if (endType === "occurrences" && maxOccurrences) {
       text += ` for ${maxOccurrences} occurrences`;
     }
-    
+
     return text;
   }, [interval, period, dayOfWeek, endType, endDate, maxOccurrences, parsedPattern]);
 
@@ -210,7 +209,7 @@ export function CustomRecurringModal({
         <DialogHeader>
           <DialogTitle>Custom Recurrence</DialogTitle>
         </DialogHeader>
-        
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSave)} className="space-y-6">
             {/* Natural Language Pattern Input */}

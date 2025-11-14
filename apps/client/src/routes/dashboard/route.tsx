@@ -110,7 +110,7 @@ export const Route = createFileRoute("/dashboard")({
       try {
         const user = useAuthStore.getState().user;
 
-        if (user && isOnboardingRequired(user)) {
+        if (user && isOnboardingRequired(user) && !context.auth.isAnonymous) {
           const entryPoint = getOnboardingEntryPoint(user);
           throw redirect({
             to: entryPoint,
@@ -124,28 +124,6 @@ export const Route = createFileRoute("/dashboard")({
       }
     }
 
-
-    // Check if user needs onboarding
-    try {
-      const user = await queryClient.fetchQuery({
-        queryKey: ["user"],
-        queryFn: userService.getMe,
-      });
-
-      if (isOnboardingRequired(user)) {
-        const entryPoint = getOnboardingEntryPoint(user);
-        throw redirect({
-          to: entryPoint,
-        });
-      }
-    } catch (redirectError) {
-      // Re-throw redirect errors
-      if (redirectError && typeof redirectError === 'object' && 'type' in redirectError) {
-        throw redirectError;
-      }
-      // If we can't fetch user data, let them through and handle it later
-      console.error("Failed to check onboarding status:", redirectError);
-    }
 
     const accounts = await queryClient.fetchQuery(getAllAccounts())
 

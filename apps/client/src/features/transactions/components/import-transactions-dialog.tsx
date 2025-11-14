@@ -24,7 +24,7 @@ import { arktypeResolver } from '@hookform/resolvers/arktype';
 import { type } from "arktype";
 import { transactionService } from "@/features/transactions/services/transaction.service";
 import { categoryService } from "@/features/categories/services/category.service";
-import { accountService } from "@/features/accounts/services/account";
+import { getAllAccounts } from "@/features/accounts/services/account.queries";
 
 type CSVRow = Record<string, string>;
 type ImportStep = "upload" | "mapping" | "preview" | "importing";
@@ -83,14 +83,7 @@ export function ImportTransactionsDialog({ children }: React.PropsWithChildren) 
 
   const [{ data: accounts, isLoading: loadingAccounts }, { data: categories, isLoading: loadingCategories }] = useQueries({
     queries: [
-      {
-        queryKey: ["accounts"],
-        queryFn: async () => {
-          const result = await accountService.getAccounts();
-          if (result.isErr()) throw result.error;
-          return result.value;
-        },
-      },
+      getAllAccounts(),
       {
         queryKey: ["categories"],
         queryFn: async () => {

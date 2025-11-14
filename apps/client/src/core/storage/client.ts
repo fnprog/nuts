@@ -217,6 +217,13 @@ export class DatabaseClient {
     await this.migrationRunner.reset();
     console.log("✓ Database reset complete");
   }
+
+  getMigrationRunner(): MigrationRunner {
+    if (!this.migrationRunner) {
+      throw new Error("Migration runner not initialized");
+    }
+    return this.migrationRunner;
+  }
 }
 
 export const db = new DatabaseClient();

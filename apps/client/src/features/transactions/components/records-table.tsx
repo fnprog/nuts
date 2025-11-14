@@ -28,13 +28,14 @@ import { DeleteTransactionDialog } from "./del-records-dialog"
 import { FloatingActionBar } from "./floating-records-bar"
 import { BulkEditDialog } from "./bulk-edit-dialog"
 import { useDebounce } from "@/core/hooks/use-debounce";
-import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query"
-import { getTransactions, bulkDeleteTransactions, type GetTransactionsParams } from "../services/transaction"
+import { useQueryClient } from "@tanstack/react-query"
+import { type GetTransactionsParams } from "../services/transaction.types"
+import { useTransactionsSuspense } from "../services/transaction.queries"
+import { useBulkDeleteTransactions } from "../services/transaction.mutations"
 import { logger } from "@/lib/logger"
 import { toast } from "sonner"
 import { TransactionFilterDropdown, type TransactionFilterState } from "./transaction-filter-dropdown"
 import { getTransactionStatus, getTransactionStyles } from "../utils/transaction-status"
-import { transactionService } from "@/features/transactions/services/transaction.service";
 
 interface RecordsTableProps {
   initialPage: number;
@@ -179,21 +180,9 @@ export const RecordsTable = ({ initialPage, onPageChange }: RecordsTableProps) =
     return params;
   }, [initialPage, debouncedSearch, debouncedFilters]);
 
-  const { data: transactions, isFetching } = useSuspenseQuery({
-    queryKey: ["transactions", queryParams],
-    queryFn: async () => {
-      const result = await transactionService.getTransactions(queryParams);
-      if (result.isErr()) throw result.error;
-      return result.value;
-    },
-  });
+  const { data: transactions, isFetching } = useTransactionsSuspense(queryParams);
 
-  const bulkDeleteMutation = useMutation({
-    mutationFn: async (ids: string[]) => {
-      const result = await transactionService.bulkDeleteTransactions(ids);
-      if (result.isErr()) throw result.error;
-      return result.value;
-    },
+  const bulkDeleteMutation = useBulkDeleteTransactions({
     onSuccess: (_, ids) => {
       toast.success(`${ids.length} transaction${ids.length > 1 ? "s" : ""} deleted successfully!`);
       queryClient.invalidateQueries({ queryKey: ["transactions"] });

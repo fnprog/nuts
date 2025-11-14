@@ -8,12 +8,12 @@ import { memo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Popover, PopoverContent, PopoverTrigger } from "@/core/components/ui/popover";
 import { SearchableSelect, SearchableSelectOption } from "@/core/components/ui/search-select";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useMemo } from "react";
 import { getTransactionStatus, getTransactionStyles } from "../utils/transaction-status";
-import { transactionService } from "@/features/transactions/services/transaction.service";
-import { categoryService } from "@/features/categories/services/category.service";
+import { transactionService } from "../services/transaction.service";
+import { useCategoriesQuery } from "@/features/categories/services/category.queries";
 
 type TransactionRowData = TableRecordSchema & {
   groupId?: string;
@@ -78,22 +78,11 @@ const CategoryCell = memo(({ transaction }: { transaction: TableRecordSchema }) 
   const [isOpen, setIsOpen] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: categories } = useQuery({
-    queryKey: ["categories"],
-    queryFn: async () => {
-      const result = await categoryService.getCategories();
-      if (result.isErr()) throw result.error;
-      return result.value;
-    },
-    gcTime: 1000 * 60 * 5,
-    staleTime: 1000 * 60 * 2,
-    refetchOnMount: false,
-    retry: 1,
-  });
+  const { data: categories } = useCategoriesQuery();
 
   const updateCategoryMutation = useMutation({
-    mutationFn: async (categoryId: string) => {
-      const result = await transactionService.bulkUpdateCategories([transaction.id], categoryId);
+    mutationFn: async ({ transactionIds, categoryId }: { transactionIds: string[]; categoryId: string }) => {
+      const result = await transactionService.bulkUpdateCategories(transactionIds, categoryId);
       if (result.isErr()) throw result.error;
       return result.value;
     },
@@ -119,7 +108,7 @@ const CategoryCell = memo(({ transaction }: { transaction: TableRecordSchema }) 
 
   const handleCategoryChange = (categoryId: string) => {
     if (categoryId && categoryId !== transaction.category?.id) {
-      updateCategoryMutation.mutate(categoryId);
+      updateCategoryMutation.mutate({ transactionIds: [transaction.id], categoryId });
     }
   };
 

@@ -13,7 +13,7 @@ import { Input } from "@/core/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/core/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/core/components/ui/dialog";
 import type { PluginConfig } from "@/features/plugins/types";
-import { H2, P, Small } from "@/core/components/ui/typography";
+import { H2, P, Small, Muted } from "@/core/components/ui/typography";
 
 export const Route = createFileRoute("/dashboard_/settings/features")({
   component: RouteComponent,
@@ -235,7 +235,7 @@ function MarketplaceContent() {
               <CardDescription>{plugin.description}</CardDescription>
             </CardHeader>
             <CardContent>
-              <Small variant="muted">By {plugin.author}</Small>
+              <Muted >By {plugin.author}</Muted>
             </CardContent>
             <CardFooter>
               <Button className="w-full" disabled={installedPluginIds.includes(plugin.id)} onClick={() => addPlugin(plugin.id)}>

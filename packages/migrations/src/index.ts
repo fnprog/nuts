@@ -1,5 +1,6 @@
 export * from "./types";
 export * from "./runner";
+export * from "./plugin-runner";
 export { migration001 } from "./files/001_initial_schema";
 export { migration002 } from "./files/002_align_account_schema";
 export { migration003 } from "./files/003_sync_schema_alignment";

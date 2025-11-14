@@ -1,6 +1,6 @@
 import { db } from "@/core/storage/client";
 import { CRDTTransaction, CRDTAccount, CRDTCategory, CRDTRule } from "@nuts/types";
-import type { GetTransactionsParams } from "@/features/transactions/services/transaction";
+import type { GetTransactionsParams } from "@/features/transactions/services/transaction.types";
 import { sql } from "kysely";
 import { Result, ok, err } from "@/lib/result";
 import { ServiceError } from "@/lib/service-error";

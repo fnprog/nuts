@@ -1,22 +1,22 @@
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { arktypeResolver } from "@hookform/resolvers/arktype";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/core/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/components/ui/select";
 import { Input } from "@/core/components/ui/input";
 import { Switch } from "@/core/components/ui/switch";
-import { z } from "zod";
+import { type } from "@nuts/validation";
 
-const recurringFormSchema = z.object({
-  frequency: z.enum(["daily", "weekly", "monthly", "yearly"]),
-  interval: z.number().min(1).max(365),
-  day_of_week: z.number().min(0).max(6).optional(),
-  day_of_month: z.number().min(1).max(31).optional(),
-  auto_post: z.boolean(),
-  end_date: z.date().optional(),
-  max_occurrences: z.number().optional(),
+const recurringFormSchema = type({
+  frequency: "'daily' | 'weekly' | 'monthly' | 'yearly'",
+  interval: "1 <= number <= 365 | string.numeric.parse",
+  "day_of_week?": "0 <= number <= 6 | string.numeric.parse",
+  "day_of_month?": "1 <= number <= 31 | string.numeric.parse",
+  auto_post: "boolean",
+  "end_date?": "Date | string.date.parse",
+  "max_occurrences?": "number | string.numeric.parse",
 });
 
-type RecurringFormData = z.infer<typeof recurringFormSchema>;
+type RecurringFormData = typeof recurringFormSchema.infer;
 
 interface RecurringTransactionFormProps {
   onSubmit?: (data: RecurringFormData) => void;
@@ -28,7 +28,7 @@ export function RecurringTransactionForm({
   defaultValues 
 }: RecurringTransactionFormProps) {
   const form = useForm<RecurringFormData>({
-    resolver: zodResolver(recurringFormSchema),
+    resolver: arktypeResolver(recurringFormSchema),
     defaultValues: {
       frequency: "monthly",
       interval: 1,

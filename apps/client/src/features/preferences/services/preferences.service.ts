@@ -1,5 +1,5 @@
 import { connectivityService } from "@/core/sync/connectivity";
-import { preferencesService as preferencesApi, type PreferencesResponse } from "@/features/preferences/api/preferences";
+import { preferencesService as preferencesApi, type PreferencesResponse } from "./preferences";
 import { Result, ok, err, ServiceError } from "@/lib/result";
 
 interface CachedPreferences {

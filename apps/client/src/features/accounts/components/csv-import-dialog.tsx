@@ -20,7 +20,7 @@ import { Badge } from "@/core/components/ui/badge";
 import { Upload, FileSpreadsheet, AlertCircle, CheckCircle, ArrowRight, ArrowLeft } from "lucide-react";
 import { accountService } from "@/features/accounts/services/account";
 import { categoryService } from "@/features/categories/services/category.service";
-import { bulkCreateTransactions } from "@/features/transactions/services/transaction";
+import { bulkCreateTransactions } from "@/features/transactions/api/transaction.api";
 import { RecordCreateSchema } from "@/features/transactions/services/transaction.types";
 import { AccountFormSchema } from "@/features/accounts/services/account.types";
 import { toast } from "sonner";

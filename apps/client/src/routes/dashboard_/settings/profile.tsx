@@ -14,15 +14,15 @@ import {
   AlertDialogTrigger,
 } from "@/core/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/core/components/ui/avatar";
-import { P, Small } from "@/core/components/ui/typography";
-import { userService } from "@/features/preferences/services/user.service";
+import { P, Small, Muted } from "@/core/components/ui/typography";
+import { userService } from "@/features/users/services/user.service";
 import { useState, useRef } from "react";
 import { type } from "@nuts/validation";
 import { useForm } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/core/components/ui/form";
 import { useAuthStore } from "@/features/auth/stores/auth.store";
 import { useUserQuery } from "@/features/auth/services/auth.queries";
-import { useUpdateAvatar, useUpdateUserInfo } from "@/features/preferences/services/user.mutations";
+import { useUpdateAvatar, useUpdateUserInfo } from "@/features/users/services/user.mutations";
 import { RiShieldUserLine } from "@remixicon/react";
 import { arktypeResolver } from "@hookform/resolvers/arktype";
 
@@ -174,7 +174,7 @@ function RouteComponent() {
               <Button variant="outline" className="mb-2" onClick={() => fileInputRef.current?.click()} disabled={isLocalOnlyMode}>
                 Change Avatar
               </Button>
-              <Small variant="muted">Maximum file size: 5MB</Small>
+              <Muted >Maximum file size: 5MB</Muted>
             </div>
           </div>
 
