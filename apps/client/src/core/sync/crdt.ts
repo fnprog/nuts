@@ -1027,6 +1027,15 @@ class CRDTService {
       };
 
       this.doc = Automerge.change(this.doc, (doc) => {
+        if (!(doc as any).plugins) {
+          (doc as any).plugins = {};
+        }
+        if (!(doc as any).plugin_data) {
+          (doc as any).plugin_data = {};
+        }
+        if (!(doc as any).plugin_migrations) {
+          (doc as any).plugin_migrations = {};
+        }
         (doc as any).plugins[plugin.id] = pluginWithTimestamps;
         doc.updated_at = timestamp;
       });
@@ -1048,8 +1057,9 @@ class CRDTService {
       const timestamp = new Date().toISOString();
 
       this.doc = Automerge.change(this.doc, (doc) => {
-        const plugin = (doc as any).plugins[id];
-        if (plugin) {
+        const docAny = doc as any;
+        if (docAny.plugins && docAny.plugins[id]) {
+          const plugin = docAny.plugins[id];
           for (const [key, value] of Object.entries(updates)) {
             plugin[key] = value;
           }
@@ -1075,9 +1085,16 @@ class CRDTService {
       const timestamp = new Date().toISOString();
 
       this.doc = Automerge.change(this.doc, (doc) => {
-        delete (doc as any).plugins[id];
-        delete (doc as any).plugin_data[id];
-        delete (doc as any).plugin_migrations[id];
+        const docAny = doc as any;
+        if (docAny.plugins && docAny.plugins[id]) {
+          delete docAny.plugins[id];
+        }
+        if (docAny.plugin_data && docAny.plugin_data[id]) {
+          delete docAny.plugin_data[id];
+        }
+        if (docAny.plugin_migrations && docAny.plugin_migrations[id]) {
+          delete docAny.plugin_migrations[id];
+        }
         doc.updated_at = timestamp;
       });
 
@@ -1110,7 +1127,8 @@ class CRDTService {
 
     const currentDoc = this.doc as any;
     const pluginData = currentDoc.plugin_data?.[pluginId] || {};
-    return pluginData[collection] || {};
+    const collectionData = pluginData[collection] || {};
+    return JSON.parse(JSON.stringify(collectionData));
   }
 
   async setPluginData<T = any>(
@@ -1122,15 +1140,19 @@ class CRDTService {
       if (!this.doc) throw new Error("CRDT document not initialized");
 
       const timestamp = new Date().toISOString();
+      const serializedData = JSON.parse(JSON.stringify(data));
 
       this.doc = Automerge.change(this.doc, (doc) => {
         const docAny = doc as any;
 
+        if (!docAny.plugin_data) {
+          docAny.plugin_data = {};
+        }
         if (!docAny.plugin_data[pluginId]) {
           docAny.plugin_data[pluginId] = {};
         }
 
-        docAny.plugin_data[pluginId][collection] = data;
+        docAny.plugin_data[pluginId][collection] = serializedData;
         doc.updated_at = timestamp;
       });
 
@@ -1215,7 +1237,10 @@ class CRDTService {
       const timestamp = new Date().toISOString();
 
       this.doc = Automerge.change(this.doc, (doc) => {
-        delete (doc as any).plugin_data[pluginId];
+        const docAny = doc as any;
+        if (docAny.plugin_data && docAny.plugin_data[pluginId]) {
+          delete docAny.plugin_data[pluginId];
+        }
         doc.updated_at = timestamp;
       });
 

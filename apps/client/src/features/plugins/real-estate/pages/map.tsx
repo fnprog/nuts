@@ -2,9 +2,15 @@ import { useRealEstateStore } from "../store";
 import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
 import { Badge } from "@/core/components/ui/badge";
 import { MapPin, Home, Building } from "lucide-react";
+import { useEffect } from "react";
 
 export function Map() {
-  const { properties } = useRealEstateStore();
+  const properties = useRealEstateStore((state) => state.properties);
+  const loadProperties = useRealEstateStore((state) => state.loadProperties);
+
+  useEffect(() => {
+    loadProperties();
+  }, [loadProperties]);
 
   return (
     <div className="space-y-6">

@@ -1,118 +1,106 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 import { Property, RealEstateState } from "./types";
+import { crdtService } from "@/core/sync/crdt";
 
 interface RealEstateStore extends RealEstateState {
-  addProperty: (property: Property) => void;
-  updateProperty: (id: string, property: Partial<Property>) => void;
-  removeProperty: (id: string) => void;
+  loadProperties: () => Promise<void>;
+  addProperty: (property: Property) => Promise<void>;
+  updateProperty: (id: string, property: Partial<Property>) => Promise<void>;
+  removeProperty: (id: string) => Promise<void>;
   calculateTotals: () => void;
 }
 
-export const useRealEstateStore = create<RealEstateStore>()(
-  persist(
-    (set, get) => ({
-      properties: [],
-      totalValue: 0,
-      totalEquity: 0,
-      totalDebt: 0,
-      totalRentalIncome: 0,
+export const useRealEstateStore = create<RealEstateStore>()((set, get) => ({
+  properties: [],
+  totalValue: 0,
+  totalEquity: 0,
+  totalDebt: 0,
+  totalRentalIncome: 0,
 
-      addProperty: (property) => {
-        set((state) => ({
-          properties: [...state.properties, property],
-        }));
-        get().calculateTotals();
-      },
+  loadProperties: async () => {
+    const propertyCollection = crdtService.getPluginData<Omit<Property, "mortgage" | "rental">>("real-estate", "properties");
+    const mortgageCollection = crdtService.getPluginData<Property["mortgage"]>("real-estate", "mortgages");
+    const rentalCollection = crdtService.getPluginData<Property["rental"]>("real-estate", "rentals");
+    
+    const properties: Property[] = Object.values(propertyCollection).map((propertyData) => ({
+      ...propertyData,
+      mortgage: mortgageCollection[propertyData.id],
+      rental: rentalCollection[propertyData.id],
+    }));
 
-      updateProperty: (id, updatedProperty) => {
-        set((state) => ({
-          properties: state.properties.map((property) => (property.id === id ? { ...property, ...updatedProperty } : property)),
-        }));
-        get().calculateTotals();
-      },
+    set({ properties });
+    get().calculateTotals();
+  },
 
-      removeProperty: (id) => {
-        set((state) => ({
-          properties: state.properties.filter((property) => property.id !== id),
-        }));
-        get().calculateTotals();
-      },
+  addProperty: async (property) => {
+    const { mortgage, rental, ...propertyData } = property;
 
-      calculateTotals: () => {
-        const properties = get().properties;
+    await crdtService.createPluginRecord("real-estate", "properties", property.id, propertyData);
 
-        const totalValue = properties.reduce((sum, property) => sum + property.currentValue, 0);
-
-        const totalDebt = properties.reduce((sum, property) => sum + (property.mortgage?.loanAmount || 0), 0);
-
-        const totalEquity = totalValue - totalDebt;
-
-        const totalRentalIncome = properties.reduce((sum, property) => (property.type === "rental" ? sum + (property.rental?.monthlyRent || 0) : sum), 0);
-
-        set({
-          totalValue,
-          totalEquity,
-          totalDebt,
-          totalRentalIncome,
-        });
-      },
-    }),
-    {
-      name: "real-estate-storage",
+    if (mortgage) {
+      await crdtService.createPluginRecord("real-estate", "mortgages", property.id, mortgage);
     }
-  )
-);
 
-// Initialize with sample data
-if (typeof window !== "undefined") {
-  const store = useRealEstateStore.getState();
+    if (rental) {
+      await crdtService.createPluginRecord("real-estate", "rentals", property.id, rental);
+    }
 
-  if (store.properties.length === 0) {
-    store.addProperty({
-      id: "1",
-      name: "Main Residence",
-      address: "123 Main St, Anytown, USA",
-      propertyType: "single-family",
-      purchaseDate: "2020-05-15",
-      purchasePrice: 350000,
-      currentValue: 425000,
-      bedrooms: 3,
-      bathrooms: 2,
-      squareFeet: 1800,
-      type: "primary",
-      image: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?q=80&w=1000",
-      mortgage: {
-        loanAmount: 280000,
-        interestRate: 3.5,
-        loanTerm: 30,
-        monthlyPayment: 1257.43,
-      },
+    await get().loadProperties();
+  },
+
+  updateProperty: async (id, updatedProperty) => {
+    const { mortgage, rental, ...propertyData } = updatedProperty;
+
+    if (Object.keys(propertyData).length > 0) {
+      await crdtService.updatePluginRecord("real-estate", "properties", id, propertyData);
+    }
+
+    if (mortgage !== undefined) {
+      if (mortgage === null) {
+        await crdtService.deletePluginRecord("real-estate", "mortgages", id);
+      } else {
+        const result = await crdtService.updatePluginRecord("real-estate", "mortgages", id, mortgage);
+        if (result.isErr()) {
+          await crdtService.createPluginRecord("real-estate", "mortgages", id, mortgage);
+        }
+      }
+    }
+
+    if (rental !== undefined) {
+      if (rental === null) {
+        await crdtService.deletePluginRecord("real-estate", "rentals", id);
+      } else {
+        const result = await crdtService.updatePluginRecord("real-estate", "rentals", id, rental);
+        if (result.isErr()) {
+          await crdtService.createPluginRecord("real-estate", "rentals", id, rental);
+        }
+      }
+    }
+
+    await get().loadProperties();
+  },
+
+  removeProperty: async (id) => {
+    await crdtService.deletePluginRecord("real-estate", "properties", id);
+    await crdtService.deletePluginRecord("real-estate", "mortgages", id);
+    await crdtService.deletePluginRecord("real-estate", "rentals", id);
+
+    await get().loadProperties();
+  },
+
+  calculateTotals: () => {
+    const properties = get().properties;
+
+    const totalValue = properties.reduce((sum, property) => sum + property.currentValue, 0);
+    const totalDebt = properties.reduce((sum, property) => sum + (property.mortgage?.loanAmount || 0), 0);
+    const totalEquity = totalValue - totalDebt;
+    const totalRentalIncome = properties.reduce((sum, property) => (property.type === "rental" ? sum + (property.rental?.monthlyRent || 0) : sum), 0);
+
+    set({
+      totalValue,
+      totalEquity,
+      totalDebt,
+      totalRentalIncome,
     });
-
-    store.addProperty({
-      id: "2",
-      name: "Rental Property",
-      address: "456 Oak Ave, Othertown, USA",
-      propertyType: "condo",
-      purchaseDate: "2021-08-10",
-      purchasePrice: 220000,
-      currentValue: 245000,
-      bedrooms: 2,
-      bathrooms: 2,
-      squareFeet: 1200,
-      type: "rental",
-      image: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?q=80&w=1000",
-      mortgage: {
-        loanAmount: 176000,
-        interestRate: 3.75,
-        loanTerm: 30,
-        monthlyPayment: 815.27,
-      },
-      rental: {
-        monthlyRent: 1800,
-        occupancyRate: 95,
-      },
-    });
-  }
-}
+  },
+}));

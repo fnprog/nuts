@@ -38,34 +38,65 @@ export class PluginMigrationRunner {
 
   async installPlugin(config: PluginConfig): Promise<void> {
     const pluginId = config.id;
+    const appliedMigrations: PluginMigration[] = [];
 
-    await this.crdtService.createPlugin({
-      id: pluginId,
-      name: config.name,
-      version: config.version,
-      status: "installing",
-      installed_at: new Date().toISOString(),
-    });
-
-    if (config.migrations && config.migrations.length > 0) {
-      for (const migration of config.migrations) {
-        await this.runPluginMigration(pluginId, migration);
-      }
-    }
-
-    await this.crdtService.initializePluginData(pluginId);
-
-    if (config.onInstall) {
-      await config.onInstall({
-        pluginId,
-        crdtService: this.crdtService,
-        execute: this.execute,
+    try {
+      await this.crdtService.createPlugin({
+        id: pluginId,
+        name: config.name,
+        version: config.version,
+        status: "installing",
+        installed_at: new Date().toISOString(),
       });
-    }
 
-    await this.crdtService.updatePlugin(pluginId, {
-      status: "enabled",
-    });
+      if (config.migrations && config.migrations.length > 0) {
+        for (const migration of config.migrations) {
+          await this.runPluginMigration(pluginId, migration);
+          appliedMigrations.push(migration);
+        }
+      }
+
+      await this.crdtService.initializePluginData(pluginId);
+
+      if (config.onInstall) {
+        await config.onInstall({
+          pluginId,
+          crdtService: this.crdtService,
+          execute: this.execute,
+        });
+      }
+
+      await this.crdtService.updatePlugin(pluginId, {
+        status: "enabled",
+      });
+    } catch (error) {
+      console.error(`❌ Plugin installation failed, rolling back...`);
+      
+      if (appliedMigrations.length > 0) {
+        const migrations = [...appliedMigrations].reverse();
+        for (const migration of migrations) {
+          try {
+            await this.rollbackPluginMigration(pluginId, migration);
+          } catch (rollbackError) {
+            console.error(`Failed to rollback migration ${migration.name}:`, rollbackError);
+          }
+        }
+      }
+
+      try {
+        await this.crdtService.deletePluginData(pluginId);
+      } catch (cleanupError) {
+        console.error(`Failed to cleanup plugin data:`, cleanupError);
+      }
+
+      try {
+        await this.crdtService.deletePlugin(pluginId);
+      } catch (cleanupError) {
+        console.error(`Failed to delete plugin record:`, cleanupError);
+      }
+
+      throw error;
+    }
   }
 
   async uninstallPlugin(pluginId: string, config: PluginConfig): Promise<void> {

@@ -4,12 +4,17 @@ import { AddPropertyDialog } from "../components/add-property-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/components/ui/select";
 import { Input } from "@/core/components/ui/input";
 import { Search } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 
 export function Properties() {
   const properties = useRealEstateStore((state) => state.properties);
+  const loadProperties = useRealEstateStore((state) => state.loadProperties);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<"all" | "primary" | "rental">("all");
+
+  useEffect(() => {
+    loadProperties();
+  }, [loadProperties]);
 
   const filteredProperties = useMemo(() => {
     return properties.filter((property) => {

@@ -23,7 +23,7 @@ export function RouteComponent() {
   const pluginConfigs = usePluginStore((state) => state.pluginConfigs);
   const enablePlugin = usePluginStore((state) => state.enablePlugin);
   const disablePlugin = usePluginStore((state) => state.disablePlugin);
-  const removePlugin = usePluginStore((state) => state.removePlugin);
+  const uninstallPlugin = usePluginStore((state) => state.uninstallPlugin);
 
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -33,14 +33,29 @@ export function RouteComponent() {
   );
 
   const handleTogglePlugin = useCallback(
-    (id: string, enabled: boolean) => {
-      if (enabled) {
-        disablePlugin(id);
-      } else {
-        enablePlugin(id);
+    async (id: string, enabled: boolean) => {
+      try {
+        if (enabled) {
+          await disablePlugin(id);
+        } else {
+          await enablePlugin(id);
+        }
+      } catch (error) {
+        console.error(`Failed to toggle plugin ${id}:`, error);
       }
     },
     [disablePlugin, enablePlugin]
+  );
+
+  const handleRemovePlugin = useCallback(
+    async (id: string) => {
+      try {
+        await uninstallPlugin(id);
+      } catch (error) {
+        console.error(`Failed to uninstall plugin ${id}:`, error);
+      }
+    },
+    [uninstallPlugin]
   );
 
   return (
@@ -75,7 +90,7 @@ export function RouteComponent() {
                   {filteredPlugins.length > 0 ? (
                     filteredPlugins.map((plugin) => (
                       <Suspense fallback={<div>loading</div>} key={plugin.id}>
-                        <PluginCard pluginConfig={plugin} onToggle={handleTogglePlugin} onRemove={removePlugin} />
+                        <PluginCard pluginConfig={plugin} onToggle={handleTogglePlugin} onRemove={handleRemovePlugin} />
                       </Suspense>
                     ))
                   ) : (
@@ -185,12 +200,35 @@ const PluginCard = React.memo(
 );
 
 function MarketplaceContent() {
-  const addPlugin = usePluginStore((state) => state.addPlugin);
+  const installPlugin = usePluginStore((state) => state.installPlugin);
   const installedPluginIds = usePluginStore((state) => state.installedPluginIds);
+  const [installingPluginId, setInstallingPluginId] = useState<string | null>(null);
+
+  const handleInstall = useCallback(
+    async (pluginId: string) => {
+      setInstallingPluginId(pluginId);
+      try {
+        await installPlugin(pluginId);
+      } catch (error) {
+        console.error(`Failed to install plugin ${pluginId}:`, error);
+      } finally {
+        setInstallingPluginId(null);
+      }
+    },
+    [installPlugin]
+  );
 
   // This would typically fetch from an API
   const marketplacePlugins = useMemo(
     () => [
+      {
+        id: "test-plugin",
+        name: "Test Plugin",
+        description: "A test plugin for validating the plugin system with migrations",
+        version: "1.0.0",
+        author: "Test Team",
+        iconName: "TestTube",
+      },
       {
         id: "real-estate",
         name: "Real Estate",
@@ -238,9 +276,13 @@ function MarketplaceContent() {
               <Muted >By {plugin.author}</Muted>
             </CardContent>
             <CardFooter>
-              <Button className="w-full" disabled={installedPluginIds.includes(plugin.id)} onClick={() => addPlugin(plugin.id)}>
+              <Button
+                className="w-full"
+                disabled={installedPluginIds.includes(plugin.id) || installingPluginId === plugin.id}
+                onClick={() => handleInstall(plugin.id)}
+              >
                 <Download className="mr-2 h-4 w-4" />
-                {installedPluginIds.includes(plugin.id) ? "Installed" : "Install"}
+                {installingPluginId === plugin.id ? "Installing..." : installedPluginIds.includes(plugin.id) ? "Installed" : "Install"}
               </Button>
             </CardFooter>
           </Card>

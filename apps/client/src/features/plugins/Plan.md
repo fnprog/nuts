@@ -752,15 +752,12 @@ Phase 1 Testing: Test Plugin Installation Flow
    A. Start Development Server
       cd apps/client && pnpm dev
 
-   B. Test Installation (via Browser Console)
-      // Import the plugin store
-      import { usePluginStore } from '@/features/plugins/store';
-      
-      // Get the store
-      const store = usePluginStore.getState();
-      
-      // Install test plugin
-      await store.installPlugin('test-plugin');
+   B. Test Installation (via UI)
+      1. Navigate to Settings > Features in the app
+      2. Click on the "Marketplace" tab
+      3. Find "Test Plugin" in the list (should be first)
+      4. Click the "Install" button
+      5. Check browser console for output
       
       Expected Console Output:
       - "Running plugin migration test-plugin:1: create_test_items_table"
@@ -770,54 +767,55 @@ Phase 1 Testing: Test Plugin Installation Flow
       - "🔧 Test Plugin onInstall hook called"
       - "✅ Plugin test-plugin installed successfully"
       
+      Expected UI Changes:
+      - Button changes to "Installed" and becomes disabled
+      - Plugin appears in "Installed" tab
+      - Plugin card shows "Enabled" badge
+      
       Expected Database State:
       - _plugin_migrations table has 2 rows (test-plugin, v1 and v2)
       - plugin_test_plugin_test_items table created
       - CRDT document has plugin metadata in plugins collection
       - CRDT document has plugin data in plugin_data.test-plugin.test_collection
 
-   C. Verify Plugin State
-      // Check plugin is registered in CRDT
-      import { crdtService } from '@/core/sync/crdt';
-      const plugin = crdtService.getPlugin('test-plugin');
-      console.log(plugin);
+   C. Verify Plugin State (via Browser DevTools)
+      Open browser console and run:
       
-      Expected Output:
-      {
-        id: 'test-plugin',
-        name: 'Test Plugin',
-        version: '1.0.0',
-        status: 'enabled',
-        installed_at: '<timestamp>',
-      }
-      
-      // Check plugin data
-      const pluginData = crdtService.getPluginData('test-plugin', 'test_collection');
-      console.log(pluginData);
-      
-      Expected Output:
-      {
-        initialized: true,
-        timestamp: <number>
-      }
+      // Access the CRDT service from window (if exposed) or check IndexedDB directly
+      // IndexedDB verification:
+      1. Open DevTools > Application tab
+      2. Navigate to IndexedDB > your-db-name
+      3. Check _plugin_migrations table for 2 rows
+      4. Check plugin_test_plugin_test_items table exists
+      5. Check CRDT documents for plugin metadata
 
-   D. Test Disable/Enable
-      await store.disablePlugin('test-plugin');
+   D. Test Disable/Enable (via UI)
+      1. In Settings > Features > Installed tab
+      2. Find Test Plugin card
+      3. Toggle the switch to disable
       
-      Expected Output:
+      Expected Console Output:
       - "🔧 Test Plugin onDisable hook called"
       - "✅ Plugin test-plugin disabled successfully"
-      - Plugin status in CRDT changes to 'disabled'
       
-      await store.enablePlugin('test-plugin');
+      Expected UI Changes:
+      - Badge changes to "Disabled"
+      - Switch shows unchecked state
       
-      Expected Output:
+      4. Toggle the switch to enable
+      
+      Expected Console Output:
       - "🔧 Test Plugin onEnable hook called"
       - "✅ Plugin test-plugin enabled successfully"
-      - Plugin status in CRDT changes to 'enabled'
+      
+      Expected UI Changes:
+      - Badge changes to "Enabled"
+      - Switch shows checked state
 
-   E. Test Uninstallation
-      await store.uninstallPlugin('test-plugin');
+   E. Test Uninstallation (via UI)
+      1. In Settings > Features > Installed tab
+      2. Find Test Plugin card
+      3. Click the red X button in the footer
       
       Expected Console Output:
       - "🔧 Test Plugin onUninstall hook called"
@@ -826,6 +824,10 @@ Phase 1 Testing: Test Plugin Installation Flow
       - "Rolling back plugin migration test-plugin:1: create_test_items_table"
       - "✓ Plugin migration rollback test-plugin:1 completed successfully"
       - "✅ Plugin test-plugin uninstalled successfully"
+      
+      Expected UI Changes:
+      - Plugin card disappears from Installed tab
+      - Plugin appears as "Install" in Marketplace tab again
       
       Expected Database State:
       - _plugin_migrations table has 0 rows for test-plugin

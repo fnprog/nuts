@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { arktypeResolver } from "@/lib/arktype-resolver";
+import { arktypeResolver } from "@hookform/resolvers/arktype";
 import { type } from "arktype";
 import { Button } from "@/core/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/core/components/ui/dialog";
@@ -27,7 +27,7 @@ const propertySchema = type({
   "interestRate?": "number>0",
   "loanTerm?": "number.integer>0",
   "monthlyRent?": "number>0",
-  "occupancyRate?": "number>=0<=100",
+  "occupancyRate?": "number>=0",
 });
 
 type PropertyFormValues = typeof propertySchema.infer;
@@ -59,7 +59,7 @@ export function AddPropertyDialog() {
     },
   });
 
-  const onSubmit = (data: PropertyFormValues) => {
+  const onSubmit = async (data: PropertyFormValues) => {
     const newProperty = {
       id: crypto.randomUUID(),
       name: data.name,
@@ -75,22 +75,22 @@ export function AddPropertyDialog() {
       image: data.image || "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?q=80&w=1000",
       mortgage: data.loanAmount
         ? {
-            loanAmount: data.loanAmount,
-            interestRate: data.interestRate || 0,
-            loanTerm: data.loanTerm || 30,
-            monthlyPayment: calculateMonthlyPayment(data.loanAmount, data.interestRate || 0, data.loanTerm || 30),
-          }
+          loanAmount: data.loanAmount,
+          interestRate: data.interestRate || 0,
+          loanTerm: data.loanTerm || 30,
+          monthlyPayment: calculateMonthlyPayment(data.loanAmount, data.interestRate || 0, data.loanTerm || 30),
+        }
         : undefined,
       rental:
         data.type === "rental"
           ? {
-              monthlyRent: data.monthlyRent || 0,
-              occupancyRate: data.occupancyRate || 100,
-            }
+            monthlyRent: data.monthlyRent || 0,
+            occupancyRate: data.occupancyRate || 100,
+          }
           : undefined,
     };
 
-    addProperty(newProperty);
+    await addProperty(newProperty);
     setOpen(false);
     form.reset();
   };

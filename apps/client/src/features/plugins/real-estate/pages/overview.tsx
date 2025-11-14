@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/c
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/core/components/ui/tabs";
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { Home, DollarSign, PiggyBank, ArrowUpRight, Building } from "lucide-react";
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useEffect } from "react";
 
 interface ChartValues {
   name: string;
@@ -24,6 +24,11 @@ export function Overview() {
   const totalEquity = useRealEstateStore((state) => state.totalEquity);
   const totalDebt = useRealEstateStore((state) => state.totalDebt);
   const totalRentalIncome = useRealEstateStore((state) => state.totalRentalIncome);
+  const loadProperties = useRealEstateStore((state) => state.loadProperties);
+
+  useEffect(() => {
+    loadProperties();
+  }, [loadProperties]);
 
   const propertyValueData = useMemo(() => {
     return properties.map((property) => ({
