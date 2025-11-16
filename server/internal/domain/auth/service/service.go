@@ -143,6 +143,7 @@ func (a *AuthService) Signup(ctx context.Context, req auth.SignupRequest) error 
 	_, err = a.userService.CreateUserWithDefaults(ctx, repository.CreateUserParams{
 		Email:    req.Email,
 		Password: &password,
+		Name:     req.Name,
 	})
 	if err != nil {
 		return message.ErrInternalError
@@ -302,13 +303,14 @@ func (a *AuthService) HandleOauthCallback(ctx context.Context, provider string, 
 
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			firstName := oauthUser.FirstName
+			name := oauthUser.Name
 
-			if firstName == "" {
-				firstName = oauthUser.Name
+			if name == "" && oauthUser.FirstName != "" {
+				name = oauthUser.FirstName
+				if oauthUser.LastName != "" {
+					name = name + " " + oauthUser.LastName
+				}
 			}
-
-			lastName := oauthUser.LastName
 
 			tx, err := a.db.Begin(ctx)
 			if err != nil {
@@ -328,9 +330,8 @@ func (a *AuthService) HandleOauthCallback(ctx context.Context, provider string, 
 			utxRepo := a.userRepo.WithTx(tx)
 
 			newUser, err := a.userService.CreateUserWithDefaults(ctx, repository.CreateUserParams{
-				Email:     oauthUser.Email,
-				FirstName: &firstName,
-				LastName:  &lastName,
+				Email: oauthUser.Email,
+				Name:  &name,
 			})
 			if err != nil {
 				return &jwt.TokenPair{}, err

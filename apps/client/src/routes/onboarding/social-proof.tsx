@@ -1,9 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { Star, Users, ArrowRight } from "lucide-react";
+import { Star, ArrowLeft } from "lucide-react";
 
 import { Button } from "@/core/components/ui/button";
-import { H2, P, Small, Muted } from "@/core/components/ui/typography";
+import { H1, Muted } from "@/core/components/ui/typography";
 import { useOnboardingStore } from "@/features/onboarding/stores/onboarding.store";
 
 const testimonials = [
@@ -35,6 +35,11 @@ function RouteComponent() {
   const navigate = useNavigate();
   const { setStep } = useOnboardingStore();
 
+  const handleBack = async () => {
+    setStep(1);
+    await navigate({ to: "/onboarding/finance-interest" });
+  };
+
   const handleContinue = async () => {
     setStep(3);
     await navigate({ to: "/onboarding/features" });
@@ -46,72 +51,57 @@ function RouteComponent() {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.3 }}
-      className="space-y-6"
+      className="flex min-h-[calc(100vh-200px)] flex-col w-full  max-w-md"
     >
-      <div className="space-y-2 text-center">
-        <div className="bg-primary-nuts-100 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-          <Users className="text-primary-nuts-600 h-8 w-8" />
+      <div className="flex-1 space-y-8">
+        <div className="space-y-3 text-center">
+          <H1 className="font-semibold">How Nuts has helped others</H1>
+          <Muted className="text-base">Join thousands of users who have transformed their financial lives</Muted>
         </div>
-        <H2>How Nuts has helped others</H2>
-        <P variant="muted">Join thousands of users who have transformed their financial lives</P>
-      </div>
 
-      <div className="space-y-4 pt-2">
-        {testimonials.map((testimonial, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 + 0.1 }}
-            className="rounded-lg border border-gray-100 bg-white p-4 shadow-sm"
-          >
-            <div className="flex items-start space-x-3">
-              <div className="shrink-0">
-                <div className="bg-primary-nuts-100 flex h-10 w-10 items-center justify-center rounded-full">
-                  <span className="text-primary-nuts-700 text-sm font-medium">{testimonial.name.charAt(0)}</span>
+        <div className="space-y-4 pt-2">
+          {testimonials.map((testimonial, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 + 0.1 }}
+              className="rounded-lg border border-gray-200 bg-white p-4"
+            >
+              <div className="flex items-start space-x-3">
+                <div className="shrink-0">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100">
+                    <span className="text-sm font-medium text-gray-700">{testimonial.name.charAt(0)}</span>
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <div className="mb-1 flex items-center space-x-1">
+                    {Array.from({ length: testimonial.rating }).map((_, i) => (
+                      <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </div>
+                  <p className="mb-2 text-sm text-gray-700">{testimonial.content}</p>
+                  <p className="text-xs text-gray-500">
+                    <span className="font-medium">{testimonial.name}</span>
+                    <span className="mx-1">•</span>
+                    <span>{testimonial.role}</span>
+                  </p>
                 </div>
               </div>
-              <div className="flex-1">
-                <div className="mb-1 flex items-center space-x-1">
-                  {Array.from({ length: testimonial.rating }).map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-                <Small className="mb-2 text-gray-700">{testimonial.content}</Small>
-                <Muted>
-                  <span className="font-medium">{testimonial.name}</span>
-                  <span className="mx-1">•</span>
-                  <span>{testimonial.role}</span>
-                </Muted>
-              </div>
-            </div>
-          </motion.div>
-        ))}
+            </motion.div>
+          ))}
+        </div>
       </div>
 
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="pt-4">
-        <Button
-          onClick={handleContinue}
-          className="from-primary-nuts-600 to-primary-nuts-700 hover:from-primary-nuts-700 hover:to-primary-nuts-800 flex w-full items-center justify-center gap-2 bg-linear-to-r text-white shadow-lg"
-        >
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="flex items-center justify-between pt-8">
+        <Button onClick={handleBack} variant="ghost" className="flex items-center gap-2 text-gray-600 hover:text-gray-900">
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
+        <Button variant="primary" onClick={handleContinue} className=" px-8">
           Continue
-          <ArrowRight className="h-4 w-4" />
         </Button>
       </motion.div>
-
-      <div className="text-center">
-        <div className="mt-6 flex justify-center space-x-2">
-          <div className="bg-primary-nuts-600 h-2 w-2 rounded-full"></div>
-          <div className="bg-primary-nuts-600 h-2 w-2 rounded-full"></div>
-          <div className="bg-primary-nuts-600 h-2 w-2 rounded-full"></div>
-          <div className="h-2 w-2 rounded-full bg-gray-300"></div>
-          <div className="h-2 w-2 rounded-full bg-gray-300"></div>
-          <div className="h-2 w-2 rounded-full bg-gray-300"></div>
-        </div>
-        <Muted className="mt-2">
-          Step 3 of 6
-        </Muted>
-      </div>
     </motion.div>
   );
 }

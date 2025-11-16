@@ -81,8 +81,7 @@ func (s *UserService) GetUserInfo(ctx context.Context, id uuid.UUID) (user.GetUs
 	return user.GetUserResponse{
 		AvatarUrl:  avatar_url,
 		Email:      userData.Email,
-		FirstName:  userData.FirstName,
-		LastName:   userData.LastName,
+		Name:       userData.Name,
 		MfaEnabled: userData.MfaEnabled,
 		CreatedAt:  userData.CreatedAt,
 		UpdatedAt:  userData.UpdatedAt,
@@ -101,8 +100,7 @@ func (s *UserService) UpdateUserInfo(ctx context.Context, params repository.Upda
 	return user.GetUserResponse{
 		AvatarUrl: userData.AvatarUrl,
 		Email:     userData.Email,
-		FirstName: userData.FirstName,
-		LastName:  userData.LastName,
+		Name:      userData.Name,
 		CreatedAt: userData.CreatedAt,
 		UpdatedAt: userData.UpdatedAt,
 	}, nil

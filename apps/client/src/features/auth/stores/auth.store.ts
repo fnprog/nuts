@@ -17,21 +17,20 @@ export interface AuthState {
 const initialState = {
   user: null,
   isAuthenticated: false,
-  isAnonymous: true,
+  isAnonymous: false,
 };
 
 export const useAuthStore = create<AuthState>()(
   devtools(
     persist(
       (set) => {
-        const setState = (partial: Partial<AuthState>, label: string) => set(partial as AuthState, false, label);
 
         return {
           ...initialState,
-          setUser: (user) => setState({ user }, "auth/setUser"),
-          setAuthenticated: (auth) => setState({ isAuthenticated: auth }, "auth/setAuthenticated"),
-          setAnonymous: (isAnonymous) => setState({ isAnonymous }, "auth/setAnonymous"),
-          resetState: () => setState({ ...initialState }, "auth/reset"),
+          setUser: (user) => set({ user }),
+          setAuthenticated: (auth) => set({ isAuthenticated: auth }),
+          setAnonymous: (isAnonymous) => set({ isAnonymous }),
+          resetState: () => set({ ...initialState }),
         };
       },
       {

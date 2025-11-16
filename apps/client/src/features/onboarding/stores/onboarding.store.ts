@@ -2,22 +2,17 @@ import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 
 export interface OnboardingState {
-  // Current step (0-6)
   currentStep: number;
 
-  // User responses
-  firstName: string;
-  lastName: string;
+  name: string;
   wantsBetterFinance: boolean | null;
   selectedGoals: string[];
   feelsComplexFinance: boolean | null;
 
-  // State management
   isCompleted: boolean;
 
-  // Actions
   setStep: (step: number) => void;
-  setName: (firstName: string, lastName: string) => void;
+  setName: (name: string) => void;
   setBetterFinance: (wants: boolean | null) => void;
   setGoals: (goals: string[]) => void;
   setComplexFinance: (feels: boolean) => void;
@@ -27,8 +22,7 @@ export interface OnboardingState {
 
 const initialState = {
   currentStep: 0,
-  firstName: "",
-  lastName: "",
+  name: "",
   wantsBetterFinance: null,
   selectedGoals: [],
   feelsComplexFinance: null,
@@ -41,13 +35,11 @@ export const useOnboardingStore = create<OnboardingState>()(
       (set) => ({
         ...initialState,
 
-        setStep: (step) => set({ currentStep: step }, false, 'onboarding/setStep'),
+        setStep: (step) => set({ currentStep: step }),
 
-        setName: (firstName, lastName) =>
-          set({ firstName, lastName }, false, 'onboarding/setName'),
+        setName: (name) => set({ name }),
 
-        setBetterFinance: (wantsBetterFinance) =>
-          set({ wantsBetterFinance }, false, 'onboarding/setBetterFinance'),
+        setBetterFinance: (wantsBetterFinance) => set({ wantsBetterFinance }),
 
         setGoals: (selectedGoals) =>
           set({ selectedGoals }, false, 'onboarding/setGoals'),
@@ -65,8 +57,7 @@ export const useOnboardingStore = create<OnboardingState>()(
         name: "onboarding-storage",
         partialize: (state) => ({
           currentStep: state.currentStep,
-          firstName: state.firstName,
-          lastName: state.lastName,
+          name: state.name,
           wantsBetterFinance: state.wantsBetterFinance,
           selectedGoals: state.selectedGoals,
           feelsComplexFinance: state.feelsComplexFinance,

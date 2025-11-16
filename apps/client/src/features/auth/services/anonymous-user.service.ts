@@ -3,6 +3,8 @@ import { uuidV7 } from "@nuts/utils";
 
 export interface AnonymousUser {
   id: string;
+  name: string;
+  avatar: string;
   isAnonymous: true;
   createdAt: string;
 }
@@ -42,6 +44,8 @@ export function createAnonymousUserService() {
   const createAnonymousUser = (): AnonymousUser => {
     const user: AnonymousUser = {
       id: uuidV7(),
+      name: "",
+      avatar: "",
       isAnonymous: true,
       createdAt: new Date().toISOString(),
     };
@@ -69,11 +73,25 @@ export function createAnonymousUserService() {
     console.log("Cleared anonymous user");
   };
 
+  const updateAnonymousUser = (data: Partial<AnonymousUser>): AnonymousUser => {
+    if (!anonymousUser) {
+      throw Error("tried to update an anonymous user while not being one")
+    }
+
+    anonymousUser = {
+      ...anonymousUser,
+      ...data
+    }
+
+    return anonymousUser
+  }
+
   return {
     initialize,
     getAnonymousUser,
     getUserId,
     clearAnonymousUser,
+    updateAnonymousUser
   };
 }
 

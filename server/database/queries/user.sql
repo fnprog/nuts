@@ -1,19 +1,17 @@
 -- name: CreateUser :one
 INSERT INTO users (
     email,
-    first_name,
-    last_name,
+    name,
     password
 ) VALUES (
-    $1, $2, $3, $4
+    $1, $2, $3
 ) RETURNING *;
 
 -- name: GetUserById :one
 SELECT
     id,
     email,
-    first_name,
-    last_name,
+    name,
     password,
     avatar_key,
     avatar_url,
@@ -28,8 +26,7 @@ WHERE id = $1 LIMIT 1;
 SELECT
     id,
     email,
-    first_name,
-    last_name,
+    name,
     password,
     avatar_key,
     avatar_url,
@@ -50,8 +47,7 @@ WHERE id = $1;
 SELECT
     id,
     email,
-    first_name,
-    last_name,
+    name,
     avatar_key,
     avatar_url,
     password,
@@ -67,8 +63,7 @@ LIMIT
 UPDATE users
 SET
     email = coalesce(sqlc.narg('email'), email),
-    first_name = coalesce(sqlc.narg('first_name'), first_name),
-    last_name = coalesce(sqlc.narg('last_name'), last_name),
+    name = coalesce(sqlc.narg('name'), name),
     avatar_key = coalesce(sqlc.narg('avatar_key'), avatar_key),
     avatar_url = coalesce(sqlc.narg('avatar_url'), avatar_url)
 WHERE id = sqlc.arg('id')

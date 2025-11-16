@@ -16,6 +16,7 @@ import { categoryService } from "@/features/categories/services/category.service
 import { preferencesService } from "@/features/preferences/services/preferences.service";
 import { userService } from "@/features/users/services/user.service";
 import { logger } from "@/lib/logger";
+import { useAuthStore } from "@/features/auth/stores/auth.store";
 
 //NOTE: We have a weird redunduncy concerning data flow here. The default categories are in sqlite, we then put them in crdt then rebuild the db from the crdt again
 
@@ -91,10 +92,17 @@ class OfflineFirstInitService {
     try {
       logger.info("Initializing offline-first services...");
 
-      logger.info("1. Initializing anonymous user...");
-      const anonymousResult = await anonymousUserService.initialize();
-      if (anonymousResult.isErr()) throw anonymousResult.error;
-      this.initializedServices.add("anonymous-user");
+      const isAnonymous = useAuthStore.getState().isAnonymous;
+      console.log("initStore", isAnonymous)
+
+      if (isAnonymous) {
+        logger.info("1. Initializing anonymous user...");
+        const anonymousResult = await anonymousUserService.initialize();
+        if (anonymousResult.isErr()) throw anonymousResult.error;
+        this.initializedServices.add("anonymous-user");
+      } else {
+        logger.info("1. Skipping anonymous user initialization (not in anonymous mode)");
+      }
 
       logger.info("2. Initializing offline auth service...");
       const authResult = await authService.initialize();

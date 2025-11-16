@@ -9,8 +9,7 @@ import (
 type GetUserResponse struct {
 	CreatedAt      time.Time                          `json:"created_at"`
 	UpdatedAt      time.Time                          `json:"updated_at"`
-	FirstName      *string                            `json:"first_name"`
-	LastName       *string                            `json:"last_name"`
+	Name           *string                            `json:"name"`
 	AvatarUrl      *string                            `json:"avatar_url"`
 	Email          string                             `json:"email"`
 	LinkedAccounts *[]repository.GetLinkedAccountsRow `json:"linked_accounts"`
@@ -19,10 +18,9 @@ type GetUserResponse struct {
 }
 
 type UpdateUserRequest struct {
-	Email     string  `json:"email"`
-	FirstName *string `json:"first_name"`
-	LastName  *string `json:"last_name"`
-	Password  *string `json:"password"`
+	Email    string  `json:"email"`
+	Name     *string `json:"name"`
+	Password *string `json:"password"`
 }
 
 type UpdateUserPreferencesReq struct {

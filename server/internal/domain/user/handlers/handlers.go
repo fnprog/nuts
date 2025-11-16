@@ -123,9 +123,8 @@ func (h *Handler) UpdateInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	params := repository.UpdateUserParams{
-		FirstName: req.FirstName,
-		LastName:  req.LastName,
-		ID:        id,
+		Name: req.Name,
+		ID:   id,
 	}
 
 	// Only set email if it's not empty to avoid overwriting existing email

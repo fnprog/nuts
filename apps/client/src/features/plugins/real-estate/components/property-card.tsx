@@ -8,7 +8,18 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from '@/core/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/core/components/ui/alert-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/core/components/ui/tabs';
 import {
   MapPin,
@@ -18,9 +29,12 @@ import {
   Bed,
   Bath,
   Square,
+  Trash2,
+  Edit,
 } from 'lucide-react';
 import { Property } from '../types';
 import { PropertyImage } from '@/core/components/ui/optimized-image';
+import { useRealEstateStore } from '../store';
 
 interface PropertyCardProps {
   property: Property;
@@ -28,6 +42,14 @@ interface PropertyCardProps {
 
 export const PropertyCard = React.memo(({ property }: PropertyCardProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const removeProperty = useRealEstateStore((state) => state.removeProperty);
+
+  const handleDelete = async () => {
+    await removeProperty(property.id);
+    setShowDeleteDialog(false);
+    setIsOpen(false);
+  };
 
   return (
     <Card className="overflow-hidden">
@@ -210,6 +232,32 @@ export const PropertyCard = React.memo(({ property }: PropertyCardProps) => {
                   </div>
                 </TabsContent>
               </Tabs>
+              <DialogFooter className="flex gap-2 sm:justify-between">
+                <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                  <Button
+                    variant="destructive"
+                    onClick={() => setShowDeleteDialog(true)}
+                    className="gap-2"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete Property
+                  </Button>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will permanently delete "{property.name}" and all associated data. This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </DialogFooter>
             </DialogContent>
           </Dialog>
         </div>

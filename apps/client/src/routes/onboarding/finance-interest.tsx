@@ -1,10 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { TrendingUp, SkipForward } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 import { Button } from "@/core/components/ui/button";
-import { Muted } from "@/core/components/ui/typography";
+import { H1, Muted } from "@/core/components/ui/typography";
 import { useOnboardingStore } from "@/features/onboarding/stores/onboarding.store";
+
+import {
+  Field
+} from "@/core/components/ui/field"
 
 export const Route = createFileRoute("/onboarding/finance-interest")({
   component: RouteComponent,
@@ -13,6 +17,13 @@ export const Route = createFileRoute("/onboarding/finance-interest")({
 function RouteComponent() {
   const navigate = useNavigate();
   const { setBetterFinance, setStep, completeOnboarding } = useOnboardingStore();
+
+
+
+  const handleBack = async () => {
+    setStep(0);
+    await navigate({ to: "/onboarding/name" });
+  };
 
   const handleYes = async () => {
     setBetterFinance(true);
@@ -28,9 +39,7 @@ function RouteComponent() {
 
   const handleSkip = async () => {
     setBetterFinance(null);
-
     completeOnboarding();
-    // Skip to dashboard - they don't want to learn about finances
     await navigate({ to: "/dashboard/home" });
   };
 
@@ -40,53 +49,43 @@ function RouteComponent() {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.3 }}
-      className="space-y-6"
+      className="flex min-h-[calc(100vh-200px)] flex-col w-full  max-w-md"
     >
-      <div className="space-y-2 text-center">
-        <div className="bg-primary-nuts-100 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-          <TrendingUp className="text-primary-nuts-600 h-8 w-8" />
+      <div className="flex-1 space-y-8">
+        <div className="space-y-3 text-center">
+          <H1 className="font-semibold ">Do you want to better understand your personal finance?</H1>
+          <Muted className="text-base ">We can help you gain insights into your spending patterns, savings goals, and financial health.</Muted>
         </div>
-        <h2 className="text-xl font-semibold text-gray-900">Do you want to better understand your personal finance?</h2>
-        <p className="text-gray-600">We can help you gain insights into your spending patterns, savings goals, and financial health.</p>
-      </div>
 
-      <div className="space-y-4 pt-4">
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-          <Button
-            onClick={handleYes}
-            className="from-primary-nuts-600 to-primary-nuts-700 hover:from-primary-nuts-700 hover:to-primary-nuts-800 h-12 w-full bg-linear-to-r text-white shadow-lg"
-          >
-            Yes, I want to learn more
-          </Button>
-        </motion.div>
+        <div className="space-y-4 pt-4">
+          <Field>
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+              {/* <Button variant="primary" onClick={handleYes} className="w-full bg-green-600 text-white hover:bg-green-700"> */}
+              {/*   Yes, I want to learn more */}
+              {/* </Button> */}
+              <Button variant="primary" onClick={handleYes} className="w-full">
+                Yes, I want to learn more
+              </Button>
+            </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-          <Button onClick={handleNo} variant="outline" className="h-12 w-full border-2 border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50">
-            No, I'm already comfortable
-          </Button>
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="pt-2">
-          <Button onClick={handleSkip} variant="ghost" className="flex w-full items-center justify-center gap-2 text-gray-500 hover:text-gray-700">
-            <SkipForward className="h-4 w-4" />
-            Skip onboarding
-          </Button>
-        </motion.div>
-      </div>
-
-      <div className="text-center">
-        <div className="mt-6 flex justify-center space-x-2">
-          <div className="bg-primary-nuts-600 h-2 w-2 rounded-full"></div>
-          <div className="bg-primary-nuts-600 h-2 w-2 rounded-full"></div>
-          <div className="h-2 w-2 rounded-full bg-gray-300"></div>
-          <div className="h-2 w-2 rounded-full bg-gray-300"></div>
-          <div className="h-2 w-2 rounded-full bg-gray-300"></div>
-          <div className="h-2 w-2 rounded-full bg-gray-300"></div>
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+              <Button onClick={handleNo} variant="outline" className="w-full border border-gray-300 bg-white hover:bg-gray-50">
+                No, I'm already comfortable
+              </Button>
+            </motion.div>
+          </Field>
         </div>
-        <Muted className="mt-2">
-          Step 2 of 6
-        </Muted>
       </div>
+
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex items-center justify-between pt-8">
+        <Button onClick={handleBack} variant="ghost" className="flex items-center gap-2 text-gray-600 hover:text-gray-900">
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
+        <Button onClick={handleSkip} variant="ghost" className="text-gray-600 hover:text-gray-900">
+          Skip
+        </Button>
+      </motion.div>
     </motion.div>
   );
 }

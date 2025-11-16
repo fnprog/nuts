@@ -1,11 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { useState } from "react";
-import { Target, Home, Car, GraduationCap, Heart, Plane, TrendingUp, Shield, ArrowRight, Check } from "lucide-react";
+import { Home, Car, GraduationCap, Heart, Plane, TrendingUp, Shield, ArrowLeft, Check } from "lucide-react";
 
+import { H1, Muted } from "@/core/components/ui/typography";
 import { Button } from "@/core/components/ui/button";
 import { useOnboardingStore } from "@/features/onboarding/stores/onboarding.store";
-import { H2, H3, P, Small } from "@/core/components/ui/typography";
 
 const goalOptions = [
   {
@@ -79,6 +79,11 @@ function RouteComponent() {
     setLocalSelectedGoals((prev) => (prev.includes(goalId) ? prev.filter((id) => id !== goalId) : [...prev, goalId]));
   };
 
+  const handleBack = async () => {
+    setStep(3);
+    await navigate({ to: "/onboarding/features" });
+  };
+
   const handleContinue = async () => {
     setGoals(localSelectedGoals);
     setStep(5);
@@ -91,72 +96,58 @@ function RouteComponent() {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.3 }}
-      className="space-y-6"
+      className="flex min-h-[calc(100vh-200px)] flex-col w-full  max-w-xl"
     >
-      <div className="space-y-2 text-center">
-        <div className="bg-primary-nuts-100 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-          <Target className="text-primary-nuts-600 h-8 w-8" />
+      <div className="flex-1 gap-8 flex flex-col items-center">
+        <div className="space-y-3 text-center max-w-md w-full  ">
+          <H1 className="font-semibold">What do you hope to accomplish with Nuts Finance?</H1>
+          <Muted className="text-base">Select all that apply. We'll help you track progress toward these goals.</Muted>
         </div>
-        <H2 className="text-gray-900">What do you hope to accomplish with Nuts?</H2>
-        <P className="text-gray-600">Select all that apply. We'll help you track progress toward these goals.</P>
-      </div>
 
-      <div className="grid grid-cols-1 gap-3 pt-2 sm:grid-cols-2">
-        {goalOptions.map((goal, index) => {
-          const Icon = goal.icon;
-          const isSelected = localSelectedGoals.includes(goal.id);
+        <div className="grid grid-cols-1 gap-3 pt-2 sm:grid-cols-2">
+          {goalOptions.map((goal, index) => {
+            const Icon = goal.icon;
+            const isSelected = localSelectedGoals.includes(goal.id);
 
-          return (
-            <motion.button
-              key={goal.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 + 0.1 }}
-              onClick={() => handleGoalToggle(goal.id)}
-              className={`relative rounded-lg border-2 p-4 text-left transition-all duration-200 ${isSelected ? "border-primary-nuts-400 bg-primary-nuts-50" : "border-gray-200 bg-white hover:border-gray-300"
-                } `}
-            >
-              <div className="flex items-start space-x-3">
-                <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${goal.color}`}>
-                  <Icon className="h-5 w-5" />
-                </div>
-                <div className="flex-1">
-                  <H3 className="text-sm text-gray-900">{goal.title}</H3>
-                  <Small className="mt-1 text-gray-600">{goal.description}</Small>
-                </div>
-                {isSelected && (
-                  <div className="bg-primary-nuts-600 flex h-6 w-6 items-center justify-center rounded-full">
-                    <Check className="h-3 w-3 text-white" />
+            return (
+              <motion.button
+                key={goal.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 + 0.1 }}
+                onClick={() => handleGoalToggle(goal.id)}
+                className={`relative rounded-lg border-2 p-4 text-left transition-all duration-200 ${isSelected ? "border-blue-500 bg-blue-50" : "border-gray-300 bg-white hover:border-gray-400"
+                  }`}
+              >
+                <div className="flex items-start space-x-3">
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${goal.color}`}>
+                    <Icon className="h-5 w-5" />
                   </div>
-                )}
-              </div>
-            </motion.button>
-          );
-        })}
+                  <div className="flex-1">
+                    <h3 className="text-sm font-medium text-gray-900">{goal.title}</h3>
+                    <p className="mt-1 text-xs text-gray-600">{goal.description}</p>
+                  </div>
+                  {isSelected && (
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600">
+                      <Check className="h-3 w-3 text-white" />
+                    </div>
+                  )}
+                </div>
+              </motion.button>
+            );
+          })}
+        </div>
       </div>
 
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="pt-4">
-        <Button
-          onClick={handleContinue}
-          className="from-primary-nuts-600 to-primary-nuts-700 hover:from-primary-nuts-700 hover:to-primary-nuts-800 flex w-full items-center justify-center gap-2 bg-linear-to-r text-white shadow-lg"
-          disabled={localSelectedGoals.length === 0}
-        >
-          Continue {localSelectedGoals.length > 0 && `(${localSelectedGoals.length} selected)`}
-          <ArrowRight className="h-4 w-4" />
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="flex items-center justify-between pt-8">
+        <Button onClick={handleBack} variant="ghost" className="flex items-center gap-2 text-gray-600 hover:text-gray-900">
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
+        <Button onClick={handleContinue} className="bg-blue-600 px-8 text-white hover:bg-blue-700" disabled={localSelectedGoals.length === 0}>
+          Continue {localSelectedGoals.length > 0 && `(${localSelectedGoals.length})`}
         </Button>
       </motion.div>
-
-      <div className="text-center">
-        <div className="mt-6 flex justify-center space-x-2">
-          <div className="bg-primary-nuts-600 h-2 w-2 rounded-full"></div>
-          <div className="bg-primary-nuts-600 h-2 w-2 rounded-full"></div>
-          <div className="bg-primary-nuts-600 h-2 w-2 rounded-full"></div>
-          <div className="bg-primary-nuts-600 h-2 w-2 rounded-full"></div>
-          <div className="bg-primary-nuts-600 h-2 w-2 rounded-full"></div>
-          <div className="h-2 w-2 rounded-full bg-gray-300"></div>
-        </div>
-        <Small className="mt-2 text-gray-500">Step 5 of 6</Small>
-      </div>
     </motion.div>
   );
 }

@@ -11,6 +11,8 @@ import { userService } from "@/features/users/services/user.service";
 import { useAuthStore } from "@/features/auth/stores/auth.store";
 import type { AuthNullable, RefreshAuthRes } from "@/features/auth/services/auth.types";
 import { Result, ok, err, ServiceError } from "@/lib/result";
+import { logger } from "@/lib/logger";
+import { uuidV7 } from "@nuts/utils";
 
 export interface CachedAuthState {
   user: AuthNullable;
@@ -31,6 +33,7 @@ export interface SecureTokenStorage {
 export function createAuthservice() {
   const STORAGE_KEY = "nuts-offline-auth";
   const SECURE_TOKEN_KEY = "nuts-secure-tokens";
+  const DEVICE_ID_KEY = "nuts-device-id"
   const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000;
   const ACCESS_TOKEN_DURATION = 15 * 60 * 1000;
 
@@ -38,11 +41,11 @@ export function createAuthservice() {
    * Get or create persistent device ID
    */
   const getOrCreateDeviceId = (): string => {
-    const existing = localStorage.getItem("nuts-device-id");
+    const existing = localStorage.getItem(DEVICE_ID_KEY);
     if (existing) return existing;
 
-    const newId = crypto.randomUUID();
-    localStorage.setItem("nuts-device-id", newId);
+    const newId = uuidV7();
+    localStorage.setItem(DEVICE_ID_KEY, newId);
     return newId;
   };
 
@@ -50,14 +53,14 @@ export function createAuthservice() {
 
   const initialize = async (): Promise<Result<void, ServiceError>> => {
     try {
-      console.debug("🔐 Initializing offline auth service...");
+      logger.debug("🔐 Initializing offline auth service...");
 
       const cachedAuth = getCachedAuthState();
 
       if (cachedAuth && isCachedAuthValid(cachedAuth)) {
         useAuthStore.getState().setUser(cachedAuth.user);
         useAuthStore.getState().setAuthenticated(cachedAuth.isAuthenticated);
-        console.debug("✅ Restored auth state from cache");
+        logger.debug("✅ Restored auth state from cache");
       }
 
       // Only validate with server if we have cached auth to validate
@@ -66,13 +69,15 @@ export function createAuthservice() {
         try {
           await validateOrRefreshWithServer();
         } catch (error) {
-          console.warn("Failed to validate auth with server, using cached state:", error);
-          console.log("🔄 Continuing with cached auth due to server validation failure");
+          logger.warn("Failed to validate auth with server, using cached state:", error);
+          logger.warn("🔄 Continuing with cached auth due to server validation failure");
         }
-      } else if (!cachedAuth || !isCachedAuthValid(cachedAuth)) {
-        console.debug("📱 No cached auth found, starting in unauthenticated mode");
-        useAuthStore.getState().resetState();
       }
+
+      // else if (!cachedAuth || !isCachedAuthValid(cachedAuth)) {
+      //   logger.debug("📱 No cached auth found, starting in unauthenticated mode");
+      //   useAuthStore.getState().resetState();
+      // }
 
       return ok(undefined);
     } catch (error) {
@@ -461,6 +466,7 @@ export function createAuthservice() {
       if (!cached) return null;
 
       const parsed = JSON.parse(cached);
+
       return {
         ...parsed,
         lastValidated: new Date(parsed.lastValidated),
@@ -468,7 +474,7 @@ export function createAuthservice() {
         accessTokenExpiresAt: parsed.accessTokenExpiresAt ? new Date(parsed.accessTokenExpiresAt) : undefined,
       };
     } catch (error) {
-      console.warn("Failed to load cached auth state:", error);
+      logger.warn("Failed to load cached auth state:", error);
       return null;
     }
   };

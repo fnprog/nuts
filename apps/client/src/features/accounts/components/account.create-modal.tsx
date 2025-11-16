@@ -55,7 +55,7 @@ export function AddAccountModal({ children, onClose, onAddAccount }: { children:
   const authStore = useAuthStore();
   const monoCustomer = authStore.user
     ? {
-      name: authStore.user.first_name && authStore.user.last_name ? `${authStore.user.first_name} ${authStore.user.last_name}` : undefined,
+      name: authStore.user.name || undefined,
       email: authStore.user.email,
     }
     : undefined;

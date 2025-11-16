@@ -29,15 +29,14 @@ export const AuthInterceptor: FC<OfflineFirstAuthInterceptorProps> = ({ children
   // Check authentication based on offline mode
   const shouldUseOfflineFirst = !connectivityService.hasServerAccess();
 
-  let isAuthenticated: boolean;
+  console.log(shouldUseOfflineFirst)
 
-  if (shouldUseOfflineFirst) {
-    // Use offline auth service for authentication check
-    isAuthenticated = authService.isAuthenticated() || authStore.isAnonymous;
-  } else {
-    // Use normal auth store, including anonymous sessions
-    isAuthenticated = authStore.isAuthenticated || authStore.isAnonymous;
-  }
+  console.log("authed", authService.isAuthenticated())
+  console.log("anonymous", authStore.isAnonymous)
+
+
+
+  let isAuthenticated = authService.isAuthenticated() || authStore.isAnonymous;
 
   // Only show auth guard for dashboard routes
   if (isDashboardRoute && !isAuthenticated) {

@@ -28,14 +28,10 @@ import { arktypeResolver } from "@hookform/resolvers/arktype";
 
 const userFormSchema = type({
   email: "string.email",
-  first_name: 'string>=2 | ""',
-  last_name: 'string>=2 | ""',
+  name: 'string>=2 | ""',
 }).narrow((data, ctx) => {
-  if (data.first_name && data.first_name.length > 100) {
-    return ctx.reject({ path: ["first_name"], message: "First name must be at most 100 characters" });
-  }
-  if (data.last_name && data.last_name.length > 100) {
-    return ctx.reject({ path: ["last_name"], message: "Last name must be at most 100 characters" });
+  if (data.name && data.name.length > 100) {
+    return ctx.reject({ path: ["name"], message: "Name must be at most 100 characters" });
   }
   return true;
 });
@@ -76,31 +72,26 @@ function RouteComponent() {
     resolver: arktypeResolver(userFormSchema),
     defaultValues: {
       email: displayUser?.email,
-      first_name: displayUser?.first_name || "",
-      last_name: displayUser?.last_name || "",
+      name: displayUser?.name || "",
     },
-    mode: "onBlur", // Submit when focus leaves the field
+    mode: "onBlur",
   });
 
   const onSubmit = async (data: UserFormValues) => {
-    const hasChanges =
-      data.email !== displayUser?.email || data.first_name !== (displayUser?.first_name || "") || data.last_name !== (displayUser?.last_name || "");
+    const hasChanges = data.email !== displayUser?.email || data.name !== (displayUser?.name || "");
 
     if (hasChanges) {
       try {
         setIsSubmitting(true);
         changeInfoMutation.mutate({
           email: data.email,
-          first_name: data.first_name || undefined,
-          last_name: data.last_name || undefined,
+          name: data.name || undefined,
         });
       } catch (error) {
         console.error("Failed to update profile:", error);
-        // Reset form to last known good values
         form.reset({
           email: displayUser?.email,
-          first_name: displayUser?.first_name || "",
-          last_name: displayUser?.last_name || "",
+          name: displayUser?.name || "",
         });
       } finally {
         setIsSubmitting(false);
@@ -165,8 +156,7 @@ function RouteComponent() {
             <Avatar className="h-20 w-20">
               <AvatarImage src={avatarPreview} />
               <AvatarFallback>
-                {form.getValues("first_name")?.[0]}
-                {form.getValues("last_name")?.[0]}
+                {form.getValues("name")?.split(" ").map(n => n[0]).join("").toUpperCase() || "U"}
               </AvatarFallback>
             </Avatar>
             <div>
@@ -182,26 +172,12 @@ function RouteComponent() {
             <form className="space-y-4" onBlur={form.handleSubmit(onSubmit)}>
               <FormField
                 control={form.control}
-                name="first_name"
+                name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>First Name</FormLabel>
+                    <FormLabel>Name</FormLabel>
                     <FormControl>
-                      <Input {...field} disabled={isLocalOnlyMode} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="last_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Last Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} disabled={isLocalOnlyMode} />
+                      <Input {...field} disabled={isLocalOnlyMode} placeholder="Your full name" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

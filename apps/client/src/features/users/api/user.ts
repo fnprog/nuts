@@ -8,8 +8,7 @@ export interface UserInfo {
   id: string;
   email: string;
   avatar_url?: string;
-  first_name?: string;
-  last_name?: string;
+  name?: string;
   mfa_enabled: boolean;
   createdAt: string;
   updatedAt: string;

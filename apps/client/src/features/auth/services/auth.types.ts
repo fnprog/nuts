@@ -6,18 +6,12 @@ const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]
 export const signupSchema = type({
   email: "string.email",
   password: "string>=8",
-  confirmPassword: "string",
+  "name?": "string",
 }).narrow((data, ctx) => {
   if (!passwordPattern.test(data.password)) {
     return ctx.reject({
       path: ["password"],
       message: "Password must contain at least one lowercase letter, one uppercase letter, one number and one special character",
-    });
-  }
-  if (data.password !== data.confirmPassword) {
-    return ctx.reject({
-      path: ["confirmPassword"],
-      message: "Passwords don't match",
     });
   }
   return true;
@@ -32,8 +26,7 @@ export const loginSchema = type({
 export const userSchema = type({
   id: "string",
   email: "string.email",
-  "first_name?": "string",
-  "last_name?": "string",
+  "name?": "string",
   created_at: "Date",
   updated_at: "Date",
 });

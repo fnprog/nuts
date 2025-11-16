@@ -1,8 +1,9 @@
 package auth
 
 type SignupRequest struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required,min=8,strong_password"`
+	Email    string  `json:"email" validate:"required,email"`
+	Password string  `json:"password" validate:"required,min=8,strong_password"`
+	Name     *string `json:"name"`
 }
 
 type LoginRequest struct {

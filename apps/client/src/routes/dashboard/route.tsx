@@ -64,7 +64,6 @@ import { useLogout } from "@/features/auth/services/auth.mutations";
 import { getAllAccounts } from "@/features/accounts/services/account.queries";
 import { ErrorBoundary, ComponentErrorFallback } from "@/core/components/ui/error-boundary";
 import { useAuthStore } from "@/features/auth/stores/auth.store";
-import { userService } from "@/features/users/services/user.service";
 
 export type ValidRoutes = keyof FileRoutesByTo;
 
@@ -348,14 +347,13 @@ const SideBarFooterMenu = memo(() => {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton size="lg" className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
               <Avatar className="transition-[width,height] duration-200 ease-in-out in-data-[state=expanded]:size-6">
-                <AvatarImage src={user.avatar_url} alt={user.first_name} />
+                <AvatarImage src={user.avatar_url} alt={user.name} />
                 <AvatarFallback>
-                  {user.first_name?.[0]}
-                  {user.last_name?.[0]}
+                  {user.name?.split(" ").map(n => n[0]).join("").toUpperCase() || "U"}
                 </AvatarFallback>
               </Avatar>
               <div className="ms-1 grid flex-1 items-center text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user?.first_name && user?.last_name && `${user.first_name} ${user.last_name}`}</span>
+                <span className="truncate font-medium">{user?.name}</span>
               </div>
               <div className="bg-sidebar-accent/50 flex size-8 items-center justify-center rounded-lg in-[[data-slot=dropdown-menu-trigger]:hover]:bg-transparent">
                 <RiArrowDownSLine className="size-5 opacity-40" size={20} />

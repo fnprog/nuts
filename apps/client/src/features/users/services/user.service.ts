@@ -54,8 +54,7 @@ function createUserService() {
         const userInfo: userApi.UserInfo = {
           id: anonymousUser.id,
           email: "",
-          first_name: "Guest",
-          last_name: "User",
+          name: "",
           mfa_enabled: false,
           createdAt: anonymousUser.createdAt,
           updatedAt: anonymousUser.createdAt,
@@ -105,6 +104,34 @@ function createUserService() {
   };
 
   const updateMe = (info: Partial<userApi.UserInfo>): ResultAsync<userApi.UserInfo, ServiceError> => {
+    const { isAnonymous } = useAuthStore.getState();
+
+
+    if (isAnonymous) {
+      const anonymousUser = anonymousUserService.updateAnonymousUser({
+        avatar: info.avatar_url,
+        name: info.name
+      });
+
+      if (anonymousUser) {
+        const userInfo: userApi.UserInfo = {
+          id: anonymousUser.id,
+          avatar_url: anonymousUser.avatar,
+          email: "",
+          name: anonymousUser.name,
+          mfa_enabled: false,
+          createdAt: anonymousUser.createdAt,
+          updatedAt: anonymousUser.createdAt,
+          has_password: false,
+          linked_accounts: [],
+        };
+        console.log("📱 Using anonymous user data");
+        return ResultAsync.fromSafePromise(Promise.resolve(userInfo));
+      }
+    }
+
+
+
     const cachedUser = getCachedUser();
 
     if (cachedUser) {
