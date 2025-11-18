@@ -22,7 +22,9 @@ import { Route as OnboardingFinanceInterestRouteImport } from './routes/onboardi
 import { Route as OnboardingFeaturesRouteImport } from './routes/onboarding/features'
 import { Route as OnboardingComplexityRouteImport } from './routes/onboarding/complexity'
 import { Route as DashboardRecordsRouteImport } from './routes/dashboard/records'
+import { Route as DashboardInboxRouteImport } from './routes/dashboard/inbox'
 import { Route as DashboardHomeRouteImport } from './routes/dashboard/home'
+import { Route as DashboardBudgetsRouteImport } from './routes/dashboard/budgets'
 import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard/analytics'
 import { Route as DashboardAccountsRouteImport } from './routes/dashboard/accounts'
 import { Route as DashboardSplatRouteImport } from './routes/dashboard/$'
@@ -110,9 +112,19 @@ const DashboardRecordsRoute = DashboardRecordsRouteImport.update({
   path: '/records',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
+const DashboardInboxRoute = DashboardInboxRouteImport.update({
+  id: '/inbox',
+  path: '/inbox',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
 const DashboardHomeRoute = DashboardHomeRouteImport.update({
   id: '/home',
   path: '/home',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const DashboardBudgetsRoute = DashboardBudgetsRouteImport.update({
+  id: '/budgets',
+  path: '/budgets',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
 const DashboardAnalyticsRoute = DashboardAnalyticsRouteImport.update({
@@ -241,7 +253,9 @@ export interface FileRoutesByFullPath {
   '/dashboard/$': typeof DashboardSplatRoute
   '/dashboard/accounts': typeof DashboardAccountsRouteWithChildren
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/dashboard/budgets': typeof DashboardBudgetsRoute
   '/dashboard/home': typeof DashboardHomeRoute
+  '/dashboard/inbox': typeof DashboardInboxRoute
   '/dashboard/records': typeof DashboardRecordsRoute
   '/onboarding/complexity': typeof OnboardingComplexityRoute
   '/onboarding/features': typeof OnboardingFeaturesRoute
@@ -274,7 +288,9 @@ export interface FileRoutesByTo {
   '/dashboard/$': typeof DashboardSplatRoute
   '/dashboard/accounts': typeof DashboardAccountsRouteWithChildren
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/dashboard/budgets': typeof DashboardBudgetsRoute
   '/dashboard/home': typeof DashboardHomeRoute
+  '/dashboard/inbox': typeof DashboardInboxRoute
   '/dashboard/records': typeof DashboardRecordsRoute
   '/onboarding/complexity': typeof OnboardingComplexityRoute
   '/onboarding/features': typeof OnboardingFeaturesRoute
@@ -312,7 +328,9 @@ export interface FileRoutesById {
   '/dashboard/$': typeof DashboardSplatRoute
   '/dashboard/accounts': typeof DashboardAccountsRouteWithChildren
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/dashboard/budgets': typeof DashboardBudgetsRoute
   '/dashboard/home': typeof DashboardHomeRoute
+  '/dashboard/inbox': typeof DashboardInboxRoute
   '/dashboard/records': typeof DashboardRecordsRoute
   '/onboarding/complexity': typeof OnboardingComplexityRoute
   '/onboarding/features': typeof OnboardingFeaturesRoute
@@ -350,7 +368,9 @@ export interface FileRouteTypes {
     | '/dashboard/$'
     | '/dashboard/accounts'
     | '/dashboard/analytics'
+    | '/dashboard/budgets'
     | '/dashboard/home'
+    | '/dashboard/inbox'
     | '/dashboard/records'
     | '/onboarding/complexity'
     | '/onboarding/features'
@@ -383,7 +403,9 @@ export interface FileRouteTypes {
     | '/dashboard/$'
     | '/dashboard/accounts'
     | '/dashboard/analytics'
+    | '/dashboard/budgets'
     | '/dashboard/home'
+    | '/dashboard/inbox'
     | '/dashboard/records'
     | '/onboarding/complexity'
     | '/onboarding/features'
@@ -420,7 +442,9 @@ export interface FileRouteTypes {
     | '/dashboard/$'
     | '/dashboard/accounts'
     | '/dashboard/analytics'
+    | '/dashboard/budgets'
     | '/dashboard/home'
+    | '/dashboard/inbox'
     | '/dashboard/records'
     | '/onboarding/complexity'
     | '/onboarding/features'
@@ -547,11 +571,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRecordsRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
+    '/dashboard/inbox': {
+      id: '/dashboard/inbox'
+      path: '/inbox'
+      fullPath: '/dashboard/inbox'
+      preLoaderRoute: typeof DashboardInboxRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
     '/dashboard/home': {
       id: '/dashboard/home'
       path: '/home'
       fullPath: '/dashboard/home'
       preLoaderRoute: typeof DashboardHomeRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/budgets': {
+      id: '/dashboard/budgets'
+      path: '/budgets'
+      fullPath: '/dashboard/budgets'
+      preLoaderRoute: typeof DashboardBudgetsRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
     '/dashboard/analytics': {
@@ -735,7 +773,9 @@ interface DashboardRouteRouteChildren {
   DashboardSplatRoute: typeof DashboardSplatRoute
   DashboardAccountsRoute: typeof DashboardAccountsRouteWithChildren
   DashboardAnalyticsRoute: typeof DashboardAnalyticsRoute
+  DashboardBudgetsRoute: typeof DashboardBudgetsRoute
   DashboardHomeRoute: typeof DashboardHomeRoute
+  DashboardInboxRoute: typeof DashboardInboxRoute
   DashboardRecordsRoute: typeof DashboardRecordsRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
@@ -744,7 +784,9 @@ const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
   DashboardSplatRoute: DashboardSplatRoute,
   DashboardAccountsRoute: DashboardAccountsRouteWithChildren,
   DashboardAnalyticsRoute: DashboardAnalyticsRoute,
+  DashboardBudgetsRoute: DashboardBudgetsRoute,
   DashboardHomeRoute: DashboardHomeRoute,
+  DashboardInboxRoute: DashboardInboxRoute,
   DashboardRecordsRoute: DashboardRecordsRoute,
   DashboardIndexRoute: DashboardIndexRoute,
 }

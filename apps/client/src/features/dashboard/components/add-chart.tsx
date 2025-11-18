@@ -49,32 +49,32 @@ export function AddChartDialog({ onAddChart, children }: AddChartDialogProps) {
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[800px]">
+      <DialogContent className="sm:max-w-[900px]">
         <DialogHeader>
           <DialogTitle>Add Chart to Dashboard</DialogTitle>
           <DialogDescription>Select a chart widget to add to your current view.</DialogDescription>
         </DialogHeader>
-        <div className="py-6">
+        <div className="py-4">
           {isLoading ? (
             <div className="p-4 text-center">Loading available charts...</div>
           ) : availableCharts.length > 0 ? (
-            <div className="max-h-[400px] overflow-y-auto pr-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="max-h-[600px] overflow-y-auto pr-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {availableCharts.map((config) => (
                   <Button
                     key={config.id}
                     variant="ghost"
-                    className="w-full h-auto p-4 border border-border hover:border-primary/50 rounded-lg transition-colors"
+                    className="w-full h-auto p-5 border border-border hover:border-primary/50 rounded-lg transition-colors"
                     onClick={() => handleSelectChart(config)}
                   >
-                    <div className="flex flex-col items-start gap-3 w-full">
-                      <div className="w-full h-32 bg-muted rounded-md flex items-center justify-center">
+                    <div className="flex flex-col items-start gap-4 w-full">
+                      <div className="w-full h-36 bg-muted rounded-md flex items-center justify-center">
                         <div className="text-muted-foreground text-sm">Chart Preview</div>
                       </div>
                       <div className="text-left w-full">
-                        <div className="font-medium text-base">{config.title}</div>
+                        <div className="font-medium text-base mb-2">{config.title}</div>
                         {config.description && (
-                          <p className="text-sm text-muted-foreground mt-1 leading-relaxed whitespace-normal break-words">
+                          <p className="text-sm text-muted-foreground leading-relaxed whitespace-normal break-words">
                             {config.description}
                           </p>
                         )}

@@ -124,17 +124,22 @@ export function createCategoryService() {
   };
 
   const convertToCRDTFormat = (category: Category): CRDTCategory => {
-    return {
+    const crdtCategory: CRDTCategory = {
       id: category.id,
       name: category.name,
       type: category.type,
       color: category.color || "#000000",
       icon: category.icon || "",
-      parent_id: category.parent_id || undefined,
       is_active: true,
       created_at: category.created_at || new Date().toISOString(),
       updated_at: category.updated_at || new Date().toISOString(),
     };
+    
+    if (category.parent_id) {
+      crdtCategory.parent_id = category.parent_id;
+    }
+    
+    return crdtCategory;
   };
 
   const createSubcategory = async (categoryId: string, subcategoryData: CategoryCreate): Promise<Result<Category, ServiceError>> => {

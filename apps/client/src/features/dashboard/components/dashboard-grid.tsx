@@ -30,7 +30,7 @@ export const DashboardGrid = React.memo(({ children }: DashboardGridProps) => {
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       <SortableContext items={chartOrder} strategy={rectSortingStrategy}>
         <Masonry
-          breakpointCols={{ default: 2, 800: 1 }}
+          breakpointCols={{ default: 3, 1200: 2, 800: 1 }}
           className="nuts-grid"
           columnClassName="nuts-grid_column">
           {children}

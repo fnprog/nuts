@@ -1,5 +1,6 @@
 import { createFileRoute, Link, Outlet, redirect, useNavigate } from "@tanstack/react-router";
 import { useCallback, Suspense, memo } from "react";
+import * as React from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { usePluginStore } from "@/features/plugins/store";
 import { renderIcon } from "@/core/components/ui/icon-picker/index.helper";
@@ -21,8 +22,14 @@ import {
   type RemixiconComponentType,
   RiDashboardLine,
   RiDashboardFill,
+  RiInboxLine,
+  RiInboxFill,
+  RiWalletLine,
+  RiWalletFill,
+  RiPuzzleLine,
+  RiPuzzleFill,
 } from "@remixicon/react";
-import LogoWTXT from "@/core/components/icons/ICWLG";
+import LogoWTXT from "@/core/components/icons/NUTSNEW";
 import { Avatar, AvatarFallback, AvatarImage } from "@/core/components/ui/avatar";
 import {
   DropdownMenu,
@@ -80,6 +87,12 @@ const navMain: navStuff[] = [
     activeIcon: RiDashboardFill,
   },
   {
+    title: "navigation.inbox",
+    url: "/dashboard/inbox",
+    icon: RiInboxLine,
+    activeIcon: RiInboxFill,
+  },
+  {
     title: "navigation.accounts",
     url: "/dashboard/accounts",
     icon: RiStackLine,
@@ -90,6 +103,12 @@ const navMain: navStuff[] = [
     url: "/dashboard/records",
     icon: RiBankCard2Line,
     activeIcon: RiBankCard2Fill,
+  },
+  {
+    title: "navigation.budgets",
+    url: "/dashboard/budgets",
+    icon: RiWalletLine,
+    activeIcon: RiWalletFill,
   },
   // {
   //   title: "navigation.analytics",
@@ -133,6 +152,7 @@ export const Route = createFileRoute("/dashboard")({
 
 function DashboardWrapper() {
   const navigate = useNavigate();
+  const [isPluginNavOpen, setIsPluginNavOpen] = React.useState(false);
 
   useHotkeys(
     "g+d",
@@ -205,7 +225,7 @@ function DashboardWrapper() {
   }, { description: "Focus main content (Escape)" });
 
   return (
-    <SidebarProvider>
+    <SidebarProvider open={isPluginNavOpen}>
       <div className="sr-only" id="keyboard-shortcuts" aria-label="Available keyboard shortcuts">
         <h2>Keyboard Shortcuts</h2>
         <ul>
@@ -220,7 +240,7 @@ function DashboardWrapper() {
 
       <Sidebar
         collapsible="icon"
-        className="overflow-hidden [&>]:data-[sidebar=sidebar]:flex-row"
+        className="overflow-hidden [*>]:data-[sidebar=sidebar]:flex-row"
         role="navigation"
         aria-label="Main navigation"
       >
@@ -231,7 +251,10 @@ function DashboardWrapper() {
           <SideBarHeader />
           <SidebarContent className="-mt-2">
             <SideBarMainLinks />
-            <SideBarPluginsLinks />
+            <SideBarPluginsLinks
+              isPluginNavOpen={isPluginNavOpen}
+              setIsPluginNavOpen={setIsPluginNavOpen}
+            />
           </SidebarContent>
           <SidebarFooter>
             <ErrorBoundary fallback={ComponentErrorFallback}>
@@ -242,7 +265,10 @@ function DashboardWrapper() {
           </SidebarFooter>
         </Sidebar>
 
-        <SecondarySidebar />
+        <SecondarySidebar
+          isOpen={isPluginNavOpen}
+          onClose={() => setIsPluginNavOpen(false)}
+        />
       </Sidebar>
 
       <SidebarInset className="overflow-hidden px-4 md:px-6 py-2 md:py-4">
@@ -404,9 +430,9 @@ const SideBarFooterMenu = memo(() => {
 
 const SideBarHeader = memo(() => {
   return (
-    <SidebarHeader className="mb-2 h-fit justify-center max-md:mt-2">
-      <div className="bg-sidebar text-sidebar-primary-foreground flex w-full items-center rounded-lg px-2 justify-center ">
-        <LogoWTXT className="fill-sidebar-primary-foreground size-14" />
+    <SidebarHeader className="mb-4 h-fit justify-center mt-4">
+      <div className="flex w-full items-center rounded-lg px-2 justify-center">
+        <LogoWTXT frontFill="var(--color-background)" fill="color-mix(in oklab, var(--color-muted-foreground) 100%, transparent)" className=" size-8" />
       </div>
     </SidebarHeader>
   );
@@ -462,89 +488,55 @@ const SideBarMainLinks = memo(() => {
   );
 });
 
-const SideBarPluginsLinks = memo(() => {
+const SideBarPluginsLinks = memo(({ isPluginNavOpen, setIsPluginNavOpen }: { isPluginNavOpen: boolean, setIsPluginNavOpen: (open: boolean) => void }) => {
   const plugins = usePluginStore(useShallow((state) => state.pluginConfigs.filter((config) => config.enabled)));
 
   if (plugins.length === 0) {
     return null;
   }
 
+  const togglePluginNav = () => {
+    setIsPluginNavOpen(!isPluginNavOpen);
+  };
+
   return (
     <SidebarGroup>
       <SidebarGroupContent className="px-0">
-        <SidebarMenu className="items-center">
-          {plugins.map((item) => {
-            return item.routeConfigs.map((route) => {
-              return (
-                <Collapsible className="group/collapsible" key={route.label}>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      asChild
-                      className="group/menu-button hover:from-sidebar-accent hover:to-sidebar-accent/40 data-[active=true]:from-primary/20 data-[active=true]:to-primary/5 h-9 gap-3 rounded-md bg-linear-to-r font-medium text-gray-950/60 hover:bg-transparent [&>svg]:size-auto"
-                      tooltip={route.label}
-                    >
-                      <Link
-                        to={"/dashboard/$"}
-                        params={{
-                          _splat: route.path,
-                        }}
-                        activeProps={{ className: "bg-sidebar-accent shadow-sm" }}
-                      >
-                        {renderIcon(route.iconName, {
-                          size: 16,
-                          "aria-hidden": true,
-                          className: "text-muted-foreground/60 group-data-[active=true]/menu-button:text-primary",
-                        })}
-                        {/* <span>{route.label}</span> */}
-                      </Link>
-                    </SidebarMenuButton>
-                    {route?.subroutes ? (
-                      <>
-                        <CollapsibleTrigger asChild>
-                          <SidebarMenuAction className="bg-sidebar-accent text-sidebar-accent-foreground left-2 data-[state=open]:rotate-90" showOnHover>
-                            <ChevronRight />
-                          </SidebarMenuAction>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent>
-                          <SidebarMenuSub>
-                            {route.subroutes.map((item) => (
-                              <SidebarMenuSubItem key={item.label}>
-                                <SidebarMenuSubButton asChild>
-                                  <Link
-                                    to={"/dashboard/$"}
-                                    params={{
-                                      _splat: item.path,
-                                    }}
-                                    className={cn("flex w-full items-center justify-start gap-3 text-sm text-gray-950/60 transition-all hover:shadow-sm")}
-                                    activeProps={{ className: "bg-sidebar-accent shadow-sm" }}
-                                  >
-                                    <span className="ml-2">{item.label}</span>
-                                  </Link>
-                                </SidebarMenuSubButton>
-                              </SidebarMenuSubItem>
-                            ))}
-                          </SidebarMenuSub>
-                        </CollapsibleContent>
-                      </>
-                    ) : null}
-                  </SidebarMenuItem>
-                </Collapsible>
-              );
-            });
-          })}
+        <SidebarMenu className="items-center gap-3">
+          <SidebarMenuItem className="w-full">
+            <SidebarMenuButton
+              onClick={togglePluginNav}
+              tooltip="Plugins"
+              className={cn(
+                "duration-200 will-change-transform active:scale-95 active:translate-y-0.5 group/menu-button font-medium gap-3 h-9 rounded-md text-[#757575] hover:text-secondary-900/45 hover:bg-neutral-200/40 [&>svg]:size-full focus:outline-none",
+                isPluginNavOpen && "bg-sidebar-accent shadow-sm"
+              )}
+            >
+              {isPluginNavOpen ? (
+                <RiPuzzleFill
+                  size={16}
+                  aria-hidden="true"
+                  className="text-secondary-900/80 dark:text-secondary-50"
+                />
+              ) : (
+                <RiPuzzleLine
+                  size={16}
+                  aria-hidden="true"
+                  className="text-muted-foreground/60"
+                />
+              )}
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
   );
 });
 
-const SecondarySidebar = memo(() => {
+const SecondarySidebar = memo(({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
   const plugins = usePluginStore(useShallow((state) => state.pluginConfigs.filter((config) => config.enabled)));
-  const hasPluginsWithSubroutes = plugins.some((plugin) =>
-    plugin.routeConfigs.some((route) => route.subroutes && route.subroutes.length > 0)
-  );
 
-  if (!hasPluginsWithSubroutes) {
+  if (!isOpen || plugins.length === 0) {
     return null;
   }
 
@@ -553,7 +545,7 @@ const SecondarySidebar = memo(() => {
       <SidebarHeader className="gap-3.5 border-b p-4">
         <div className="flex w-full items-center justify-between">
           <div className="text-foreground text-base font-medium">
-            Navigation
+            Plugins
           </div>
         </div>
       </SidebarHeader>
@@ -562,36 +554,39 @@ const SecondarySidebar = memo(() => {
           <SidebarGroupContent>
             {plugins.map((plugin) => {
               return plugin.routeConfigs.map((route) => {
-                if (!route.subroutes || route.subroutes.length === 0) {
-                  return null;
-                }
-
                 return (
                   <div key={route.label} className="border-b last:border-b-0">
-                    <div className="hover:bg-sidebar-accent p-4">
-                      <div className="flex items-center gap-2 font-medium">
-                        {renderIcon(route.iconName, {
-                          size: 16,
-                          className: "text-muted-foreground/60",
-                        })}
-                        <span>{route.label}</span>
+                    <Link
+                      to={"/dashboard/$"}
+                      params={{
+                        _splat: route.path,
+                      }}
+                      className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center gap-3 p-4 font-medium"
+                      activeProps={{ className: "bg-sidebar-accent text-sidebar-accent-foreground" }}
+                    >
+                      {renderIcon(route.iconName, {
+                        size: 16,
+                        className: "text-muted-foreground/60",
+                      })}
+                      <span>{route.label}</span>
+                    </Link>
+                    {route?.subroutes && route.subroutes.length > 0 && (
+                      <div className="flex flex-col bg-muted/20">
+                        {route.subroutes.map((subroute) => (
+                          <Link
+                            key={subroute.label}
+                            to={"/dashboard/$"}
+                            params={{
+                              _splat: subroute.path,
+                            }}
+                            className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center gap-2 border-t p-4 pl-12 text-sm"
+                            activeProps={{ className: "bg-sidebar-accent text-sidebar-accent-foreground font-medium" }}
+                          >
+                            <span>{subroute.label}</span>
+                          </Link>
+                        ))}
                       </div>
-                    </div>
-                    <div className="flex flex-col">
-                      {route.subroutes.map((subroute) => (
-                        <Link
-                          key={subroute.label}
-                          to={"/dashboard/$"}
-                          params={{
-                            _splat: subroute.path,
-                          }}
-                          className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center gap-2 border-b p-4 text-sm last:border-b-0"
-                          activeProps={{ className: "bg-sidebar-accent text-sidebar-accent-foreground font-medium" }}
-                        >
-                          <span>{subroute.label}</span>
-                        </Link>
-                      ))}
-                    </div>
+                    )}
                   </div>
                 );
               });
