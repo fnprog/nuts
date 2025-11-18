@@ -399,7 +399,7 @@ export const RecordsTable = ({ initialPage, onPageChange }: RecordsTableProps) =
         ) : (
           /* Desktop View */
           <div className="rounded-md border">
-            <Table className="bg-white">
+            <Table className="bg-card">
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
@@ -437,7 +437,7 @@ export const RecordsTable = ({ initialPage, onPageChange }: RecordsTableProps) =
                   <Fragment key={`group-${group.id}`}>
                     <TableRow key={`group-header-${group.id}`}>
                       <TableCell colSpan={table.getVisibleLeafColumns().length} className="p-0">
-                        <div className="mx-2 my-1 rounded-md border bg-white">
+                        <div className="mx-2 my-1 rounded-md border bg-card">
                           <div className="bg-muted flex items-center p-2">
                             <div className="flex items-center space-x-1 pl-2">
                               <Checkbox

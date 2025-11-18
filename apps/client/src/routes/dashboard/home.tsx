@@ -1,6 +1,7 @@
 import { Suspense, useMemo } from "react";
 import { createFileRoute, useRouteContext } from "@tanstack/react-router";
 import { useDashboardStore } from "@/features/dashboard/stores/dashboard.store";
+import { useOnboardingStore } from "@/features/onboarding/stores/onboarding.store";
 import { useTranslation } from "react-i18next";
 
 import { AddChartDialog } from "@/features/dashboard/components/add-chart";
@@ -27,6 +28,7 @@ function RouteComponent() {
   const chartLayout = useDashboardStore((state) => state.chartLayout);
   const chartOrder = useDashboardStore((state) => state.chartOrder);
   const addChart = useDashboardStore((state) => state.addChart);
+  const name = useOnboardingStore((state) => state.name);
 
   // State to hold the map of loaded lazy components
   const { lazyChartComponents, loadingErrors } = useLazyChartComponents(chartOrder);
@@ -56,7 +58,7 @@ function RouteComponent() {
         </div>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear">
           <div className="flex w-full items-center justify-between gap-2">
-            <H2>{t("greet")} xyz</H2>
+            <H2>{t("greet")} {name}</H2>
             <AddChartDialog onAddChart={handleAddChart}>
               <Button variant="default" size="sm" className="hidden md:inline-flex">
                 <PlusCircle className="mr-2 size-4" />
@@ -104,7 +106,6 @@ function RouteComponent() {
                 })}
               </DashboardGrid>
             )}
-            )
           </div >
         </div >
 

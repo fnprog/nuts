@@ -23,7 +23,6 @@ import {
   RiDashboardFill,
 } from "@remixicon/react";
 import LogoWTXT from "@/core/components/icons/ICWLG";
-import { Nuts } from "@/core/components/icons/Logo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/core/components/ui/avatar";
 import {
   DropdownMenu,
@@ -44,7 +43,6 @@ import {
   SidebarHeader,
   SidebarInset,
   SidebarMenu,
-  SidebarGroupLabel,
   SidebarGroupContent,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -102,7 +100,7 @@ const navMain: navStuff[] = [
 ];
 
 export const Route = createFileRoute("/dashboard")({
-  beforeLoad: async ({ context, location }) => {
+  beforeLoad: async ({ context }) => {
     const queryClient = context.queryClient;
 
     if (context.auth.isAuthenticated) {
@@ -140,7 +138,6 @@ function DashboardWrapper() {
     "g+d",
     () => {
       navigate({ to: "/dashboard/home" });
-      // Announce navigation for screen readers
       const announcement = document.createElement('div');
       announcement.setAttribute('aria-live', 'polite');
       announcement.setAttribute('aria-atomic', 'true');
@@ -202,7 +199,6 @@ function DashboardWrapper() {
     { description: "Navigate to Settings (g+s)" }
   );
 
-  // Add escape key to focus main content
   useHotkeys('escape', () => {
     const mainContent = document.getElementById('main-content');
     mainContent?.focus();
@@ -210,7 +206,6 @@ function DashboardWrapper() {
 
   return (
     <SidebarProvider>
-      {/* Hidden keyboard shortcuts help */}
       <div className="sr-only" id="keyboard-shortcuts" aria-label="Available keyboard shortcuts">
         <h2>Keyboard Shortcuts</h2>
         <ul>
@@ -225,22 +220,29 @@ function DashboardWrapper() {
 
       <Sidebar
         collapsible="icon"
-        className="group-data-[side=left]:border-r-0"
+        className="overflow-hidden [&>]:data-[sidebar=sidebar]:flex-row"
         role="navigation"
         aria-label="Main navigation"
       >
-        <SideBarHeader />
-        <SidebarContent className="-mt-2">
-          <SideBarMainLinks />
-          <SideBarPluginsLinks />
-        </SidebarContent>
-        <SidebarFooter>
-          <ErrorBoundary fallback={ComponentErrorFallback}>
-            <Suspense fallback={<Spinner />}>
-              <SideBarFooterMenu />
-            </Suspense>
-          </ErrorBoundary>
-        </SidebarFooter>
+        <Sidebar
+          collapsible="none"
+          className="w-[calc(var(--sidebar-width-icon)+1px)]! border-r"
+        >
+          <SideBarHeader />
+          <SidebarContent className="-mt-2">
+            <SideBarMainLinks />
+            <SideBarPluginsLinks />
+          </SidebarContent>
+          <SidebarFooter>
+            <ErrorBoundary fallback={ComponentErrorFallback}>
+              <Suspense fallback={<Spinner />}>
+                <SideBarFooterMenu />
+              </Suspense>
+            </ErrorBoundary>
+          </SidebarFooter>
+        </Sidebar>
+
+        <SecondarySidebar />
       </Sidebar>
 
       <SidebarInset className="overflow-hidden px-4 md:px-6 py-2 md:py-4">
@@ -281,62 +283,60 @@ const SideBarFooterMenu = memo(() => {
 
   if (isAnonymous || !user) {
     return (
-      <SidebarMenu className="group-data-[collapsible=icon]:items-center">
-        <SidebarMenuItem>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <SidebarMenuButton size="lg" className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                <Avatar className="transition-[width,height] duration-200 ease-in-out in-data-[state=expanded]:size-6">
-                  <AvatarFallback>G</AvatarFallback>
-                </Avatar>
-                <div className="ms-1 grid flex-1 items-center text-left text-sm leading-tight">
-                  <span className="truncate font-medium">Guest</span>
-                  <span className="text-muted-foreground text-xs">Anonymous</span>
-                </div>
-                <div className="bg-sidebar-accent/50 flex size-8 items-center justify-center rounded-lg in-[[data-slot=dropdown-menu-trigger]:hover]:bg-transparent">
-                  <RiArrowDownSLine className="size-5 opacity-40" size={20} />
-                </div>
-              </SidebarMenuButton>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-              align="end"
-              sideOffset={4}
-              side={isMobile ? "bottom" : "right"}
-              forceMount
-            >
-              <DropdownMenuItem asChild>
-                <Link to="/dashboard/settings" className="gap-3 px-1">
-                  <RiSettingsLine size={16} className="text-muted-foreground/70" aria-hidden="true" />
-                  {t("settings.accountSettings")}
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger className="gap-3 px-1 ps-2">
-                  <RiSunLine size={16} className="text-muted-foreground/70" aria-hidden="true" />
-                  {t("settings.theme")}
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
-                  <DropdownMenuRadioGroup value={theme} onValueChange={(value) => setTheme(value as Theme)}>
-                    <DropdownMenuRadioItem value="light">
-                      <RiSunLine size={16} className="text-muted-foreground/70" aria-hidden="true" />
-                      {t("settings.light")}
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="dark">
-                      <RiMoonLine size={16} className="text-muted-foreground/70" aria-hidden="true" />
-                      {t("settings.dark")}
-                    </DropdownMenuRadioItem>
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-              <DropdownMenuItem className="gap-3 px-1 ps-2" onClick={onSignIn}>
-                <RiLogoutBoxLine size={16} className="text-muted-foreground/70" aria-hidden="true" />
-                Sign In
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </SidebarMenuItem>
-      </SidebarMenu>
+      <SidebarMenuItem className="items-center flex justify-center">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <SidebarMenuButton size="lg" className="size-full! p-0! justify-center items-center">
+              <Avatar className="">
+                <AvatarFallback>G</AvatarFallback>
+              </Avatar>
+              {/* <div className="ms-1 grid flex-1 items-center text-left text-sm leading-tight"> */}
+              {/*   <span className="truncate font-medium">Guest</span> */}
+              {/*   <span className="text-muted-foreground text-xs">Anonymous</span> */}
+              {/* </div> */}
+              {/* <div className="bg-sidebar-accent/50 flex size-8 items-center justify-center rounded-lg in-[[data-slot=dropdown-menu-trigger]:hover]:bg-transparent"> */}
+              {/*   <RiArrowDownSLine className="size-5 opacity-40" size={20} /> */}
+              {/* </div> */}
+            </SidebarMenuButton>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+            align="end"
+            sideOffset={4}
+            side={isMobile ? "bottom" : "right"}
+            forceMount
+          >
+            <DropdownMenuItem asChild>
+              <Link to="/dashboard/settings" className="gap-3 px-1">
+                <RiSettingsLine size={16} className="text-muted-foreground/70" aria-hidden="true" />
+                {t("settings.accountSettings")}
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger className="gap-3 px-1 ps-2">
+                <RiSunLine size={16} className="text-muted-foreground/70" aria-hidden="true" />
+                {t("settings.theme")}
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <DropdownMenuRadioGroup value={theme} onValueChange={(value) => setTheme(value as Theme)}>
+                  <DropdownMenuRadioItem value="light">
+                    <RiSunLine size={16} className="text-muted-foreground/70" aria-hidden="true" />
+                    {t("settings.light")}
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="dark">
+                    <RiMoonLine size={16} className="text-muted-foreground/70" aria-hidden="true" />
+                    {t("settings.dark")}
+                  </DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+            <DropdownMenuItem className="gap-3 px-1 ps-2" onClick={onSignIn}>
+              <RiLogoutBoxLine size={16} className="text-muted-foreground/70" aria-hidden="true" />
+              Sign In
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </SidebarMenuItem>
     );
   }
 
@@ -403,12 +403,10 @@ const SideBarFooterMenu = memo(() => {
 });
 
 const SideBarHeader = memo(() => {
-  const { state } = useSidebar();
-
   return (
     <SidebarHeader className="mb-2 h-fit justify-center max-md:mt-2">
-      <div className="bg-sidebar text-sidebar-primary-foreground flex w-full items-center rounded-lg px-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
-        {state === "collapsed" ? <Nuts className="fill-sidebar-primary-foreground size-4" /> : <LogoWTXT className="fill-sidebar-primary-foreground size-14" />}
+      <div className="bg-sidebar text-sidebar-primary-foreground flex w-full items-center rounded-lg px-2 justify-center ">
+        <LogoWTXT className="fill-sidebar-primary-foreground size-14" />
       </div>
     </SidebarHeader>
   );
@@ -419,16 +417,14 @@ const SideBarMainLinks = memo(() => {
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel className="text-[#757575] uppercase">General</SidebarGroupLabel>
-      <SidebarGroupContent className="px-1 group-data-[collapsible=icon]:px-0">
-        <SidebarMenu className="group-data-[collapsible=icon]:items-center">
+      <SidebarGroupContent className="px-0">
+        <SidebarMenu className="items-center gap-3">
           {navMain.map((item) => (
-            <SidebarMenuItem key={item.title}>
+            <SidebarMenuItem key={item.title} className="w-full">
               <SidebarMenuButton
                 asChild
                 tooltip={item.title}
-                className="duration-200 will-change-transform active:scale-95 active:translate-y-0.5 group/menu-button font-medium gap-3 h-9 rounded-md text-[#757575] hover:text-secondary-900/45 hover:bg-neutral-200/40 [&>svg]:size-auto focus:outline-none "
-              >
+                className="duration-200 will-change-transform active:scale-95 active:translate-y-0.5 group/menu-button font-medium gap-3 h-9 rounded-md text-[#757575] hover:text-secondary-900/45 hover:bg-neutral-200/40 [&>svg]:size-full focus:outline-none   " >
                 <Link
                   to={item.url}
                   activeProps={{ className: "bg-sidebar-accent shadow-sm hover:bg-sidebar-accent" }}
@@ -451,9 +447,9 @@ const SideBarMainLinks = memo(() => {
                       />
                     )}
 
-                    <span className={isActive ? `text-sidebar-accent-foreground` : ""}>
-                      {t(item.title)}
-                    </span>
+                    {/* <span className={isActive ? `text-sidebar-accent-foreground` : ""}> */}
+                    {/*   {t(item.title)} */}
+                    {/* </span> */}
                   </>
                 )}
                 </Link>
@@ -475,9 +471,8 @@ const SideBarPluginsLinks = memo(() => {
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel className="text-muted-foreground/60 uppercase">Plugins</SidebarGroupLabel>
-      <SidebarGroupContent className="px-1 group-data-[collapsible=icon]:px-0">
-        <SidebarMenu className="group-data-[collapsible=icon]:items-center">
+      <SidebarGroupContent className="px-0">
+        <SidebarMenu className="items-center">
           {plugins.map((item) => {
             return item.routeConfigs.map((route) => {
               return (
@@ -485,7 +480,7 @@ const SideBarPluginsLinks = memo(() => {
                   <SidebarMenuItem>
                     <SidebarMenuButton
                       asChild
-                      className="group/menu-button hover:from-sidebar-accent hover:to-sidebar-accent/40 data-[active=true]:from-primary/20 data-[active=true]:to-primary/5 h-9 gap-3 rounded-md bg-gradient-to-r font-medium text-gray-950/60 hover:bg-transparent [&>svg]:size-auto"
+                      className="group/menu-button hover:from-sidebar-accent hover:to-sidebar-accent/40 data-[active=true]:from-primary/20 data-[active=true]:to-primary/5 h-9 gap-3 rounded-md bg-linear-to-r font-medium text-gray-950/60 hover:bg-transparent [&>svg]:size-auto"
                       tooltip={route.label}
                     >
                       <Link
@@ -500,7 +495,7 @@ const SideBarPluginsLinks = memo(() => {
                           "aria-hidden": true,
                           className: "text-muted-foreground/60 group-data-[active=true]/menu-button:text-primary",
                         })}
-                        <span>{route.label}</span>
+                        {/* <span>{route.label}</span> */}
                       </Link>
                     </SidebarMenuButton>
                     {route?.subroutes ? (
@@ -540,5 +535,70 @@ const SideBarPluginsLinks = memo(() => {
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
+  );
+});
+
+const SecondarySidebar = memo(() => {
+  const plugins = usePluginStore(useShallow((state) => state.pluginConfigs.filter((config) => config.enabled)));
+  const hasPluginsWithSubroutes = plugins.some((plugin) =>
+    plugin.routeConfigs.some((route) => route.subroutes && route.subroutes.length > 0)
+  );
+
+  if (!hasPluginsWithSubroutes) {
+    return null;
+  }
+
+  return (
+    <Sidebar collapsible="none" className="hidden flex-1 md:flex border-r">
+      <SidebarHeader className="gap-3.5 border-b p-4">
+        <div className="flex w-full items-center justify-between">
+          <div className="text-foreground text-base font-medium">
+            Navigation
+          </div>
+        </div>
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarGroup className="px-0">
+          <SidebarGroupContent>
+            {plugins.map((plugin) => {
+              return plugin.routeConfigs.map((route) => {
+                if (!route.subroutes || route.subroutes.length === 0) {
+                  return null;
+                }
+
+                return (
+                  <div key={route.label} className="border-b last:border-b-0">
+                    <div className="hover:bg-sidebar-accent p-4">
+                      <div className="flex items-center gap-2 font-medium">
+                        {renderIcon(route.iconName, {
+                          size: 16,
+                          className: "text-muted-foreground/60",
+                        })}
+                        <span>{route.label}</span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col">
+                      {route.subroutes.map((subroute) => (
+                        <Link
+                          key={subroute.label}
+                          to={"/dashboard/$"}
+                          params={{
+                            _splat: subroute.path,
+                          }}
+                          className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center gap-2 border-b p-4 text-sm last:border-b-0"
+                          activeProps={{ className: "bg-sidebar-accent text-sidebar-accent-foreground font-medium" }}
+                        >
+                          <span>{subroute.label}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                );
+              });
+            })}
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+    </Sidebar>
   );
 });

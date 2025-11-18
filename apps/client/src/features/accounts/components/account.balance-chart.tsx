@@ -9,6 +9,16 @@ export function AccountBalanceChart() {
     return <div className="flex h-[180px] items-center justify-center">Failed to load...</div>;
   }
 
+  if (!data || data.length === 0) {
+    return (
+      <div className="flex h-[180px] items-center justify-center text-center">
+        <p className="text-sm text-muted-foreground">
+          No transactions yet. Start adding transactions to see them reflect here.
+        </p>
+      </div>
+    );
+  }
+
   const formattedData = data.map(({ balance, month }) => ({
     date: new Date(month).toLocaleString("en-US", { month: "short" }),
     balance,

@@ -63,8 +63,8 @@ function RootComponent() {
       {/* Development tools - only show in development */}
       {import.meta.env.DEV && (
         <>
-          <ReactQueryDevtools buttonPosition="bottom-left" />
-          <TanStackRouterDevtools position="bottom-right" />
+          {/* <ReactQueryDevtools buttonPosition="bottom-left" /> */}
+          {/* <TanStackRouterDevtools position="bottom-right" /> */}
         </>
       )}
     </ErrorBoundary>

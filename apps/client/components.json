@@ -10,6 +10,7 @@
     "cssVariables": true,
     "prefix": ""
   },
+  "iconLibrary": "lucide",
   "aliases": {
     "components": "@/core/components",
     "utils": "@/core/lib/utils",
@@ -17,5 +18,7 @@
     "lib": "@/core/lib",
     "hooks": "@/core/hooks"
   },
-  "iconLibrary": "lucide"
+  "registries": {
+    "@smoothui": "https://smoothui.dev/r/{name}.json"
+  }
 }

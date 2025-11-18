@@ -14,34 +14,30 @@
 
 ## About Nuts
 
-Nuts is a comprehensive personal finance management platform designed to be your complete financial operating system. Built with modern technologies and AI-powered insights, Nuts helps you track, categorize, and analyze your financial transactions across multiple accounts and platforms.
+Nuts is a comprehensive personal finance management platform designed to be your complete financial operating system.
 
 Whether you're managing personal finances, tracking business expenses, or analyzing spending patterns, Nuts provides the tools and intelligence you need to make informed financial decisions.
 
 ## ✨ Features
 
-- 🤖 AI-Powered Transaction Processing: (Convert natural language like "bought coffee for $4.50" into structured transaction data)
-
-- 📊 Advanced Rules Engine: Automatically categorize and organize transactions with custom rules
-
-- 🏦 Bank Connectivity: Connect banks worldwide through multiple providers
+- Fully offline-first + Sync - Once loaded you can use the app without internet and your changes are synched to other devices once back online
+- AI-Powered Transaction Processing: (Convert natural language like "bought coffee for $4.50" into structured transaction data)
+- Advanced Rules Engine: Automatically categorize and organize transactions with custom rules
+- Bank Connectivity: Connect banks worldwide through multiple providers
   - **North America**: Plaid, Teller
   - **Europe**: GoCardless
   - **Asia**: Brankas
   - **Africa**: Mono, Okra
 - **Secure Connections**: Industry-standard security for all bank integrations
-- **Real-time Sync**: Automatic transaction import and synchronization
-
-- 📱 Multi-Platform Support (Web, mobile)
-
-- 📈 Financial Intelligence
+- Multi-Platform Support (Web, mobile)
+- Financial Intelligence
   - **Daily Insights**: Automated daily financial summaries and insights
   - **Spending Analysis**: Advanced analytics and spending pattern recognition
   - **Financial Forecasting**: AI-powered predictions and recommendations
-
 - **Budget Tracking**: Intelligent budget management and alerts
 
-## 🚀 Get Started
+
+## Get Started
 
 ### Quick Start with Docker
 

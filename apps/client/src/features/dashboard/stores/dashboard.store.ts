@@ -26,12 +26,14 @@ interface DashboardChartLayout {
 
 interface DashboardState {
   chartLayout: DashboardChartLayout[];
-  chartOrder: string[]; // Array of chart IDs in display order
-  addChart: (chartId: string) => Promise<void>; // Make async to fetch config
+  chartOrder: string[];
+  _hasHydrated: boolean;
+  addChart: (chartId: string) => Promise<void>;
   removeChart: (chartId: string) => void;
   reorderCharts: (oldIndex: number, newIndex: number) => void;
   updateChartSize: (chartId: string, size: ChartSize) => void;
   toggleChartLock: (chartId: string) => void;
+  initializeDefaultCharts: () => Promise<void>;
 }
 
 // interface DashboardState2 {
@@ -74,8 +76,54 @@ interface DashboardState {
 export const useDashboardStore = create<DashboardState>()(
   persist(
     (set, get) => ({
-      chartLayout: [], // Start with an empty layout
+      chartLayout: [],
       chartOrder: [],
+      _hasHydrated: false,
+
+      initializeDefaultCharts: async () => {
+        const currentOrder = get().chartOrder;
+        if (currentOrder.length > 0 || get()._hasHydrated) {
+          return;
+        }
+
+        try {
+          const availableConfigs = await getAvailableChartConfigs();
+          
+          const defaultChartIds = [
+            "expense-income",
+            "category-breakdown",
+            "net-worth",
+            "spending-overview",
+            "cashflow-forecast",
+            "savings-goals",
+          ];
+
+          const chartLayout: DashboardChartLayout[] = [];
+          const chartOrder: string[] = [];
+
+          for (const chartId of defaultChartIds) {
+            const config = availableConfigs.find((c) => c.id === chartId);
+            if (config) {
+              chartLayout.push({
+                id: chartId,
+                size: config.defaultSize,
+                isLocked: false,
+              });
+              chartOrder.push(chartId);
+            }
+          }
+
+          if (chartLayout.length > 0) {
+            set({
+              chartLayout,
+              chartOrder,
+              _hasHydrated: true,
+            });
+          }
+        } catch (error) {
+          console.error("Failed to initialize default charts:", error);
+        }
+      },
 
       addChart: async (chartId) => {
         const currentLayout = get().chartLayout;
@@ -137,8 +185,12 @@ export const useDashboardStore = create<DashboardState>()(
       },
     }),
     {
-      name: "dashboard-layout-storage", // Changed storage name
-      // Optionally migrate from the old structure if needed
+      name: "dashboard-layout-storage",
+      onRehydrateStorage: () => (state) => {
+        if (state && state.chartOrder.length === 0) {
+          state.initializeDefaultCharts();
+        }
+      },
     }
   )
 );

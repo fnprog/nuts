@@ -3,11 +3,11 @@
 ## Build & Test Commands
 
 ### Client (TypeScript/React)
-- Build: `cd client && pnpm build`
-- Lint: `cd client && pnpm lint` (fix: `pnpm lint:fix`)
-- Type check: `cd client && pnpm type-check`
-- Test: `cd client && pnpm test`
-- Dev: `cd client && pnpm dev`
+- Build: `cd apps/client && pnpm build`
+- Lint: `cd apps/client && pnpm lint` (fix: `pnpm lint:fix`)
+- Type check: `cd apps/client && pnpm type-check`
+- Test: `cd apps/client && pnpm test`
+- Dev: `cd apps/client && pnpm dev`
 
 ### Server (Go)
 - Build: `cd server && task build` (runs all checks + build)
@@ -19,10 +19,10 @@
 - Dev: `cd server && task dev` (hot reload with air)
 
 ### Mobile (React Native/Expo)
-- Lint: `cd mobile && pnpm lint`
-- Type check: `cd mobile && pnpm type-check`
-- Test: `cd mobile && pnpm test`
-- Check all: `cd mobile && pnpm check-all`
+- Lint: `cd apps/mobile && pnpm lint`
+- Type check: `cd apps/mobile && pnpm type-check`
+- Test: `cd apps/mobile && pnpm test`
+- Check all: `cd apps/mobile && pnpm check-all`
 
 ### AI Service (Python)
 - Test: `cd services/ai && python -m pytest`
