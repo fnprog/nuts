@@ -1,0 +1,24 @@
+{
+  "name": "@nuts/web-file-store",
+  "version": "0.0.1",
+  "description": "Local-first file storage abstraction over OPFS with sync capabilities",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "opfs",
+    "file-storage",
+    "local-first",
+    "offline-first",
+    "web-storage"
+  ],
+  "dependencies": {
+    "nanoid": "^5.0.8"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}
