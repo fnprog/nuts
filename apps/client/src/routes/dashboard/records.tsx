@@ -152,6 +152,8 @@ function RouteComponent() {
           title="See your Transactions"
           description="Connect your first financial account to track your net worth, spending, and investments all in one place."
           ctaText="Add your first account"
+          ctaTarget="/dashboard/accounts"
+          ctaSearch={{ openModal: true }}
         />
       )}
       <div className="border-b-bg-nuts-500/20 -mx-4 flex items-center gap-2 border-b px-3 py-1 md:hidden">

@@ -493,7 +493,7 @@ const SideBarMainLinks = memo(() => {
             <SidebarMenuItem key={item.title} className="w-full">
               <SidebarMenuButton
                 asChild
-                tooltip={item.title}
+                tooltip={t(item.title)}
                 className="duration-200 will-change-transform active:scale-95 active:translate-y-0.5 group/menu-button font-medium gap-3 h-9 rounded-md text-[#757575] hover:text-secondary-900/45 hover:bg-neutral-200/40 [&>svg]:size-full focus:outline-none   " >
                 <Link
                   to={item.url}

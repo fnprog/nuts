@@ -30,13 +30,28 @@ import { useMono } from "../hooks/useMono";
 import { config } from "@/lib/env";
 import { accountService } from "../services/account";
 
-export function AddAccountModal({ children, onClose, onAddAccount }: { children: React.ReactNode; onClose?: () => void; onAddAccount: AccountSubmit }) {
+export function AddAccountModal({ 
+  children, 
+  onClose, 
+  onAddAccount, 
+  open: controlledOpen, 
+  onOpenChange 
+}: { 
+  children: React.ReactNode; 
+  onClose?: () => void; 
+  onAddAccount: AccountSubmit;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}) {
   const [activeTab, setActiveTab] = useState("manual");
-  const [modalOpen, setModalOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  
+  const modalOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setModalOpen = onOpenChange !== undefined ? onOpenChange : setInternalOpen;
   const [balanceInputPaddingLeft, setBalanceInputPaddingLeft] = useState<string | number>("2.5rem"); // Default to pl-10 (2.5rem)
   const currencyPrefixRef = useRef<HTMLSpanElement>(null);
 
-  const { open, ready } = useTellerConnect({
+  const { open: openTellerConnect, ready } = useTellerConnect({
     applicationId: config.VITE_TELLER_APP_ID,
     environment: "sandbox",
     onSuccess: (authorization) => {
@@ -171,7 +186,7 @@ export function AddAccountModal({ children, onClose, onAddAccount }: { children:
             <TabsContent value="linked" className="mt-4 space-y-4">
               <div className="flex flex-col gap-3">
                 {/* <Button onClick={openPlaid} disabled={!plaidReady}>Open Plaid</Button> */}
-                <Button onClick={open} disabled={!ready}>
+                <Button onClick={openTellerConnect} disabled={!ready}>
                   Open teller
                 </Button>
                 <Button onClick={openMono} disabled={!isMonoReady}>

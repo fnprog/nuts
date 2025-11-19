@@ -11,17 +11,18 @@ interface EmptyStateGuideProps {
   description: string;
   ctaText?: string;
   ctaTarget?: string; // Optional route to navigate to
+  ctaSearch?: Record<string, unknown>; // Optional search params
   onCtaClick?: () => void; // Optional custom click handler
 }
 
-export function EmptyStateGuide({ Icon, title, children, description, ctaText, ctaTarget = "/dashboard/accounts", onCtaClick }: EmptyStateGuideProps) {
+export function EmptyStateGuide({ Icon, title, children, description, ctaText, ctaTarget = "/dashboard/accounts", ctaSearch, onCtaClick }: EmptyStateGuideProps) {
   const navigate = useNavigate();
 
   const handleClick = () => {
     if (onCtaClick) {
       onCtaClick();
     } else if (ctaTarget) {
-      navigate({ to: ctaTarget });
+      navigate({ to: ctaTarget, search: ctaSearch });
     }
   };
 

@@ -1,5 +1,6 @@
-import { createFileRoute, useRouteContext } from "@tanstack/react-router";
+import { createFileRoute, useRouteContext, useNavigate } from "@tanstack/react-router";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 
 import { DraggableAccountGroups } from "@/features/accounts/components/account";
 import { AccountsLoading } from "@/features/accounts/components/account.loading";
@@ -19,6 +20,11 @@ import { useCreateAccount, useUpdateAccount, useDeleteAccount } from "@/features
 export const Route = createFileRoute("/dashboard/accounts")({
   component: RouteComponent,
   pendingComponent: AccountsLoading,
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      openModal: search.openModal === "true" || search.openModal === true,
+    };
+  },
   loader: ({ context }) => {
     const queryClient = context.queryClient;
 
@@ -89,18 +95,26 @@ const DUMMY_ACCOUNTS = [
 
 function RouteComponent() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const { openModal } = Route.useSearch();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { hasAccounts } = useRouteContext({ from: "/dashboard" });
-  const { data: realData } = useSuspenseQuery({
-    ...getAllAccountsWithTrends(),
-    enabled: hasAccounts === true,
-  });
+  const { data: realData } = useSuspenseQuery(getAllAccountsWithTrends());
+  const hasAccounts = realData.length > 0;
 
   const data = hasAccounts ? realData : DUMMY_ACCOUNTS;
   const cashTotal = data.reduce((sum, account) => sum + account.balance, 0);
   const grouppedAccounts = groupAccountsByType(data);
 
+  useEffect(() => {
+    if (openModal && !hasAccounts) {
+      setIsModalOpen(true);
+      navigate({ to: "/dashboard/accounts", search: {}, replace: true });
+    }
+  }, [openModal, hasAccounts, navigate]);
+
   const onCloseModal = () => {
+    setIsModalOpen(false);
     queryClient.invalidateQueries({ queryKey: ["accounts"] });
   };
 
@@ -109,7 +123,12 @@ function RouteComponent() {
   const deleteAccount = useDeleteAccount();
 
   const onCreate = (values: any) => {
-    createAccount.mutate(values);
+    createAccount.mutate(values, {
+      onSuccess: () => {
+        setIsModalOpen(false);
+        queryClient.invalidateQueries({ queryKey: ["accounts"] });
+      },
+    });
   };
 
   const onUpdate = (id: string, values: any) => {
@@ -124,7 +143,12 @@ function RouteComponent() {
     <>
       {!hasAccounts && (
         <EmptyStateGuide Icon={LayoutDashboard} title="Here you can view account details" description="Add an account with the button below to get started">
-          <AddAccountModal onAddAccount={onCreate} onClose={onCloseModal}>
+          <AddAccountModal 
+            onAddAccount={onCreate} 
+            onClose={onCloseModal}
+            open={isModalOpen}
+            onOpenChange={setIsModalOpen}
+          >
             <Button className="mt-4 hidden md:inline-flex">Add Account</Button>
           </AddAccountModal>
         </EmptyStateGuide>

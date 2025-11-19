@@ -48,6 +48,8 @@ function RouteComponent() {
           title="Welcome to your Dashboard"
           description="Connect your first financial account to track your net worth, spending, and investments all in one place."
           ctaText="Add your first account"
+          ctaTarget="/dashboard/accounts"
+          ctaSearch={{ openModal: true }}
         />
       )}
 

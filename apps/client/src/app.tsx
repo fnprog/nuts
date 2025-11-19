@@ -6,6 +6,7 @@ import { Initializer } from "@/core/components/ui/Initializer";
 import { ConflictResolutionIndicator } from "@/core/components/dev/ConflictResolutionUI";
 import { crdtService } from "@/core/sync/crdt";
 import { usePluginStore } from "@/features/plugins/store";
+import { FeatureFlagsDeveloperPanel } from "./core/components/dev/FeatureFlagsDeveloperPanel";
 
 if (import.meta.env.DEV) {
   (window as any).__CRDT_SERVICE__ = crdtService;
@@ -36,6 +37,7 @@ export function App() {
       <Initializer>
         <RouterWrapper />
         <ConflictResolutionIndicator />
+        <FeatureFlagsDeveloperPanel />
       </Initializer>
     </QueryClientProvider>
   );
