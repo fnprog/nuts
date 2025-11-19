@@ -15,22 +15,24 @@ import { Chart } from "@/features/dashboard/components/chart-card/chart-renderer
 import { ChartConfig, ChartTooltip, ChartTooltipContent } from "@/core/components/ui/chart";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Cell } from "recharts";
 
+const DUMMY_DATA = [
+  { name: "Emergency Fund", target: 15000, current: 8500, color: "var(--chart-1)" },
+  { name: "Vacation", target: 5000, current: 3200, color: "var(--chart-2)" },
+  { name: "New Car", target: 25000, current: 6800, color: "var(--chart-3)" },
+  { name: "Home Down Payment", target: 60000, current: 12800, color: "var(--chart-4)" },
+];
+
 const fetchSavingsGoalsData = async () => {
   await new Promise((resolve) => setTimeout(resolve, 800));
-
-  return [
-    { name: "Emergency Fund", target: 15000, current: 8500, color: "var(--chart-1)" },
-    { name: "Vacation", target: 5000, current: 3200, color: "var(--chart-2)" },
-    { name: "New Car", target: 25000, current: 6800, color: "var(--chart-3)" },
-    { name: "Home Down Payment", target: 60000, current: 12800, color: "var(--chart-4)" },
-  ];
+  return DUMMY_DATA;
 };
 
-const useSavingsGoalsData = () => {
+const useSavingsGoalsData = (enabled: boolean) => {
   return useSuspenseQuery({
     queryKey: ["dashboardChart", "savingsGoalsData"],
     queryFn: fetchSavingsGoalsData,
     staleTime: 1000 * 60 * 5,
+    enabled,
   });
 };
 
@@ -45,8 +47,8 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-function SavingsGoalsChartComponent({ id, size, isLocked }: DashboardChartComponentProps) {
-  const { data: chartData } = useSavingsGoalsData();
+function SavingsGoalsChartComponent({ id, size, isLocked, hasAccounts }: DashboardChartComponentProps) {
+  const chartData = hasAccounts ? useSavingsGoalsData(true).data : DUMMY_DATA;
 
   const totalCurrent = chartData.reduce((sum, item) => sum + item.current, 0);
 

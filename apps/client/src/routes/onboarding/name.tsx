@@ -63,14 +63,14 @@ function RouteComponent() {
     if (user && shouldSkipNameStep(user)) {
       setName(user.name || "");
       setStep(1);
-      navigate({ to: "/onboarding/finance-interest" });
+      navigate({ to: "/onboarding/language" });
     }
   }, [user, setName, setStep, navigate]);
 
   const onSubmit = async (values: NameFormValues) => {
     setName(values.name);
     setStep(1);
-    await navigate({ to: "/onboarding/finance-interest" });
+    await navigate({ to: "/onboarding/language" });
   };
 
   return (

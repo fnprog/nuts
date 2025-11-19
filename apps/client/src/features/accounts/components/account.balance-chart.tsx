@@ -2,14 +2,28 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, YAxis, Dot } from "recharts";
 import { getAllAccountsBalanceTimeline } from "../services/account.queries";
 
-export function AccountBalanceChart() {
-  const { data, isError } = useSuspenseQuery(getAllAccountsBalanceTimeline());
+const DUMMY_DATA = [
+  { balance: 35000, month: "2024-01-01" },
+  { balance: 38500, month: "2024-02-01" },
+  { balance: 42000, month: "2024-03-01" },
+  { balance: 45500, month: "2024-04-01" },
+  { balance: 49000, month: "2024-05-01" },
+  { balance: 52350, month: "2024-06-01" },
+];
 
-  if (isError) {
+export function AccountBalanceChart({ hasAccounts }: { hasAccounts?: boolean }) {
+  const { data: realData, isError } = useSuspenseQuery({
+    ...getAllAccountsBalanceTimeline(),
+    enabled: hasAccounts === true,
+  });
+
+  const data = hasAccounts ? realData : DUMMY_DATA;
+
+  if (hasAccounts && isError) {
     return <div className="flex h-[180px] items-center justify-center">Failed to load...</div>;
   }
 
-  if (!data || data.length === 0) {
+  if (hasAccounts && (!data || data.length === 0)) {
     return (
       <div className="flex h-[180px] items-center justify-center text-center">
         <p className="text-sm text-muted-foreground">

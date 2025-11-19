@@ -15,24 +15,26 @@ import { Chart } from "@/features/dashboard/components/chart-card/chart-renderer
 import { ChartConfig, ChartTooltip, ChartTooltipContent } from "@/core/components/ui/chart";
 import { Cell, Pie, PieChart, Legend } from "recharts";
 
+const DUMMY_DATA = [
+  { name: "Housing", value: 1800, color: "var(--chart-1)" },
+  { name: "Food", value: 850, color: "var(--chart-2)" },
+  { name: "Transportation", value: 450, color: "var(--chart-3)" },
+  { name: "Entertainment", value: 380, color: "var(--chart-4)" },
+  { name: "Shopping", value: 520, color: "var(--chart-5)" },
+  { name: "Other", value: 210, color: "var(--chart-6)" },
+];
+
 const fetchCategoryData = async () => {
   await new Promise((resolve) => setTimeout(resolve, 800));
-
-  return [
-    { name: "Housing", value: 1800, color: "var(--chart-1)" },
-    { name: "Food", value: 850, color: "var(--chart-2)" },
-    { name: "Transportation", value: 450, color: "var(--chart-3)" },
-    { name: "Entertainment", value: 380, color: "var(--chart-4)" },
-    { name: "Shopping", value: 520, color: "var(--chart-5)" },
-    { name: "Other", value: 210, color: "var(--chart-6)" },
-  ];
+  return DUMMY_DATA;
 };
 
-const useCategoryData = () => {
+const useCategoryData = (enabled: boolean) => {
   return useSuspenseQuery({
     queryKey: ["dashboardChart", "categoryData"],
     queryFn: fetchCategoryData,
     staleTime: 1000 * 60 * 5,
+    enabled,
   });
 };
 
@@ -42,8 +44,8 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-function CategoryBreakdownChartComponent({ id, size, isLocked }: DashboardChartComponentProps) {
-  const { data: chartData } = useCategoryData();
+function CategoryBreakdownChartComponent({ id, size, isLocked, hasAccounts }: DashboardChartComponentProps) {
+  const chartData = hasAccounts ? useCategoryData(true).data : DUMMY_DATA;
 
   const total = chartData.reduce((sum, item) => sum + item.value, 0);
 

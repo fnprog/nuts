@@ -15,29 +15,31 @@ import { Chart } from "@/features/dashboard/components/chart-card/chart-renderer
 import { ChartConfig, ChartTooltip, ChartTooltipContent } from "@/core/components/ui/chart";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Legend } from "recharts";
 
+const DUMMY_DATA_RAW = [
+  { month: "Jan", assets: 120000, liabilities: 85000 },
+  { month: "Feb", assets: 122500, liabilities: 84200 },
+  { month: "Mar", assets: 125000, liabilities: 83500 },
+  { month: "Apr", assets: 128000, liabilities: 82800 },
+  { month: "May", assets: 132000, liabilities: 82000 },
+  { month: "Jun", assets: 135000, liabilities: 81200 },
+];
+
+const DUMMY_DATA = DUMMY_DATA_RAW.map((item) => ({
+  ...item,
+  netWorth: item.assets - item.liabilities,
+}));
+
 const fetchNetWorthData = async () => {
   await new Promise((resolve) => setTimeout(resolve, 800));
-
-  const data = [
-    { month: "Jan", assets: 120000, liabilities: 85000 },
-    { month: "Feb", assets: 122500, liabilities: 84200 },
-    { month: "Mar", assets: 125000, liabilities: 83500 },
-    { month: "Apr", assets: 128000, liabilities: 82800 },
-    { month: "May", assets: 132000, liabilities: 82000 },
-    { month: "Jun", assets: 135000, liabilities: 81200 },
-  ];
-
-  return data.map((item) => ({
-    ...item,
-    netWorth: item.assets - item.liabilities,
-  }));
+  return DUMMY_DATA;
 };
 
-const useNetWorthData = () => {
+const useNetWorthData = (enabled: boolean) => {
   return useSuspenseQuery({
     queryKey: ["dashboardChart", "netWorthData"],
     queryFn: fetchNetWorthData,
     staleTime: 1000 * 60 * 5,
+    enabled,
   });
 };
 
@@ -56,8 +58,8 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-function NetWorthChartComponent({ id, size, isLocked }: DashboardChartComponentProps) {
-  const { data: chartData } = useNetWorthData();
+function NetWorthChartComponent({ id, size, isLocked, hasAccounts }: DashboardChartComponentProps) {
+  const chartData = hasAccounts ? useNetWorthData(true).data : DUMMY_DATA;
 
   const latestNetWorth = chartData[chartData.length - 1]?.netWorth || 0;
 

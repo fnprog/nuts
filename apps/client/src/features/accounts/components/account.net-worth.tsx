@@ -9,9 +9,14 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/core
 
 interface AccountNetWorthCardProps {
   cashTotal: number;
+  hasAccounts?: boolean;
 }
 
-export const NetWorthCard = ({ cashTotal }: AccountNetWorthCardProps) => {
+const DUMMY_CASH_TOTAL = 52350.00;
+
+export const NetWorthCard = ({ cashTotal, hasAccounts }: AccountNetWorthCardProps) => {
+  const displayTotal = hasAccounts ? cashTotal : DUMMY_CASH_TOTAL;
+  
   return (
     <Card>
       <CardHeader className="flex flex-row items-center gap-2 pb-2">
@@ -38,12 +43,12 @@ export const NetWorthCard = ({ cashTotal }: AccountNetWorthCardProps) => {
       <CardContent>
         <div className="flex items-baseline gap-2">
           <span className="text-foreground font-mono text-2xl font-semibold tracking-tighter">
-            ${cashTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            ${displayTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </span>
         </div>
         <div className="mt-6 h-[180px]">
           <Suspense fallback={<div>loading chart...</div>}>
-            <AccountBalanceChart />
+            <AccountBalanceChart hasAccounts={hasAccounts} />
           </Suspense>
         </div>
       </CardContent>

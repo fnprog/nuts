@@ -3,25 +3,29 @@ import { transactionService } from "./transaction.service";
 import { transactionQueryKeys } from "./transaction.keys";
 import { GetTransactionsParams } from "../api/transaction.api";
 
-export const useTransactions = (params: GetTransactionsParams) => {
+export const useTransactions = (params: GetTransactionsParams & { enabled?: boolean }) => {
+  const { enabled, ...queryParams } = params;
   return useQuery({
-    queryKey: transactionQueryKeys.list(params),
+    queryKey: transactionQueryKeys.list(queryParams),
     queryFn: async () => {
-      const result = await transactionService.getTransactions(params);
+      const result = await transactionService.getTransactions(queryParams);
       if (result.isErr()) throw result.error;
       return result.value;
     },
+    enabled: enabled !== false,
   });
 };
 
-export const useTransactionsSuspense = (params: GetTransactionsParams) => {
+export const useTransactionsSuspense = (params: GetTransactionsParams & { enabled?: boolean }) => {
+  const { enabled, ...queryParams } = params;
   return useSuspenseQuery({
-    queryKey: transactionQueryKeys.list(params),
+    queryKey: transactionQueryKeys.list(queryParams),
     queryFn: async () => {
-      const result = await transactionService.getTransactions(params);
+      const result = await transactionService.getTransactions(queryParams);
       if (result.isErr()) throw result.error;
       return result.value;
     },
+    enabled: enabled !== false,
   });
 };
 

@@ -4,15 +4,83 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/c
 import { Badge } from "@/core/components/ui/badge";
 import { Button } from "@/core/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { format, startOfMonth, endOfMonth, addMonths, subMonths } from "date-fns";
+import { format, startOfMonth, endOfMonth, addMonths, subMonths, subDays } from "date-fns";
 import { useTransactions } from "../services/transaction.queries";
 import { TableRecordSchema } from "@/features/transactions/services/transaction.types";
 
+const DUMMY_CALENDAR_DATA = {
+  data: [
+    {
+      date: subDays(new Date(), 1),
+      id: "group-1",
+      total: -137.32,
+      transactions: [
+        {
+          id: "dummy-cal-1",
+          description: "Whole Foods Market",
+          amount: -85.32,
+          type: "expense" as const,
+          transaction_datetime: subDays(new Date(), 1),
+          is_external: true,
+          category: { id: "cat-1", name: "Groceries", icon: "🛒", type: "expense" as const },
+          account: { id: "acc-1", name: "Chase Checking", type: "checking" as const },
+        },
+        {
+          id: "dummy-cal-2",
+          description: "Gas Station",
+          amount: -52.0,
+          type: "expense" as const,
+          transaction_datetime: subDays(new Date(), 1),
+          is_external: true,
+          category: { id: "cat-2", name: "Transportation", icon: "🚗", type: "expense" as const },
+          account: { id: "acc-1", name: "Chase Checking", type: "checking" as const },
+        },
+      ],
+    },
+    {
+      date: subDays(new Date(), 3),
+      id: "group-2",
+      total: 5000.0,
+      transactions: [
+        {
+          id: "dummy-cal-3",
+          description: "Monthly Salary",
+          amount: 5000.0,
+          type: "income" as const,
+          transaction_datetime: subDays(new Date(), 3),
+          is_external: true,
+          category: { id: "cat-3", name: "Salary", icon: "💰", type: "income" as const },
+          account: { id: "acc-1", name: "Chase Checking", type: "checking" as const },
+        },
+      ],
+    },
+    {
+      date: subDays(new Date(), 5),
+      id: "group-3",
+      total: -15.99,
+      transactions: [
+        {
+          id: "dummy-cal-4",
+          description: "Netflix Subscription",
+          amount: -15.99,
+          type: "expense" as const,
+          transaction_datetime: subDays(new Date(), 5),
+          is_external: true,
+          category: { id: "cat-4", name: "Entertainment", icon: "🎬", type: "expense" as const },
+          account: { id: "acc-3", name: "Credit Card", type: "credit" as const },
+        },
+      ],
+    },
+  ],
+  pagination: { total_items: 3, page: 1, limit: 50, total_pages: 1 },
+};
+
 interface CalendarViewProps {
   initialPage?: number;
+  hasAccounts?: boolean;
 }
 
-export function CalendarView({ initialPage = 1 }: CalendarViewProps) {
+export function CalendarView({ initialPage = 1, hasAccounts }: CalendarViewProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
@@ -20,13 +88,16 @@ export function CalendarView({ initialPage = 1 }: CalendarViewProps) {
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
 
-  const { data: transactionsData, isLoading } = useTransactions({
+  const { data: realTransactionsData, isLoading } = useTransactions({
     page: initialPage,
     q: "",
     group_by: "date",
     start_date: monthStart.toISOString().split('T')[0],
-    end_date: monthEnd.toISOString().split('T')[0]
+    end_date: monthEnd.toISOString().split('T')[0],
+    enabled: hasAccounts === true,
   });
+
+  const transactionsData = hasAccounts ? realTransactionsData : DUMMY_CALENDAR_DATA;
 
   // Create a map of dates to transactions for easy lookup
   const transactionsByDate = useMemo(() => {

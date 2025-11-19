@@ -98,6 +98,7 @@ function RouteComponent() {
                           id={layout.id}
                           size={layout.size}
                           isLocked={layout.isLocked}
+                          hasAccounts={hasAccounts}
                         />
                       </Suspense>
                     </ErrorBoundary>

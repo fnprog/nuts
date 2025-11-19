@@ -2,7 +2,6 @@ import { RouterProvider } from "@tanstack/react-router";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useAuthStore } from "@/features/auth/stores/auth.store";
 import { router, queryClient } from "./router";
-import { OfflineStatusIndicator } from "@/core/components/ui/offline-status-indicator";
 import { Initializer } from "@/core/components/ui/Initializer";
 import { ConflictResolutionIndicator } from "@/core/components/dev/ConflictResolutionUI";
 import { crdtService } from "@/core/sync/crdt";
@@ -36,7 +35,6 @@ export function App() {
     <QueryClientProvider client={queryClient}>
       <Initializer>
         <RouterWrapper />
-        <OfflineStatusIndicator />
         <ConflictResolutionIndicator />
       </Initializer>
     </QueryClientProvider>

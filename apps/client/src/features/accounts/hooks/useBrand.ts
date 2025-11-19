@@ -13,7 +13,7 @@ interface UseBrandImageReturn {
 }
 
 const fetchBrandImage = async (brandName: string, clientId: string): Promise<string | null> => {
-  if (!brandName.trim() || !clientId.trim()) return null;
+  if (!brandName?.trim() || !clientId?.trim()) return null;
 
   const url = `https://api.brandfetch.io/v2/search/${encodeURIComponent(brandName)}?c=${encodeURIComponent(clientId)}`;
 
@@ -33,7 +33,7 @@ const fetchBrandImage = async (brandName: string, clientId: string): Promise<str
 };
 
 export const useBrandImage = (brandName: string, clientId: string): UseBrandImageReturn => {
-  const enabled = !!brandName.trim() && !!clientId.trim();
+  const enabled = !!brandName?.trim() && !!clientId?.trim();
 
   const {
     data: imageUrl,

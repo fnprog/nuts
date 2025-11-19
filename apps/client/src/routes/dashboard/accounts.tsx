@@ -28,12 +28,75 @@ export const Route = createFileRoute("/dashboard/accounts")({
   },
 });
 
+const DUMMY_ACCOUNTS = [
+  {
+    id: "dummy-1",
+    name: "Chase Checking",
+    type: "checking" as const,
+    balance: 12500.50,
+    created_at: new Date("2024-01-15"),
+    updated_at: new Date(),
+    user_id: "dummy",
+    currency: "USD",
+    meta: { institution_name: "Chase" },
+    trend_data: [
+      { date: new Date("2024-01-01"), balance: 10000 },
+      { date: new Date("2024-02-01"), balance: 10500 },
+      { date: new Date("2024-03-01"), balance: 11000 },
+      { date: new Date("2024-04-01"), balance: 11500 },
+      { date: new Date("2024-05-01"), balance: 12000 },
+      { date: new Date("2024-06-01"), balance: 12500.50 },
+    ],
+  },
+  {
+    id: "dummy-2",
+    name: "Savings Account",
+    type: "savings" as const,
+    balance: 35000.00,
+    created_at: new Date("2024-01-10"),
+    updated_at: new Date(),
+    user_id: "dummy",
+    currency: "USD",
+    meta: {},
+    trend_data: [
+      { date: new Date("2024-01-01"), balance: 30000 },
+      { date: new Date("2024-02-01"), balance: 31000 },
+      { date: new Date("2024-03-01"), balance: 32000 },
+      { date: new Date("2024-04-01"), balance: 33000 },
+      { date: new Date("2024-05-01"), balance: 34000 },
+      { date: new Date("2024-06-01"), balance: 35000 },
+    ],
+  },
+  {
+    id: "dummy-3",
+    name: "Credit Card",
+    type: "credit" as const,
+    balance: 4849.50,
+    created_at: new Date("2024-02-01"),
+    updated_at: new Date(),
+    user_id: "dummy",
+    currency: "USD",
+    meta: { institution_name: "American Express" },
+    trend_data: [
+      { date: new Date("2024-02-01"), balance: 5000 },
+      { date: new Date("2024-03-01"), balance: 5200 },
+      { date: new Date("2024-04-01"), balance: 4900 },
+      { date: new Date("2024-05-01"), balance: 5100 },
+      { date: new Date("2024-06-01"), balance: 4849.50 },
+    ],
+  },
+];
+
 function RouteComponent() {
   const queryClient = useQueryClient();
 
   const { hasAccounts } = useRouteContext({ from: "/dashboard" });
-  const { data } = useSuspenseQuery(getAllAccountsWithTrends());
+  const { data: realData } = useSuspenseQuery({
+    ...getAllAccountsWithTrends(),
+    enabled: hasAccounts === true,
+  });
 
+  const data = hasAccounts ? realData : DUMMY_ACCOUNTS;
   const cashTotal = data.reduce((sum, account) => sum + account.balance, 0);
   const grouppedAccounts = groupAccountsByType(data);
 
@@ -87,7 +150,7 @@ function RouteComponent() {
       <div className="flex flex-1">
         <div className="h-full w-full space-y-8  py-2">
           <ErrorBoundary>
-            <NetWorthCard cashTotal={cashTotal} />
+            <NetWorthCard cashTotal={cashTotal} hasAccounts={hasAccounts} />
           </ErrorBoundary>
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">

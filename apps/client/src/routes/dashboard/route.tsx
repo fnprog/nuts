@@ -9,6 +9,10 @@ import { useTheme } from "@/features/preferences/hooks/use-theme";
 import { useShallow } from "zustand/react/shallow";
 import { useTranslation } from "react-i18next";
 import { isOnboardingRequired, getOnboardingEntryPoint } from "@/features/onboarding/services/onboarding";
+import { ChatSidebar } from "@/features/ai/components/chat-sidebar";
+import { syncService, type SyncState } from "@/core/sync/sync";
+import { Popover, PopoverContent, PopoverTrigger } from "@/core/components/ui/popover";
+import { Button } from "@/core/components/ui/button";
 import {
   RiSettingsLine,
   RiBankCard2Line,
@@ -33,6 +37,12 @@ import {
   RiBellLine,
   RiFolderLine,
   RiFolderFill,
+  RiWifiLine,
+  RiWifiOffLine,
+  RiRefreshLine,
+  RiCheckLine,
+  RiErrorWarningLine,
+  RiTimeLine,
 } from "@remixicon/react";
 import LogoWTXT from "@/core/components/icons/NUTSNEW";
 import { Avatar, AvatarFallback, AvatarImage } from "@/core/components/ui/avatar";
@@ -59,7 +69,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
-  SidebarSeparator,
   useSidebar,
 } from "@/core/components/ui/sidebar";
 import type { FileRoutesByTo } from "@/routeTree.gen";
@@ -170,6 +179,7 @@ function DashboardWrapper() {
   const navigate = useNavigate();
   const [isPluginNavOpen, setIsPluginNavOpen] = React.useState(false);
   const [isHelpModalOpen, setIsHelpModalOpen] = React.useState(false);
+  const [isChatSidebarOpen, setIsChatSidebarOpen] = React.useState(false);
 
   useHotkeys(
     "g+d",
@@ -245,6 +255,11 @@ function DashboardWrapper() {
     setIsHelpModalOpen(true);
   }, { description: "Show keyboard shortcuts (?)" });
 
+  useHotkeys('ctrl+b, meta+b', (e) => {
+    e.preventDefault();
+    setIsChatSidebarOpen(prev => !prev);
+  }, { description: "Toggle AI Chat (Ctrl+B)" });
+
   return (
     <SidebarProvider open={isPluginNavOpen}>
       <div className="sr-only" id="keyboard-shortcuts" aria-label="Available keyboard shortcuts">
@@ -276,13 +291,14 @@ function DashboardWrapper() {
               isPluginNavOpen={isPluginNavOpen}
               setIsPluginNavOpen={setIsPluginNavOpen}
             />
+          </SidebarContent>
+          <SidebarFooter>
+            <SideBarSyncStatusButton />
             <SideBarNotificationsButton />
             <SideBarHelpButton
               isHelpModalOpen={isHelpModalOpen}
               setIsHelpModalOpen={setIsHelpModalOpen}
             />
-          </SidebarContent>
-          <SidebarFooter>
             <ErrorBoundary fallback={ComponentErrorFallback}>
               <Suspense fallback={<Spinner />}>
                 <SideBarFooterMenu />
@@ -307,36 +323,12 @@ function DashboardWrapper() {
           </main>
         </ErrorBoundary>
       </SidebarInset>
-      <ChatSideBar />
+      <ChatSidebar
+        open={isChatSidebarOpen}
+        onOpenChange={setIsChatSidebarOpen}
+      />
     </SidebarProvider>
   );
-}
-
-const ChatSideBar = () => {
-  return (
-    <Sidebar
-      className="sticky top-0 hidden h-svh border-l lg:flex"
-    >
-      <SidebarHeader className="border-sidebar-border h-16 border-b">
-        {/* <NavUser user={data.user} /> */}
-      </SidebarHeader>
-      <SidebarContent>
-        {/* <DatePicker /> */}
-        <SidebarSeparator className="mx-0" />
-        {/* <Calendars calendars={data.calendars} /> */}
-      </SidebarContent>
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton>
-              {/* <Plus /> */}
-              <span>New Calendar</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
-    </Sidebar>
-  )
 }
 
 
@@ -585,6 +577,152 @@ const SideBarPluginsLinks = memo(({ isPluginNavOpen, setIsPluginNavOpen }: { isP
   );
 });
 
+const SideBarSyncStatusButton = memo(() => {
+  const [syncState, setSyncState] = React.useState<SyncState>(syncService.getSyncState());
+  const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    const unsubscribe = syncService.subscribe(setSyncState);
+    return unsubscribe;
+  }, []);
+
+  const getStatusIcon = () => {
+    if (!syncState.isOnline) {
+      return <RiWifiOffLine size={16} aria-hidden="true" className="text-muted-foreground/60" />;
+    }
+
+    switch (syncState.status) {
+      case "synced":
+        return <RiCheckLine size={16} aria-hidden="true" className="text-green-500" />;
+      case "syncing":
+        return <RiRefreshLine size={16} aria-hidden="true" className="text-blue-500 animate-spin" />;
+      case "error":
+        return <RiErrorWarningLine size={16} aria-hidden="true" className="text-red-500" />;
+      case "conflict":
+        return <RiErrorWarningLine size={16} aria-hidden="true" className="text-yellow-500" />;
+      default:
+        return <RiWifiLine size={16} aria-hidden="true" className="text-muted-foreground/60" />;
+    }
+  };
+
+  const getStatusText = () => {
+    if (!syncState.isOnline) return "Offline";
+    switch (syncState.status) {
+      case "synced": return "Synced";
+      case "syncing": return "Syncing...";
+      case "error": return "Sync Error";
+      case "conflict": return "Conflicts";
+      default: return "Unknown";
+    }
+  };
+
+  const handleManualSync = async () => {
+    const result = await syncService.forceSync();
+    if (result.isErr()) {
+      console.error("Manual sync failed:", result.error);
+    }
+  };
+
+  const conflicts = syncService.getConflicts();
+
+  return (
+    <SidebarGroup>
+      <SidebarGroupContent className="px-0">
+        <SidebarMenu className="items-center gap-3">
+          <SidebarMenuItem className="w-full relative">
+            <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+              <PopoverTrigger asChild>
+                <SidebarMenuButton
+                  tooltip="Sync Status"
+                  className="duration-200 will-change-transform active:scale-95 active:translate-y-0.5 group/menu-button font-medium gap-3 h-9 rounded-md text-[#757575] hover:text-secondary-900/45 hover:bg-neutral-200/40 [&>svg]:size-full focus:outline-none"
+                >
+                  {getStatusIcon()}
+                </SidebarMenuButton>
+              </PopoverTrigger>
+              <PopoverContent side="right" align="end" className="w-80 p-4">
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold text-sm mb-2">Sync Status</h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        {syncState.isOnline ? (
+                          <RiWifiLine size={16} className="text-green-500" />
+                        ) : (
+                          <RiWifiOffLine size={16} className="text-gray-500" />
+                        )}
+                        <span className="text-sm">{syncState.isOnline ? "Online" : "Offline"}</span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {getStatusIcon()}
+                        <span className="text-sm font-medium">{getStatusText()}</span>
+                      </div>
+
+                      {syncState.pendingOperations > 0 && (
+                        <div className="flex items-center gap-2">
+                          <RiTimeLine size={16} className="text-orange-500" />
+                          <span className="text-sm">{syncState.pendingOperations} pending operations</span>
+                        </div>
+                      )}
+
+                      {syncState.lastSyncAt && (
+                        <div className="text-xs text-muted-foreground">
+                          Last sync: {syncState.lastSyncAt.toLocaleString()}
+                        </div>
+                      )}
+
+                      {syncState.error && (
+                        <div className="rounded bg-red-50 dark:bg-red-950 p-2 text-xs text-red-600 dark:text-red-400">
+                          {syncState.error}
+                        </div>
+                      )}
+
+                      {conflicts.length > 0 && (
+                        <div className="rounded bg-yellow-50 dark:bg-yellow-950 p-2 text-xs text-yellow-600 dark:text-yellow-400">
+                          {conflicts.length} sync conflicts need resolution
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-3">
+                    <Button
+                      size="sm"
+                      onClick={handleManualSync}
+                      disabled={!syncState.isOnline || syncState.status === "syncing"}
+                      className="w-full"
+                    >
+                      {syncState.status === "syncing" ? (
+                        <>
+                          <RiRefreshLine className="mr-2 h-4 w-4 animate-spin" />
+                          Syncing...
+                        </>
+                      ) : (
+                        <>
+                          <RiRefreshLine className="mr-2 h-4 w-4" />
+                          Sync Now
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+            {syncState.pendingOperations > 0 && (
+              <Badge
+                variant="secondary"
+                className="absolute -top-1 -right-1 h-5 min-w-[20px] px-1 text-[10px] font-semibold flex items-center justify-center rounded-full"
+              >
+                {syncState.pendingOperations > 10 ? "10+" : syncState.pendingOperations}
+              </Badge>
+            )}
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  );
+});
+
 const SideBarNotificationsButton = memo(() => {
   const navigate = useNavigate();
   const { data: unreadNotifications } = useUnreadNotifications();
@@ -595,7 +733,7 @@ const SideBarNotificationsButton = memo(() => {
   };
 
   return (
-    <SidebarGroup className="mt-auto">
+    <SidebarGroup >
       <SidebarGroupContent className="px-0">
         <SidebarMenu className="items-center gap-3">
           <SidebarMenuItem className="w-full relative">
@@ -633,12 +771,13 @@ const SideBarHelpButton = memo(({ isHelpModalOpen, setIsHelpModalOpen }: { isHel
     { keys: "g + t", description: "Navigate to Transactions" },
     { keys: "g + a", description: "Navigate to Analytics" },
     { keys: "g + s", description: "Navigate to Settings" },
+    { keys: "Ctrl + B", description: "Toggle AI Chat" },
     { keys: "?", description: "Show keyboard shortcuts" },
     { keys: "Escape", description: "Focus main content" },
   ];
 
   return (
-    <SidebarGroup className="mt-auto">
+    <SidebarGroup >
       <SidebarGroupContent className="px-0">
         <SidebarMenu className="items-center gap-3">
           <SidebarMenuItem className="w-full">

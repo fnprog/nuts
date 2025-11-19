@@ -119,6 +119,7 @@ function RouteComponent() {
               <RecordsTable
                 initialPage={page}
                 onPageChange={updatePage}
+                hasAccounts={hasAccounts}
               />
             </Suspense>
           </ErrorBoundary>
@@ -128,6 +129,7 @@ function RouteComponent() {
           <ErrorBoundary>
             <CalendarView
               initialPage={page}
+              hasAccounts={hasAccounts}
             />
           </ErrorBoundary>
         );

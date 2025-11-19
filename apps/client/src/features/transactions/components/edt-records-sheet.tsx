@@ -53,9 +53,7 @@ export default function EditTransactionSheet({ isOpen, onClose, transactionId }:
   const [recurringType, setRecurringType] = useState<string>("one-time");
   const queryClient = useQueryClient();
 
-  const { data: transaction, isFetching: detailFetching } = useTransaction(transactionId!, {
-    enabled: !!transactionId,
-  });
+  const { data: transaction, isFetching: detailFetching } = useTransaction(transactionId!);
 
   const { data: categories } = useQuery({
     queryKey: ["categories"],

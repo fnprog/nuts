@@ -23,4 +23,5 @@ export interface DashboardChartComponentProps {
   id: string; // Instance ID (same as module ID in this simple case)
   size: ChartSize;
   isLocked: boolean;
+  hasAccounts?: boolean; // Whether user has created accounts
 }

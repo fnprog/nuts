@@ -15,24 +15,26 @@ import { Chart } from "@/features/dashboard/components/chart-card/chart-renderer
 import { ChartConfig, ChartTooltip, ChartTooltipContent } from "@/core/components/ui/chart";
 import { Bar, BarChart, CartesianGrid, Legend, XAxis, YAxis } from "recharts";
 
+const DUMMY_DATA = [
+  { month: "Jan", income: 8500, expenses: 6200, savings: 2300 },
+  { month: "Feb", income: 8500, expenses: 6300, savings: 2200 },
+  { month: "Mar", income: 8500, expenses: 6100, savings: 2400 },
+  { month: "Apr", income: 8500, expenses: 6400, savings: 2100 },
+  { month: "May", income: 8500, expenses: 6200, savings: 2300 },
+  { month: "Jun", income: 8500, expenses: 6300, savings: 2200 },
+];
+
 const fetchCashflowData = async () => {
   await new Promise((resolve) => setTimeout(resolve, 800));
-
-  return [
-    { month: "Jan", income: 8500, expenses: 6200, savings: 2300 },
-    { month: "Feb", income: 8500, expenses: 6300, savings: 2200 },
-    { month: "Mar", income: 8500, expenses: 6100, savings: 2400 },
-    { month: "Apr", income: 8500, expenses: 6400, savings: 2100 },
-    { month: "May", income: 8500, expenses: 6200, savings: 2300 },
-    { month: "Jun", income: 8500, expenses: 6300, savings: 2200 },
-  ];
+  return DUMMY_DATA;
 };
 
-const useCashflowData = () => {
+const useCashflowData = (enabled: boolean) => {
   return useSuspenseQuery({
     queryKey: ["dashboardChart", "cashflowData"],
     queryFn: fetchCashflowData,
     staleTime: 1000 * 60 * 5,
+    enabled,
   });
 };
 
@@ -51,8 +53,8 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-function CashflowForecastChartComponent({ id, size, isLocked }: DashboardChartComponentProps) {
-  const { data: chartData } = useCashflowData();
+function CashflowForecastChartComponent({ id, size, isLocked, hasAccounts }: DashboardChartComponentProps) {
+  const chartData = hasAccounts ? useCashflowData(true).data : DUMMY_DATA;
 
   const totalSavings = chartData.reduce((sum, item) => sum + item.savings, 0);
 

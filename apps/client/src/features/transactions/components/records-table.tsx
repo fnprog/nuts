@@ -29,7 +29,7 @@ import { FloatingActionBar } from "./floating-records-bar"
 import { BulkEditDialog } from "./bulk-edit-dialog"
 import { useDebounce } from "@/core/hooks/use-debounce";
 import { useQueryClient } from "@tanstack/react-query"
-import { type GetTransactionsParams } from "../services/transaction.types"
+import { type GetTransactionsParams } from "../api/transaction.api"
 import { useTransactionsSuspense } from "../services/transaction.queries"
 import { useBulkDeleteTransactions } from "../services/transaction.mutations"
 import { logger } from "@/lib/logger"
@@ -40,8 +40,95 @@ import { getTransactionStatus, getTransactionStyles } from "../utils/transaction
 interface RecordsTableProps {
   initialPage: number;
   onPageChange: (newPage: number) => void;
+  hasAccounts?: boolean;
 }
 
+const DUMMY_TRANSACTIONS = {
+  data: [
+    {
+      date: new Date().toISOString().split('T')[0],
+      transactions: [
+        {
+          id: "dummy-1",
+          description: "Grocery Shopping",
+          amount: -85.42,
+          transaction_datetime: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+          type: "expense" as const,
+          is_external: true,
+          account: { id: "dummy-1", name: "Chase Checking", type: "checking" as const },
+          category: { id: "cat-1", name: "Groceries", icon: "🛒" },
+        },
+        {
+          id: "dummy-2",
+          description: "Coffee Shop",
+          amount: -4.50,
+          transaction_datetime: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+          type: "expense" as const,
+          is_external: true,
+          account: { id: "dummy-3", name: "Credit Card", type: "credit" as const },
+          category: { id: "cat-2", name: "Dining", icon: "🍽️" },
+        },
+      ],
+    },
+    {
+      date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      transactions: [
+        {
+          id: "dummy-3",
+          description: "Monthly Salary",
+          amount: 5000.00,
+          transaction_datetime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+          type: "income" as const,
+          is_external: true,
+          account: { id: "dummy-1", name: "Chase Checking", type: "checking" as const },
+          category: { id: "cat-3", name: "Salary", icon: "💰" },
+        },
+        {
+          id: "dummy-4",
+          description: "Gas Station",
+          amount: -45.00,
+          transaction_datetime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+          type: "expense" as const,
+          is_external: true,
+          account: { id: "dummy-3", name: "Credit Card", type: "credit" as const },
+          category: { id: "cat-4", name: "Transportation", icon: "🚗" },
+        },
+      ],
+    },
+    {
+      date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      transactions: [
+        {
+          id: "dummy-5",
+          description: "Netflix Subscription",
+          amount: -15.99,
+          transaction_datetime: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+          type: "expense" as const,
+          is_external: true,
+          is_recurring: true,
+          account: { id: "dummy-3", name: "Credit Card", type: "credit" as const },
+          category: { id: "cat-5", name: "Entertainment", icon: "🎬" },
+        },
+        {
+          id: "dummy-6",
+          description: "Restaurant Dinner",
+          amount: -67.85,
+          transaction_datetime: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+          type: "expense" as const,
+          is_external: true,
+          account: { id: "dummy-3", name: "Credit Card", type: "credit" as const },
+          category: { id: "cat-2", name: "Dining", icon: "🍽️" },
+        },
+      ],
+    },
+  ],
+  pagination: {
+    page: 1,
+    limit: 50,
+    total: 6,
+    pages: 1,
+  },
+};
 
 const MemoizedTransactionCard = memo(({
   transaction,
@@ -113,7 +200,7 @@ const MemoizedTransactionCard = memo(({
   );
 });
 
-export const RecordsTable = ({ initialPage, onPageChange }: RecordsTableProps) => {
+export const RecordsTable = ({ initialPage, onPageChange, hasAccounts }: RecordsTableProps) => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [rowSelection, setRowSelection] = useState({});
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
@@ -180,7 +267,12 @@ export const RecordsTable = ({ initialPage, onPageChange }: RecordsTableProps) =
     return params;
   }, [initialPage, debouncedSearch, debouncedFilters]);
 
-  const { data: transactions, isFetching } = useTransactionsSuspense(queryParams);
+  const { data: realTransactions, isFetching } = useTransactionsSuspense({
+    ...queryParams,
+    enabled: hasAccounts === true,
+  });
+
+  const transactions = hasAccounts ? realTransactions : DUMMY_TRANSACTIONS;
 
   const bulkDeleteMutation = useBulkDeleteTransactions({
     onSuccess: (_, ids) => {
