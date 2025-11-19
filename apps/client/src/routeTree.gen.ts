@@ -17,13 +17,16 @@ import { Route as OnboardingIndexRouteImport } from './routes/onboarding/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as OnboardingSocialProofRouteImport } from './routes/onboarding/social-proof'
 import { Route as OnboardingNameRouteImport } from './routes/onboarding/name'
+import { Route as OnboardingLanguageRouteImport } from './routes/onboarding/language'
 import { Route as OnboardingGoalsRouteImport } from './routes/onboarding/goals'
 import { Route as OnboardingFinanceInterestRouteImport } from './routes/onboarding/finance-interest'
 import { Route as OnboardingFeaturesRouteImport } from './routes/onboarding/features'
+import { Route as OnboardingCurrencyRouteImport } from './routes/onboarding/currency'
 import { Route as OnboardingComplexityRouteImport } from './routes/onboarding/complexity'
 import { Route as DashboardRecordsRouteImport } from './routes/dashboard/records'
 import { Route as DashboardInboxRouteImport } from './routes/dashboard/inbox'
 import { Route as DashboardHomeRouteImport } from './routes/dashboard/home'
+import { Route as DashboardFilesRouteImport } from './routes/dashboard/files'
 import { Route as DashboardBudgetsRouteImport } from './routes/dashboard/budgets'
 import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard/analytics'
 import { Route as DashboardAccountsRouteImport } from './routes/dashboard/accounts'
@@ -86,6 +89,11 @@ const OnboardingNameRoute = OnboardingNameRouteImport.update({
   path: '/name',
   getParentRoute: () => OnboardingRouteRoute,
 } as any)
+const OnboardingLanguageRoute = OnboardingLanguageRouteImport.update({
+  id: '/language',
+  path: '/language',
+  getParentRoute: () => OnboardingRouteRoute,
+} as any)
 const OnboardingGoalsRoute = OnboardingGoalsRouteImport.update({
   id: '/goals',
   path: '/goals',
@@ -100,6 +108,11 @@ const OnboardingFinanceInterestRoute =
 const OnboardingFeaturesRoute = OnboardingFeaturesRouteImport.update({
   id: '/features',
   path: '/features',
+  getParentRoute: () => OnboardingRouteRoute,
+} as any)
+const OnboardingCurrencyRoute = OnboardingCurrencyRouteImport.update({
+  id: '/currency',
+  path: '/currency',
   getParentRoute: () => OnboardingRouteRoute,
 } as any)
 const OnboardingComplexityRoute = OnboardingComplexityRouteImport.update({
@@ -120,6 +133,11 @@ const DashboardInboxRoute = DashboardInboxRouteImport.update({
 const DashboardHomeRoute = DashboardHomeRouteImport.update({
   id: '/home',
   path: '/home',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const DashboardFilesRoute = DashboardFilesRouteImport.update({
+  id: '/files',
+  path: '/files',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
 const DashboardBudgetsRoute = DashboardBudgetsRouteImport.update({
@@ -254,13 +272,16 @@ export interface FileRoutesByFullPath {
   '/dashboard/accounts': typeof DashboardAccountsRouteWithChildren
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/budgets': typeof DashboardBudgetsRoute
+  '/dashboard/files': typeof DashboardFilesRoute
   '/dashboard/home': typeof DashboardHomeRoute
   '/dashboard/inbox': typeof DashboardInboxRoute
   '/dashboard/records': typeof DashboardRecordsRoute
   '/onboarding/complexity': typeof OnboardingComplexityRoute
+  '/onboarding/currency': typeof OnboardingCurrencyRoute
   '/onboarding/features': typeof OnboardingFeaturesRoute
   '/onboarding/finance-interest': typeof OnboardingFinanceInterestRoute
   '/onboarding/goals': typeof OnboardingGoalsRoute
+  '/onboarding/language': typeof OnboardingLanguageRoute
   '/onboarding/name': typeof OnboardingNameRoute
   '/onboarding/social-proof': typeof OnboardingSocialProofRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -289,13 +310,16 @@ export interface FileRoutesByTo {
   '/dashboard/accounts': typeof DashboardAccountsRouteWithChildren
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/budgets': typeof DashboardBudgetsRoute
+  '/dashboard/files': typeof DashboardFilesRoute
   '/dashboard/home': typeof DashboardHomeRoute
   '/dashboard/inbox': typeof DashboardInboxRoute
   '/dashboard/records': typeof DashboardRecordsRoute
   '/onboarding/complexity': typeof OnboardingComplexityRoute
+  '/onboarding/currency': typeof OnboardingCurrencyRoute
   '/onboarding/features': typeof OnboardingFeaturesRoute
   '/onboarding/finance-interest': typeof OnboardingFinanceInterestRoute
   '/onboarding/goals': typeof OnboardingGoalsRoute
+  '/onboarding/language': typeof OnboardingLanguageRoute
   '/onboarding/name': typeof OnboardingNameRoute
   '/onboarding/social-proof': typeof OnboardingSocialProofRoute
   '/dashboard': typeof DashboardIndexRoute
@@ -329,13 +353,16 @@ export interface FileRoutesById {
   '/dashboard/accounts': typeof DashboardAccountsRouteWithChildren
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/budgets': typeof DashboardBudgetsRoute
+  '/dashboard/files': typeof DashboardFilesRoute
   '/dashboard/home': typeof DashboardHomeRoute
   '/dashboard/inbox': typeof DashboardInboxRoute
   '/dashboard/records': typeof DashboardRecordsRoute
   '/onboarding/complexity': typeof OnboardingComplexityRoute
+  '/onboarding/currency': typeof OnboardingCurrencyRoute
   '/onboarding/features': typeof OnboardingFeaturesRoute
   '/onboarding/finance-interest': typeof OnboardingFinanceInterestRoute
   '/onboarding/goals': typeof OnboardingGoalsRoute
+  '/onboarding/language': typeof OnboardingLanguageRoute
   '/onboarding/name': typeof OnboardingNameRoute
   '/onboarding/social-proof': typeof OnboardingSocialProofRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -369,13 +396,16 @@ export interface FileRouteTypes {
     | '/dashboard/accounts'
     | '/dashboard/analytics'
     | '/dashboard/budgets'
+    | '/dashboard/files'
     | '/dashboard/home'
     | '/dashboard/inbox'
     | '/dashboard/records'
     | '/onboarding/complexity'
+    | '/onboarding/currency'
     | '/onboarding/features'
     | '/onboarding/finance-interest'
     | '/onboarding/goals'
+    | '/onboarding/language'
     | '/onboarding/name'
     | '/onboarding/social-proof'
     | '/dashboard/'
@@ -404,13 +434,16 @@ export interface FileRouteTypes {
     | '/dashboard/accounts'
     | '/dashboard/analytics'
     | '/dashboard/budgets'
+    | '/dashboard/files'
     | '/dashboard/home'
     | '/dashboard/inbox'
     | '/dashboard/records'
     | '/onboarding/complexity'
+    | '/onboarding/currency'
     | '/onboarding/features'
     | '/onboarding/finance-interest'
     | '/onboarding/goals'
+    | '/onboarding/language'
     | '/onboarding/name'
     | '/onboarding/social-proof'
     | '/dashboard'
@@ -443,13 +476,16 @@ export interface FileRouteTypes {
     | '/dashboard/accounts'
     | '/dashboard/analytics'
     | '/dashboard/budgets'
+    | '/dashboard/files'
     | '/dashboard/home'
     | '/dashboard/inbox'
     | '/dashboard/records'
     | '/onboarding/complexity'
+    | '/onboarding/currency'
     | '/onboarding/features'
     | '/onboarding/finance-interest'
     | '/onboarding/goals'
+    | '/onboarding/language'
     | '/onboarding/name'
     | '/onboarding/social-proof'
     | '/dashboard/'
@@ -536,6 +572,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardingNameRouteImport
       parentRoute: typeof OnboardingRouteRoute
     }
+    '/onboarding/language': {
+      id: '/onboarding/language'
+      path: '/language'
+      fullPath: '/onboarding/language'
+      preLoaderRoute: typeof OnboardingLanguageRouteImport
+      parentRoute: typeof OnboardingRouteRoute
+    }
     '/onboarding/goals': {
       id: '/onboarding/goals'
       path: '/goals'
@@ -555,6 +598,13 @@ declare module '@tanstack/react-router' {
       path: '/features'
       fullPath: '/onboarding/features'
       preLoaderRoute: typeof OnboardingFeaturesRouteImport
+      parentRoute: typeof OnboardingRouteRoute
+    }
+    '/onboarding/currency': {
+      id: '/onboarding/currency'
+      path: '/currency'
+      fullPath: '/onboarding/currency'
+      preLoaderRoute: typeof OnboardingCurrencyRouteImport
       parentRoute: typeof OnboardingRouteRoute
     }
     '/onboarding/complexity': {
@@ -583,6 +633,13 @@ declare module '@tanstack/react-router' {
       path: '/home'
       fullPath: '/dashboard/home'
       preLoaderRoute: typeof DashboardHomeRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/files': {
+      id: '/dashboard/files'
+      path: '/files'
+      fullPath: '/dashboard/files'
+      preLoaderRoute: typeof DashboardFilesRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
     '/dashboard/budgets': {
@@ -774,6 +831,7 @@ interface DashboardRouteRouteChildren {
   DashboardAccountsRoute: typeof DashboardAccountsRouteWithChildren
   DashboardAnalyticsRoute: typeof DashboardAnalyticsRoute
   DashboardBudgetsRoute: typeof DashboardBudgetsRoute
+  DashboardFilesRoute: typeof DashboardFilesRoute
   DashboardHomeRoute: typeof DashboardHomeRoute
   DashboardInboxRoute: typeof DashboardInboxRoute
   DashboardRecordsRoute: typeof DashboardRecordsRoute
@@ -785,6 +843,7 @@ const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
   DashboardAccountsRoute: DashboardAccountsRouteWithChildren,
   DashboardAnalyticsRoute: DashboardAnalyticsRoute,
   DashboardBudgetsRoute: DashboardBudgetsRoute,
+  DashboardFilesRoute: DashboardFilesRoute,
   DashboardHomeRoute: DashboardHomeRoute,
   DashboardInboxRoute: DashboardInboxRoute,
   DashboardRecordsRoute: DashboardRecordsRoute,
@@ -797,9 +856,11 @@ const DashboardRouteRouteWithChildren = DashboardRouteRoute._addFileChildren(
 
 interface OnboardingRouteRouteChildren {
   OnboardingComplexityRoute: typeof OnboardingComplexityRoute
+  OnboardingCurrencyRoute: typeof OnboardingCurrencyRoute
   OnboardingFeaturesRoute: typeof OnboardingFeaturesRoute
   OnboardingFinanceInterestRoute: typeof OnboardingFinanceInterestRoute
   OnboardingGoalsRoute: typeof OnboardingGoalsRoute
+  OnboardingLanguageRoute: typeof OnboardingLanguageRoute
   OnboardingNameRoute: typeof OnboardingNameRoute
   OnboardingSocialProofRoute: typeof OnboardingSocialProofRoute
   OnboardingIndexRoute: typeof OnboardingIndexRoute
@@ -807,9 +868,11 @@ interface OnboardingRouteRouteChildren {
 
 const OnboardingRouteRouteChildren: OnboardingRouteRouteChildren = {
   OnboardingComplexityRoute: OnboardingComplexityRoute,
+  OnboardingCurrencyRoute: OnboardingCurrencyRoute,
   OnboardingFeaturesRoute: OnboardingFeaturesRoute,
   OnboardingFinanceInterestRoute: OnboardingFinanceInterestRoute,
   OnboardingGoalsRoute: OnboardingGoalsRoute,
+  OnboardingLanguageRoute: OnboardingLanguageRoute,
   OnboardingNameRoute: OnboardingNameRoute,
   OnboardingSocialProofRoute: OnboardingSocialProofRoute,
   OnboardingIndexRoute: OnboardingIndexRoute,

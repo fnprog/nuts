@@ -28,6 +28,11 @@ import {
   RiWalletFill,
   RiPuzzleLine,
   RiPuzzleFill,
+  RiQuestionLine,
+  RiQuestionFill,
+  RiBellLine,
+  RiFolderLine,
+  RiFolderFill,
 } from "@remixicon/react";
 import LogoWTXT from "@/core/components/icons/NUTSNEW";
 import { Avatar, AvatarFallback, AvatarImage } from "@/core/components/ui/avatar";
@@ -54,21 +59,26 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
-  SidebarMenuSub,
-  SidebarMenuSubItem,
-  SidebarMenuSubButton,
+  SidebarSeparator,
   useSidebar,
-  SidebarMenuAction,
 } from "@/core/components/ui/sidebar";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/core/components/ui/collapsible";
 import type { FileRoutesByTo } from "@/routeTree.gen";
-import { ChevronRight } from "lucide-react";
 import { Theme } from "@/features/preferences/contexts/theme.context";
 import { Spinner } from "@/core/components/ui/spinner";
 import { useLogout } from "@/features/auth/services/auth.mutations";
 import { getAllAccounts } from "@/features/accounts/services/account.queries";
 import { ErrorBoundary, ComponentErrorFallback } from "@/core/components/ui/error-boundary";
 import { useAuthStore } from "@/features/auth/stores/auth.store";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/core/components/ui/dialog";
+import { useUnreadNotifications } from "@/features/notifications/services/notification.queries";
+import { Badge } from "@/core/components/ui/badge";
 
 export type ValidRoutes = keyof FileRoutesByTo;
 
@@ -109,6 +119,12 @@ const navMain: navStuff[] = [
     url: "/dashboard/budgets",
     icon: RiWalletLine,
     activeIcon: RiWalletFill,
+  },
+  {
+    title: "navigation.files",
+    url: "/dashboard/files",
+    icon: RiFolderLine,
+    activeIcon: RiFolderFill,
   },
   // {
   //   title: "navigation.analytics",
@@ -153,6 +169,7 @@ export const Route = createFileRoute("/dashboard")({
 function DashboardWrapper() {
   const navigate = useNavigate();
   const [isPluginNavOpen, setIsPluginNavOpen] = React.useState(false);
+  const [isHelpModalOpen, setIsHelpModalOpen] = React.useState(false);
 
   useHotkeys(
     "g+d",
@@ -224,6 +241,10 @@ function DashboardWrapper() {
     mainContent?.focus();
   }, { description: "Focus main content (Escape)" });
 
+  useHotkeys('?', () => {
+    setIsHelpModalOpen(true);
+  }, { description: "Show keyboard shortcuts (?)" });
+
   return (
     <SidebarProvider open={isPluginNavOpen}>
       <div className="sr-only" id="keyboard-shortcuts" aria-label="Available keyboard shortcuts">
@@ -255,6 +276,11 @@ function DashboardWrapper() {
               isPluginNavOpen={isPluginNavOpen}
               setIsPluginNavOpen={setIsPluginNavOpen}
             />
+            <SideBarNotificationsButton />
+            <SideBarHelpButton
+              isHelpModalOpen={isHelpModalOpen}
+              setIsHelpModalOpen={setIsHelpModalOpen}
+            />
           </SidebarContent>
           <SidebarFooter>
             <ErrorBoundary fallback={ComponentErrorFallback}>
@@ -265,10 +291,7 @@ function DashboardWrapper() {
           </SidebarFooter>
         </Sidebar>
 
-        <SecondarySidebar
-          isOpen={isPluginNavOpen}
-          onClose={() => setIsPluginNavOpen(false)}
-        />
+        <SecondarySidebar isOpen={isPluginNavOpen} />
       </Sidebar>
 
       <SidebarInset className="overflow-hidden px-4 md:px-6 py-2 md:py-4">
@@ -284,9 +307,38 @@ function DashboardWrapper() {
           </main>
         </ErrorBoundary>
       </SidebarInset>
+      <ChatSideBar />
     </SidebarProvider>
   );
 }
+
+const ChatSideBar = () => {
+  return (
+    <Sidebar
+      className="sticky top-0 hidden h-svh border-l lg:flex"
+    >
+      <SidebarHeader className="border-sidebar-border h-16 border-b">
+        {/* <NavUser user={data.user} /> */}
+      </SidebarHeader>
+      <SidebarContent>
+        {/* <DatePicker /> */}
+        <SidebarSeparator className="mx-0" />
+        {/* <Calendars calendars={data.calendars} /> */}
+      </SidebarContent>
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton>
+              {/* <Plus /> */}
+              <span>New Calendar</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+    </Sidebar>
+  )
+}
+
 
 const SideBarFooterMenu = memo(() => {
   const navigate = useNavigate();
@@ -533,7 +585,110 @@ const SideBarPluginsLinks = memo(({ isPluginNavOpen, setIsPluginNavOpen }: { isP
   );
 });
 
-const SecondarySidebar = memo(({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+const SideBarNotificationsButton = memo(() => {
+  const navigate = useNavigate();
+  const { data: unreadNotifications } = useUnreadNotifications();
+  const unreadCount = unreadNotifications?.length || 0;
+
+  const handleClick = () => {
+    navigate({ to: "/dashboard/notifications" });
+  };
+
+  return (
+    <SidebarGroup className="mt-auto">
+      <SidebarGroupContent className="px-0">
+        <SidebarMenu className="items-center gap-3">
+          <SidebarMenuItem className="w-full relative">
+            <SidebarMenuButton
+              onClick={handleClick}
+              tooltip="Notifications"
+              className="duration-200 will-change-transform active:scale-95 active:translate-y-0.5 group/menu-button font-medium gap-3 h-9 rounded-md text-[#757575] hover:text-secondary-900/45 hover:bg-neutral-200/40 [&>svg]:size-full focus:outline-none"
+            >
+              <RiBellLine
+                size={16}
+                aria-hidden="true"
+                className="text-muted-foreground/60"
+              />
+            </SidebarMenuButton>
+            {unreadCount > 0 && (
+              <Badge
+                variant="destructive"
+                className="absolute -top-1 -right-1 h-5 min-w-[20px] px-1 text-[10px] font-semibold flex items-center justify-center rounded-full"
+              >
+                {unreadCount > 10 ? "10+" : unreadCount}
+              </Badge>
+            )}
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  );
+});
+
+const SideBarHelpButton = memo(({ isHelpModalOpen, setIsHelpModalOpen }: { isHelpModalOpen: boolean, setIsHelpModalOpen: (open: boolean) => void }) => {
+
+  const shortcuts = [
+    { keys: "g + d", description: "Navigate to Dashboard" },
+    { keys: "g + c", description: "Navigate to Accounts" },
+    { keys: "g + t", description: "Navigate to Transactions" },
+    { keys: "g + a", description: "Navigate to Analytics" },
+    { keys: "g + s", description: "Navigate to Settings" },
+    { keys: "?", description: "Show keyboard shortcuts" },
+    { keys: "Escape", description: "Focus main content" },
+  ];
+
+  return (
+    <SidebarGroup className="mt-auto">
+      <SidebarGroupContent className="px-0">
+        <SidebarMenu className="items-center gap-3">
+          <SidebarMenuItem className="w-full">
+            <Dialog open={isHelpModalOpen} onOpenChange={setIsHelpModalOpen}>
+              <DialogTrigger asChild>
+                <SidebarMenuButton
+                  tooltip="Help & Shortcuts"
+                  className={cn(
+                    "duration-200 will-change-transform active:scale-95 active:translate-y-0.5 group/menu-button font-medium gap-3 h-9 rounded-md text-[#757575] hover:text-secondary-900/45 hover:bg-neutral-200/40 [&>svg]:size-full focus:outline-none",
+                    isHelpModalOpen && "bg-sidebar-accent shadow-sm"
+                  )}
+                >
+                  {isHelpModalOpen ? (
+                    <RiQuestionFill
+                      size={16}
+                      aria-hidden="true"
+                      className="text-secondary-900/80 dark:text-secondary-50"
+                    />
+                  ) : (
+                    <RiQuestionLine
+                      size={16}
+                      aria-hidden="true"
+                      className="text-muted-foreground/60"
+                    />
+                  )}
+                </SidebarMenuButton>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Keyboard Shortcuts</DialogTitle>
+                  <DialogDescription>Quick navigation shortcuts to help you move around faster</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-2 mt-4">
+                  {shortcuts.map((shortcut, index) => (
+                    <div key={index} className="flex items-center justify-between py-2 border-b last:border-b-0">
+                      <span className="text-sm text-muted-foreground">{shortcut.description}</span>
+                      <kbd className="px-2 py-1 text-xs font-semibold bg-muted rounded">{shortcut.keys}</kbd>
+                    </div>
+                  ))}
+                </div>
+              </DialogContent>
+            </Dialog>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  );
+});
+
+const SecondarySidebar = memo(({ isOpen }: { isOpen: boolean }) => {
   const plugins = usePluginStore(useShallow((state) => state.pluginConfigs.filter((config) => config.enabled)));
 
   if (!isOpen || plugins.length === 0) {

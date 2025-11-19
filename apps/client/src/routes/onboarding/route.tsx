@@ -47,7 +47,7 @@ function OnboardingLayout() {
 
 function OnboardingProgress() {
   const step = useOnboardingStore((state) => state.currentStep);
-  const totalSteps = 6;
+  const totalSteps = 8;
   const progressValue = ((step + 1) / totalSteps) * 100;
 
   return (

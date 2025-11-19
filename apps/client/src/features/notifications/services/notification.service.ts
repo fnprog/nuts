@@ -1,7 +1,7 @@
 import { crdtService } from "@/core/sync/crdt";
-import { Result, ResultAsync, ServiceError } from "@/lib/result";
+import { err, ok, Result, ResultAsync, ServiceError } from "@/lib/result";
 import { Notification, CreateNotification, UpdateNotification } from "./notification.types";
-import { generateUUID } from "@/lib/utils";
+import { uuidV7 } from "@nuts/utils";
 
 export const notificationService = {
   async getAll(): Promise<Result<Notification[], ServiceError>> {
@@ -65,7 +65,7 @@ export const notificationService = {
   },
 
   async create(data: CreateNotification): Promise<Result<Notification, ServiceError>> {
-    const id = generateUUID();
+    const id = uuidV7();
     const now = new Date().toISOString();
 
     const notification: Notification = {
@@ -82,10 +82,10 @@ export const notificationService = {
 
     const createResult = await crdtService.createNotification(notification);
     if (createResult.isErr()) {
-      return Result.err(createResult.error);
+      return err(createResult.error);
     }
 
-    return Result.ok(notification);
+    return ok(notification);
   },
 
   async markAsRead(id: string): Promise<Result<Notification, ServiceError>> {
@@ -115,14 +115,14 @@ export const notificationService = {
   async update(id: string, updates: UpdateNotification): Promise<Result<Notification, ServiceError>> {
     const updateResult = await crdtService.updateNotification(id, updates);
     if (updateResult.isErr()) {
-      return Result.err(updateResult.error);
+      return err(updateResult.error);
     }
 
     const result = await this.getById(id);
-    if (result.isErr()) return Result.err(result.error);
-    if (!result.value) return Result.err(ServiceError.notFound("notification", id));
-    
-    return Result.ok(result.value);
+    if (result.isErr()) return err(result.error);
+    if (!result.value) return err(ServiceError.notFound("notification", id));
+
+    return ok(result.value);
   },
 
   async delete(id: string): Promise<Result<void, ServiceError>> {

@@ -49,17 +49,17 @@ export function AddChartDialog({ onAddChart, children }: AddChartDialogProps) {
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[900px]">
+      <DialogContent className="grid grid-rows-[auto_1fr_auto] sm:min-h-[80vh]  md:max-w-[60%] overflow-hidden ">
         <DialogHeader>
           <DialogTitle>Add Chart to Dashboard</DialogTitle>
           <DialogDescription>Select a chart widget to add to your current view.</DialogDescription>
         </DialogHeader>
-        <div className="py-4">
+        <div className="py-4 h-full min-h-0">
           {isLoading ? (
             <div className="p-4 text-center">Loading available charts...</div>
           ) : availableCharts.length > 0 ? (
-            <div className="max-h-[600px] overflow-y-auto pr-2">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className=" overflow-y-auto h-full min-h-0 ">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
                 {availableCharts.map((config) => (
                   <Button
                     key={config.id}
@@ -74,7 +74,7 @@ export function AddChartDialog({ onAddChart, children }: AddChartDialogProps) {
                       <div className="text-left w-full">
                         <div className="font-medium text-base mb-2">{config.title}</div>
                         {config.description && (
-                          <p className="text-sm text-muted-foreground leading-relaxed whitespace-normal break-words">
+                          <p className="text-sm text-muted-foreground leading-relaxed whitespace-normal wrap-break-word">
                             {config.description}
                           </p>
                         )}
