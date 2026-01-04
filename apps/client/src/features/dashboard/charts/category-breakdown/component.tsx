@@ -14,6 +14,7 @@ import {
 import { Chart } from "@/features/dashboard/components/chart-card/chart-renderer";
 import { ChartConfig, ChartTooltip, ChartTooltipContent } from "@/core/components/ui/chart";
 import { Cell, Pie, PieChart, Legend } from "recharts";
+import { analyticsService } from "../../services/analytics.service";
 
 const DUMMY_DATA = [
   { name: "Housing", value: 1800, color: "var(--chart-1)" },
@@ -25,8 +26,9 @@ const DUMMY_DATA = [
 ];
 
 const fetchCategoryData = async () => {
-  await new Promise((resolve) => setTimeout(resolve, 800));
-  return DUMMY_DATA;
+  const result = await analyticsService.getCategoryBreakdown(1);
+  if (result.isErr()) throw result.error;
+  return result.value.length > 0 ? result.value : DUMMY_DATA;
 };
 
 const useCategoryData = (enabled: boolean) => {

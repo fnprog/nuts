@@ -4,13 +4,11 @@ import { Checkbox } from "@/core/components/ui/checkbox";
 import { Avatar, AvatarFallback } from "@/core/components/ui/avatar";
 import { Badge } from "@/core/components/ui/badge";
 import { renderIcon } from "@/core/components/ui/icon-picker/index.helper";
-import { memo, useState } from "react";
+import { memo, useMemo } from "react";
 import { Link } from "@tanstack/react-router";
-import { Popover, PopoverContent, PopoverTrigger } from "@/core/components/ui/popover";
 import { SearchableSelect, SearchableSelectOption } from "@/core/components/ui/search-select";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useMemo } from "react";
 import { getTransactionStatus, getTransactionStyles } from "../utils/transaction-status";
 import { transactionService } from "../services/transaction.service";
 import { useCategoriesQuery } from "@/features/categories/services/category.queries";
@@ -75,7 +73,6 @@ const TransactionCell = memo(({
 });
 
 const CategoryCell = memo(({ transaction }: { transaction: TableRecordSchema }) => {
-  const [isOpen, setIsOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: categories } = useCategoriesQuery();
@@ -89,7 +86,6 @@ const CategoryCell = memo(({ transaction }: { transaction: TableRecordSchema }) 
     onSuccess: () => {
       toast.success("Category updated successfully!");
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      setIsOpen(false);
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to update category.");
@@ -113,30 +109,26 @@ const CategoryCell = memo(({ transaction }: { transaction: TableRecordSchema }) 
   };
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>
-        <Badge
-          variant="outline"
-          className="rounded-full text-md px-2 py-1 [&>svg]:size-4 cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors"
-        >
-          {renderIcon(transaction.category?.icon || "")} {transaction.category?.name || "No category"}
-        </Badge>
-      </PopoverTrigger>
-      <PopoverContent className="w-80" align="start">
-        <div className="space-y-2">
-          <p className="text-sm font-medium">Change category</p>
-          <SearchableSelect
-            options={categoriesOptions}
-            value={transaction.category?.id || ""}
-            onChange={handleCategoryChange}
-            placeholder="Select category..."
-            searchPlaceholder="Search categories..."
-            isLoading={updateCategoryMutation.isPending}
-            disabled={updateCategoryMutation.isPending}
-          />
-        </div>
-      </PopoverContent>
-    </Popover>
+    <div className="inline-flex">
+      <SearchableSelect
+        options={categoriesOptions}
+        value={transaction.category?.id || ""}
+        onChange={handleCategoryChange}
+        placeholder="No category"
+        searchPlaceholder="Search categories..."
+        isLoading={updateCategoryMutation.isPending}
+        disabled={updateCategoryMutation.isPending}
+        renderSelectedItem={(option) => (
+          <>
+            {option.icon} {option.label}
+          </>
+        )}
+        popoverProps={{
+          className: "w-80"
+        }}
+        className="[&>button]:h-auto [&>button]:rounded-full [&>button]:px-2 [&>button]:py-1 [&>button]:text-md [&>button]:border-input [&>button]:bg-background [&>button]:hover:bg-accent [&>button]:hover:text-accent-foreground [&>button]:transition-colors [&>button>span>svg]:size-4 [&>button>svg]:hidden"
+      />
+    </div>
   );
 });
 
@@ -185,8 +177,10 @@ export const getRecordsTableColumns = ({ onEdit }: ActionColumnHandlers): Column
   },
   {
     accessorKey: "amount",
-    header: () => <div className="text-right">Amount</div>,
+    header: "Amount",
     size: 120,
     cell: ({ row }) => <AmountCell amount={Number.parseFloat(row.getValue("amount"))} />,
+    enableSorting: true,
+    sortingFn: "basic",
   },
 ];

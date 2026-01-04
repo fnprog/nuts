@@ -288,8 +288,23 @@ export const RecordsTable = ({ initialPage, onPageChange, hasAccounts }: Records
 
   const groups: TableRecordsArraySchema = useMemo(() => {
     if (!transactions?.data) return [];
-    return transactions.data as TableRecordsArraySchema;
-  }, [transactions?.data]);
+    const rawGroups = transactions.data as TableRecordsArraySchema;
+    
+    if (sorting.length === 0) return rawGroups;
+    
+    const sortField = sorting[0].id;
+    const sortDirection = sorting[0].desc ? -1 : 1;
+    
+    return rawGroups.map(group => ({
+      ...group,
+      transactions: [...group.transactions].sort((a, b) => {
+        if (sortField === "amount") {
+          return (a.amount - b.amount) * sortDirection;
+        }
+        return 0;
+      }),
+    }));
+  }, [transactions?.data, sorting]);
 
   const allTransactions = useMemo(() => {
     if (!groups.length) return [];
@@ -491,100 +506,91 @@ export const RecordsTable = ({ initialPage, onPageChange, hasAccounts }: Records
         ) : (
           /* Desktop View */
           <div className="rounded-md border">
-            <Table className="bg-card">
+            <Table>
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.slice(1).map((header) => {
-                      return header.id === "description" ? (
-                        <TableHead key={header.id} style={{ width: header.getSize() + 30 }}>
-                          <div className="flex w-[50px] items-center space-x-2 pl-4">
-                            <div className="flex items-center space-x-1">
-                              <Checkbox
-                                checked={table.getIsAllPageRowsSelected()}
-                                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                                aria-label="Select all"
-                                className="translate-y-[2px]"
-                              />
-                              <button onClick={toggleAllGroups} className="p-1">
-                                {openGroups.size === groups.length ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                              </button>
-                            </div>
-                            <span className="text-muted-foreground">
-                              {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                            </span>
-                          </div>
-                        </TableHead>
-                      ) : (
-                        <TableHead key={header.id} style={{ width: header.getSize() }} className="text-muted-foreground">
+                    <TableHead className="w-10">
+                      <div className="flex items-center space-x-1">
+                        <Checkbox
+                          checked={table.getIsAllPageRowsSelected()}
+                          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+                          aria-label="Select all"
+                        />
+                        <button onClick={toggleAllGroups} className="p-1">
+                          {openGroups.size === groups.length ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </TableHead>
+                    {headerGroup.headers.slice(1).map((header) => (
+                      <TableHead 
+                        key={header.id} 
+                        style={{ width: header.getSize() }}
+                        className={header.column.getCanSort() ? "cursor-pointer select-none" : ""}
+                        onClick={header.column.getToggleSortingHandler()}
+                      >
+                        <div className={`flex items-center ${header.id === "amount" ? "justify-end" : ""}`}>
                           {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                        </TableHead>
-                      );
-                    })}
+                          {header.column.getCanSort() && (
+                            <span className="ml-1">
+                              {{
+                                asc: " ↑",
+                                desc: " ↓",
+                              }[header.column.getIsSorted() as string] ?? ""}
+                            </span>
+                          )}
+                        </div>
+                      </TableHead>
+                    ))}
                   </TableRow>
                 ))}
               </TableHeader>
               <TableBody>
                 {groups.map((group) => (
                   <Fragment key={`group-${group.id}`}>
-                    <TableRow key={`group-header-${group.id}`}>
-                      <TableCell colSpan={table.getVisibleLeafColumns().length} className="p-0">
-                        <div className="mx-2 my-1 rounded-md border bg-card">
-                          <div className="bg-muted flex items-center p-2">
-                            <div className="flex items-center space-x-1 pl-2">
-                              <Checkbox
-                                checked={group.transactions.every((t) => {
+                    <TableRow className="bg-muted/50 hover:bg-muted/50">
+                      <TableCell colSpan={table.getVisibleLeafColumns().length}>
+                        <div className="flex items-center py-1">
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              checked={group.transactions.every((t) => {
+                                const row = findRowByTransactionId(t.id);
+                                return row?.getIsSelected() ?? false;
+                              })}
+                              onCheckedChange={(value) =>
+                                group.transactions.forEach((t) => {
                                   const row = findRowByTransactionId(t.id);
-                                  return row?.getIsSelected() ?? false;
-                                })}
-                                onCheckedChange={(value) =>
-                                  group.transactions.forEach((t) => {
-                                    const row = findRowByTransactionId(t.id);
-                                    if (row) {
-                                      row.toggleSelected(!!value);
-                                    }
-                                  })
-                                }
-                                aria-label={`Select group ${group.id}`}
-                                className="translate-y-[2px]"
-                              />
-                              <button onClick={() => toggleGroup(group.id)} className="p-1">
-                                {openGroups.has(group.id) ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                              </button>
-                            </div>
-                            <div className="flex-1 font-medium">{formatDate(group.date)}</div>
-                            <div className="mr-4 text-right font-medium">{formatCurrency(group.total)}</div>
+                                  if (row) {
+                                    row.toggleSelected(!!value);
+                                  }
+                                })
+                              }
+                              aria-label={`Select group ${group.id}`}
+                            />
+                            <button onClick={() => toggleGroup(group.id)} className="flex items-center space-x-2 font-medium">
+                              {openGroups.has(group.id) ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                              <span>{formatDate(group.date)}</span>
+                            </button>
                           </div>
-
-                          {openGroups.has(group.id) && (
-                            <Table>
-                              <TableBody>
-                                {group.transactions.map((transaction) => {
-                                  const row = findRowByTransactionId(transaction.id);
-                                  if (!row) return null;
-
-                                  return (
-                                    <TableRow key={`transaction-row-${transaction.id}`} data-state={row.getIsSelected() && "selected"}>
-                                      {row.getVisibleCells().map((cell, cellIndex) => (
-                                        <TableCell
-                                          key={`cell-${cell.id}`}
-                                          style={{
-                                            width: cell.column.getSize(),
-                                          }}
-                                          className={cellIndex === 0 ? "pl-4" : ""}
-                                        >
-                                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                        </TableCell>
-                                      ))}
-                                    </TableRow>
-                                  );
-                                })}
-                              </TableBody>
-                            </Table>
-                          )}
+                          <div className="ml-auto font-medium">{formatCurrency(group.total)}</div>
                         </div>
                       </TableCell>
                     </TableRow>
+
+                    {openGroups.has(group.id) && group.transactions.map((transaction) => {
+                      const row = findRowByTransactionId(transaction.id);
+                      if (!row) return null;
+
+                      return (
+                        <TableRow key={`transaction-row-${transaction.id}`} data-state={row.getIsSelected() && "selected"}>
+                          {row.getVisibleCells().map((cell) => (
+                            <TableCell key={`cell-${cell.id}`} style={{ width: cell.column.getSize() }}>
+                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      );
+                    })}
                   </Fragment>
                 ))}
                 {groups.length === 0 && (

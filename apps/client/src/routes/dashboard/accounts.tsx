@@ -1,4 +1,4 @@
-import { createFileRoute, useRouteContext, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 
@@ -143,8 +143,8 @@ function RouteComponent() {
     <>
       {!hasAccounts && (
         <EmptyStateGuide Icon={LayoutDashboard} title="Here you can view account details" description="Add an account with the button below to get started">
-          <AddAccountModal 
-            onAddAccount={onCreate} 
+          <AddAccountModal
+            onAddAccount={onCreate}
             onClose={onCloseModal}
             open={isModalOpen}
             onOpenChange={setIsModalOpen}

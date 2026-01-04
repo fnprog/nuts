@@ -14,6 +14,7 @@ import {
 import { Chart } from "@/features/dashboard/components/chart-card/chart-renderer";
 import { ChartConfig, ChartTooltip, ChartTooltipContent } from "@/core/components/ui/chart";
 import { Bar, BarChart, CartesianGrid, Legend, XAxis, YAxis } from "recharts";
+import { analyticsService } from "../../services/analytics.service";
 
 const DUMMY_DATA = [
   { month: "Jan", groceries: 420, dining: 380, entertainment: 220, shopping: 350 },
@@ -25,8 +26,9 @@ const DUMMY_DATA = [
 ];
 
 const fetchSpendingData = async () => {
-  await new Promise((resolve) => setTimeout(resolve, 800));
-  return DUMMY_DATA;
+  const result = await analyticsService.getMonthlySpendingByCategory(6);
+  if (result.isErr()) throw result.error;
+  return result.value.length > 0 ? result.value : DUMMY_DATA;
 };
 
 const useSpendingData = (enabled: boolean) => {
@@ -38,30 +40,35 @@ const useSpendingData = (enabled: boolean) => {
   });
 };
 
-const chartConfig = {
-  groceries: {
-    label: "Groceries",
-    color: "var(--chart-1)",
-  },
-  dining: {
-    label: "Dining",
-    color: "var(--chart-2)",
-  },
-  entertainment: {
-    label: "Entertainment",
-    color: "var(--chart-3)",
-  },
-  shopping: {
-    label: "Shopping",
-    color: "var(--chart-4)",
-  },
-} satisfies ChartConfig;
+const buildChartConfig = (data: any[]): ChartConfig => {
+  const categories = new Set<string>();
+  data.forEach((month) => {
+    Object.keys(month).forEach((key) => {
+      if (key !== "month") categories.add(key);
+    });
+  });
+
+  const config: ChartConfig = {};
+  const colors = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)", "var(--chart-6)"];
+  
+  Array.from(categories).forEach((category, index) => {
+    config[category] = {
+      label: category,
+      color: colors[index % colors.length],
+    };
+  });
+
+  return config;
+};
 
 function SpendingOverviewChartComponent({ id, size, isLocked, hasAccounts }: DashboardChartComponentProps) {
   const chartData = hasAccounts ? useSpendingData(true).data : DUMMY_DATA;
-
+  const chartConfig = buildChartConfig(chartData);
+  
   const latestMonth = chartData[chartData.length - 1];
   const total = latestMonth ? Object.values(latestMonth).reduce((sum, val) => typeof val === "number" ? sum + val : sum, 0) : 0;
+
+  const categoryKeys = Object.keys(chartConfig);
 
   return (
     <ChartCard id={id} size={size} isLocked={isLocked}>
@@ -85,10 +92,18 @@ function SpendingOverviewChartComponent({ id, size, isLocked, hasAccounts }: Das
                     content={<ChartTooltipContent />}
                   />
                   <Legend verticalAlign="bottom" height={36} iconType="circle" iconSize={8} wrapperStyle={{ fontSize: "14px", paddingTop: "8px" }} />
-                  <Bar dataKey="groceries" name="Groceries" fill="var(--chart-1)" radius={[4, 4, 0, 0]} barSize={16} animationDuration={300} stackId="a" />
-                  <Bar dataKey="dining" name="Dining" fill="var(--chart-2)" radius={[4, 4, 0, 0]} barSize={16} animationDuration={300} stackId="a" />
-                  <Bar dataKey="entertainment" name="Entertainment" fill="var(--chart-3)" radius={[4, 4, 0, 0]} barSize={16} animationDuration={300} stackId="a" />
-                  <Bar dataKey="shopping" name="Shopping" fill="var(--chart-4)" radius={[4, 4, 0, 0]} barSize={16} animationDuration={300} stackId="a" />
+                  {categoryKeys.map((key, index) => (
+                    <Bar 
+                      key={key}
+                      dataKey={key} 
+                      name={chartConfig[key].label} 
+                      fill={chartConfig[key].color} 
+                      radius={[4, 4, 0, 0]} 
+                      barSize={16} 
+                      animationDuration={300} 
+                      stackId="a" 
+                    />
+                  ))}
                 </BarChart>
               </Chart>
             ) : (

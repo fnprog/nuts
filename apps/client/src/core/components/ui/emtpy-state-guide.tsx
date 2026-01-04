@@ -15,7 +15,7 @@ interface EmptyStateGuideProps {
   onCtaClick?: () => void; // Optional custom click handler
 }
 
-export function EmptyStateGuide({ Icon, title, children, description, ctaText, ctaTarget = "/dashboard/accounts", ctaSearch, onCtaClick }: EmptyStateGuideProps) {
+export function EmptyStateGuide({ title, children, description, ctaText, ctaTarget = "/dashboard/accounts", ctaSearch, onCtaClick }: EmptyStateGuideProps) {
   const navigate = useNavigate();
 
   const handleClick = () => {

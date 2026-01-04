@@ -14,6 +14,7 @@ import {
 import { Chart } from "@/features/dashboard/components/chart-card/chart-renderer";
 import { ChartConfig, ChartTooltip, ChartTooltipContent } from "@/core/components/ui/chart";
 import { Bar, BarChart, CartesianGrid, Legend, XAxis, YAxis } from "recharts";
+import { analyticsService } from "../../services/analytics.service";
 
 const DUMMY_DATA = [
   { month: "Jan", income: 5000, expense: 3500 },
@@ -25,8 +26,9 @@ const DUMMY_DATA = [
 ];
 
 const fetchExpenseIncomeData = async () => {
-  await new Promise((resolve) => setTimeout(resolve, 800));
-  return DUMMY_DATA;
+  const result = await analyticsService.getMonthlyIncomeExpense(6);
+  if (result.isErr()) throw result.error;
+  return result.value.length > 0 ? result.value : DUMMY_DATA;
 };
 
 const useExpenseIncomeData = (enabled: boolean) => {
@@ -52,21 +54,9 @@ const chartConfig = {
 function ExpenseIncomeChartComponent({ id, size, isLocked, hasAccounts }: DashboardChartComponentProps) {
   const chartData = hasAccounts ? useExpenseIncomeData(true).data : DUMMY_DATA;
 
-  {
-    /* <div className="flex items-center mt-1 text-sm"> */
-  }
-  {
-    /*   <ArrowUp className="h-4 w-4 mr-1 text-emerald-500" /> */
-  }
-  {
-    /*   <span className="text-emerald-500 font-medium">2.1%</span> */
-  }
-  {
-    /*   <span className="text-muted-foreground ml-1">vs last week</span> */
-  }
-  {
-    /* </div> */
-  }
+  const latestMonth = chartData[chartData.length - 1];
+  const netAmount = latestMonth ? latestMonth.income - latestMonth.expense : 0;
+
   return (
     <ChartCard id={id} size={size} isLocked={isLocked}>
       <ChartCardMenu>
@@ -74,7 +64,7 @@ function ExpenseIncomeChartComponent({ id, size, isLocked, hasAccounts }: Dashbo
           <ChartCardHeader>
             <div className='flex-1'>
               <ChartCardTitle className='text-muted-foreground'>{config.title}</ChartCardTitle>
-              <h2 className="text-2xl font-bold mt-1">$1,278.45</h2>
+              <h2 className="text-2xl font-bold mt-1">${netAmount.toLocaleString()}</h2>
             </div>
           </ChartCardHeader>
           <ChartCardContent className="mt-2">
@@ -82,12 +72,10 @@ function ExpenseIncomeChartComponent({ id, size, isLocked, hasAccounts }: Dashbo
               <Chart size={size} config={chartConfig}>
                 <BarChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }} barGap={8}>
                   <CartesianGrid strokeDasharray="4 4" vertical={false} stroke=" color-mix(in oklab, var(--muted-foreground) 50%, transparent)" />
-                  <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#9ca3af" }} dy={10} />
+                  <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#9ca3af" }} dy={10} />
                   <YAxis hide />
                   <ChartTooltip
                     cursor={{ fill: "rgba(0, 0, 0, 0.05)" }}
-                    labelFormatter={(label) => `Day ${label}`}
-                    itemStyle={{ padding: "2px 0" }}
                     content={<ChartTooltipContent />}
                   />
                   <Legend verticalAlign="bottom" height={36} iconType="circle" iconSize={8} wrapperStyle={{ fontSize: "14px", paddingTop: "8px" }} />

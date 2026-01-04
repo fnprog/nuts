@@ -19,6 +19,7 @@
     "hooks": "@/core/hooks"
   },
   "registries": {
-    "@smoothui": "https://smoothui.dev/r/{name}.json"
+    "@smoothui": "https://smoothui.dev/r/{name}.json",
+    "@hextaui": "https://hextaui.com/r/{name}.json"
   }
 }

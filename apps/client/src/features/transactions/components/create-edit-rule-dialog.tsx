@@ -46,7 +46,6 @@ interface CreateEditRuleDialogProps {
 }
 
 export function CreateEditRuleDialog({ open, onOpenChange, rule, prefillData }: CreateEditRuleDialogProps) {
-  const [currentStep, setCurrentStep] = useState<"conditions" | "actions">("conditions");
   const isEditing = !!rule;
 
   const createRule = useCreateRule();
@@ -158,7 +157,6 @@ export function CreateEditRuleDialog({ open, onOpenChange, rule, prefillData }: 
       }
       onOpenChange(false);
       form.reset();
-      setCurrentStep("conditions");
     } catch (error) {
       toast.error(isEditing ? "Failed to update rule" : "Failed to create rule");
     }
@@ -303,33 +301,18 @@ export function CreateEditRuleDialog({ open, onOpenChange, rule, prefillData }: 
               </div>
             </div>
 
-            <div className="mb-4 flex gap-2">
-              <Button
-                type="button"
-                variant={currentStep === "conditions" ? "default" : "outline"}
-                onClick={() => setCurrentStep("conditions")}
-                className="flex-1"
-              >
-                1. When...
-              </Button>
-              <Button type="button" variant={currentStep === "actions" ? "default" : "outline"} onClick={() => setCurrentStep("actions")} className="flex-1">
-                2. Then...
-              </Button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto">
-              {currentStep === "conditions" && (
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-base">Conditions</CardTitle>
-                      <Button type="button" variant="outline" size="sm" onClick={addCondition}>
-                        <Plus className="mr-1 size-4" />
-                        Add Condition
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
+            <div className="flex-1 space-y-6 overflow-y-auto">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base">When (Conditions)</CardTitle>
+                    <Button type="button" variant="outline" size="sm" onClick={addCondition}>
+                      <Plus className="mr-1 size-4" />
+                      Add Condition
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
                     {conditionsArray.fields.map((field, index) => (
                       <div key={field.id} className="space-y-3 rounded-lg border p-4">
                         <div className="flex items-center justify-between">
@@ -438,20 +421,18 @@ export function CreateEditRuleDialog({ open, onOpenChange, rule, prefillData }: 
                     ))}
                   </CardContent>
                 </Card>
-              )}
 
-              {currentStep === "actions" && (
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-base">Actions</CardTitle>
-                      <Button type="button" variant="outline" size="sm" onClick={addAction}>
-                        <Plus className="mr-1 size-4" />
-                        Add Action
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base">Then (Actions)</CardTitle>
+                    <Button type="button" variant="outline" size="sm" onClick={addAction}>
+                      <Plus className="mr-1 size-4" />
+                      Add Action
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
                     {actionsArray.fields.map((field, index) => (
                       <div key={field.id} className="space-y-3 rounded-lg border p-4">
                         <div className="flex items-center justify-between">
@@ -505,32 +486,17 @@ export function CreateEditRuleDialog({ open, onOpenChange, rule, prefillData }: 
                     ))}
                   </CardContent>
                 </Card>
-              )}
             </div>
 
             <Separator className="my-4" />
 
-            <div className="flex justify-between gap-2">
+            <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <div className="flex gap-2">
-                {currentStep === "actions" && (
-                  <Button type="button" variant="outline" onClick={() => setCurrentStep("conditions")}>
-                    Back
-                  </Button>
-                )}
-                {currentStep === "conditions" && (
-                  <Button type="button" onClick={() => setCurrentStep("actions")}>
-                    Next
-                  </Button>
-                )}
-                {currentStep === "actions" && (
-                  <Button type="submit" disabled={createRule.isPending || updateRule.isPending}>
-                    {isEditing ? "Update Rule" : "Create Rule"}
-                  </Button>
-                )}
-              </div>
+              <Button type="submit" disabled={createRule.isPending || updateRule.isPending}>
+                {isEditing ? "Update Rule" : "Create Rule"}
+              </Button>
             </div>
           </form>
         </Form>

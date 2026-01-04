@@ -497,7 +497,6 @@ const SideBarMainLinks = memo(() => {
                 className="duration-200 will-change-transform active:scale-95 active:translate-y-0.5 group/menu-button font-medium gap-3 h-9 rounded-md text-[#757575] hover:text-secondary-900/45 hover:bg-neutral-200/40 [&>svg]:size-full focus:outline-none   " >
                 <Link
                   to={item.url}
-                  activeProps={{ className: "bg-sidebar-accent shadow-sm hover:bg-sidebar-accent" }}
                   tabIndex={0}
                   role="menuitem"
                   aria-label={`Navigate to ${t(item.title)}`}
