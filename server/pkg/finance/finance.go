@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Fantasy-Programming/nuts/config"
+	"github.com/Fantasy-Programming/nuts/server/config"
 	"github.com/rs/zerolog"
 )
 
@@ -19,37 +19,49 @@ var (
 )
 
 // AccountType represents standardized account types across all providers
-type AccountType string
+type (
+	AccountType    string
+	AccountSubType string
+)
 
 const (
-	AccountTypeChecking   AccountType = "checking"
-	AccountTypeSavings    AccountType = "savings"
+	AccountTypeCash       AccountType = "cash"
 	AccountTypeCredit     AccountType = "credit"
 	AccountTypeInvestment AccountType = "investment"
 	AccountTypeLoan       AccountType = "loan"
 	AccountTypeOther      AccountType = "other"
 )
 
+const (
+	AccountTypeChecking    AccountSubType = "checking"
+	AccountSTypeLoan       AccountSubType = "Loan"
+	AccountSTypeInvestment AccountSubType = "Investment"
+	AccountTypeSavings     AccountSubType = "savings"
+	AccountTypeBrokerage   AccountSubType = "Brokerage"
+	AccountType401K        AccountSubType = "401K"
+	AccountTypeCards       AccountSubType = "Credit Card"
+)
+
 // Account represents a standardized account structure
 type Account struct {
-	ID                string      `json:"id"`
-	Name              string      `json:"name"`
-	Type              AccountType `json:"type"`
-	Balance           float64     `json:"balance"`
-	AvailableBalance  *float64    `json:"available_balance,omitempty"`
-	Currency          string      `json:"currency"`
-	AccountNumber     *string     `json:"account_number,omitempty"`
-	RoutingNumber     *string     `json:"routing_number,omitempty"`
-	InstitutionName   string      `json:"institution_name"`
-	InstitutionID     string      `json:"institution_id"`
-	LastUpdated       time.Time   `json:"last_updated"`
-	IsActive          bool        `json:"is_active"`
-	ProviderAccountID string      `json:"provider_account_id"`
-	EnrollmentID      *string     `json:"enrollment_id,omitempty"`
-	Status            *string     `json:"status,omitempty"`
-	Subtype           *string     `json:"subtype,omitempty"`
-	ResourceID        *string     `json:"resource_id,omitempty"`
-	ExpiresAt         *time.Time  `json:"expires_at,omitempty"`
+	ID                string          `json:"id"`
+	Name              string          `json:"name"`
+	Type              AccountType     `json:"type"`
+	Balance           float64         `json:"balance"`
+	AvailableBalance  *float64        `json:"available_balance,omitempty"`
+	Currency          string          `json:"currency"`
+	AccountNumber     *string         `json:"account_number,omitempty"`
+	RoutingNumber     *string         `json:"routing_number,omitempty"`
+	InstitutionName   string          `json:"institution_name"`
+	InstitutionID     string          `json:"institution_id"`
+	LastUpdated       time.Time       `json:"last_updated"`
+	IsActive          bool            `json:"is_active"`
+	ProviderAccountID string          `json:"provider_account_id"`
+	EnrollmentID      *string         `json:"enrollment_id,omitempty"`
+	Status            *string         `json:"status,omitempty"`
+	Subtype           *AccountSubType `json:"subtype,omitempty"`
+	ResourceID        *string         `json:"resource_id,omitempty"`
+	ExpiresAt         *time.Time      `json:"expires_at,omitempty"`
 }
 
 // Transaction represents a standardized transaction structure
@@ -109,10 +121,10 @@ type ExchangeTokenResponse struct {
 }
 
 type GetTransactionsArgs struct {
-	Count     int
-	FromID    string
-	startDate time.Time
-	endDate   time.Time
+	Count     *int
+	FromID    *string
+	startDate *time.Time
+	endDate   *time.Time
 }
 
 // Provider defines the interface for financial data providers
@@ -158,8 +170,6 @@ func NewProviderManager(cfg config.Integrations, logger *zerolog.Logger) (*Provi
 		providers: make(map[string]Provider),
 		logger:    logger,
 	}
-
-	logger.Debug().Any("config", cfg.EnabledFinancialProviders).Msg("see oo")
 
 	// Initialize enabled providers
 	for _, providerName := range cfg.EnabledFinancialProviders {
@@ -229,7 +239,6 @@ func createProvider(name string, cfg config.Integrations, logger *zerolog.Logger
 			Environment: cfg.PlaidEnvironment,
 			ClientID:    cfg.PlaidClientId,
 			Secret:      cfg.PlaidSecret,
-			BaseURL:     cfg.PlaidBaseUri,
 		}, logger)
 	case "teller":
 		return NewTellerProvider(TellerConfig{

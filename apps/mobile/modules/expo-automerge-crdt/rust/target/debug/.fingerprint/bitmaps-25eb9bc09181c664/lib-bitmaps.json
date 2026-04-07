@@ -1,0 +1,20 @@
+{
+  "rustc": 10128419115332751062,
+  "features": "[\"default\", \"std\"]",
+  "declared_features": "[\"default\", \"std\"]",
+  "target": 1935611146874735538,
+  "profile": 2241668132362809309,
+  "path": 9096461219318928990,
+  "deps": [[857979250431893282, "typenum", false, 6517093621202875019]],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "debug/.fingerprint/bitmaps-25eb9bc09181c664/dep-lib-bitmaps",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 2069994364910194474,
+  "compile_kind": 0
+}

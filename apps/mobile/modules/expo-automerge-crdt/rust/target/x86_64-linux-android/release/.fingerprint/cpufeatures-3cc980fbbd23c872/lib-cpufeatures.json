@@ -1,0 +1,20 @@
+{
+  "rustc": 8022303366561187541,
+  "features": "[]",
+  "declared_features": "[]",
+  "target": 2330704043955282025,
+  "profile": 12693162527509728243,
+  "path": 560678747339279887,
+  "deps": [],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "x86_64-linux-android/release/.fingerprint/cpufeatures-3cc980fbbd23c872/dep-lib-cpufeatures",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 10255546481339591553,
+  "compile_kind": 13862352012247744383
+}

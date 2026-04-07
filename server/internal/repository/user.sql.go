@@ -46,34 +46,30 @@ func (q *Queries) AddLinkedAccount(ctx context.Context, arg AddLinkedAccountPara
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
     email,
-    first_name,
-    last_name,
+    name,
     password
 ) VALUES (
-    $1, $2, $3, $4
-) RETURNING id, email, first_name, last_name, password, created_at, updated_at, deleted_at, avatar_url, mfa_secret, mfa_enabled, mfa_verified_at
+    $1, $2, $3
+) RETURNING id, email, name, password, created_at, updated_at, deleted_at, avatar_url, mfa_secret, mfa_enabled, mfa_verified_at, avatar_key
 `
 
 type CreateUserParams struct {
-	Email     string  `json:"email"`
-	FirstName *string `json:"first_name"`
-	LastName  *string `json:"last_name"`
-	Password  *string `json:"password"`
+	Email    string  `json:"email"`
+	Name     *string `json:"name"`
+	Password *string `json:"password"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
 	row := q.db.QueryRow(ctx, createUser,
 		arg.Email,
-		arg.FirstName,
-		arg.LastName,
+		arg.Name,
 		arg.Password,
 	)
 	var i User
 	err := row.Scan(
 		&i.ID,
 		&i.Email,
-		&i.FirstName,
-		&i.LastName,
+		&i.Name,
 		&i.Password,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -82,6 +78,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.MfaSecret,
 		&i.MfaEnabled,
 		&i.MfaVerifiedAt,
+		&i.AvatarKey,
 	)
 	return i, err
 }
@@ -190,10 +187,12 @@ const getUserByEmail = `-- name: GetUserByEmail :one
 SELECT
     id,
     email,
-    first_name,
-    last_name,
+    name,
     password,
+    avatar_key,
     avatar_url,
+    mfa_enabled,
+    mfa_secret,
     created_at,
     updated_at
 FROM users
@@ -201,14 +200,16 @@ WHERE email = $1 LIMIT 1
 `
 
 type GetUserByEmailRow struct {
-	ID        uuid.UUID `json:"id"`
-	Email     string    `json:"email"`
-	FirstName *string   `json:"first_name"`
-	LastName  *string   `json:"last_name"`
-	Password  *string   `json:"password"`
-	AvatarUrl *string   `json:"avatar_url"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID         uuid.UUID `json:"id"`
+	Email      string    `json:"email"`
+	Name       *string   `json:"name"`
+	Password   *string   `json:"password"`
+	AvatarKey  *string   `json:"avatar_key"`
+	AvatarUrl  *string   `json:"avatar_url"`
+	MfaEnabled bool      `json:"mfa_enabled"`
+	MfaSecret  []byte    `json:"mfa_secret"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
 }
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error) {
@@ -217,10 +218,12 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEm
 	err := row.Scan(
 		&i.ID,
 		&i.Email,
-		&i.FirstName,
-		&i.LastName,
+		&i.Name,
 		&i.Password,
+		&i.AvatarKey,
 		&i.AvatarUrl,
+		&i.MfaEnabled,
+		&i.MfaSecret,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -231,11 +234,12 @@ const getUserById = `-- name: GetUserById :one
 SELECT
     id,
     email,
-    first_name,
-    last_name,
+    name,
     password,
+    avatar_key,
     avatar_url,
     mfa_enabled,
+    mfa_secret,
     created_at,
     updated_at
 FROM users
@@ -245,11 +249,12 @@ WHERE id = $1 LIMIT 1
 type GetUserByIdRow struct {
 	ID         uuid.UUID `json:"id"`
 	Email      string    `json:"email"`
-	FirstName  *string   `json:"first_name"`
-	LastName   *string   `json:"last_name"`
+	Name       *string   `json:"name"`
 	Password   *string   `json:"password"`
+	AvatarKey  *string   `json:"avatar_key"`
 	AvatarUrl  *string   `json:"avatar_url"`
 	MfaEnabled bool      `json:"mfa_enabled"`
+	MfaSecret  []byte    `json:"mfa_secret"`
 	CreatedAt  time.Time `json:"created_at"`
 	UpdatedAt  time.Time `json:"updated_at"`
 }
@@ -260,11 +265,12 @@ func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (GetUserByIdRow
 	err := row.Scan(
 		&i.ID,
 		&i.Email,
-		&i.FirstName,
-		&i.LastName,
+		&i.Name,
 		&i.Password,
+		&i.AvatarKey,
 		&i.AvatarUrl,
 		&i.MfaEnabled,
+		&i.MfaSecret,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -302,8 +308,8 @@ const listUsers = `-- name: ListUsers :many
 SELECT
     id,
     email,
-    first_name,
-    last_name,
+    name,
+    avatar_key,
     avatar_url,
     password,
     created_at,
@@ -323,8 +329,8 @@ type ListUsersParams struct {
 type ListUsersRow struct {
 	ID        uuid.UUID `json:"id"`
 	Email     string    `json:"email"`
-	FirstName *string   `json:"first_name"`
-	LastName  *string   `json:"last_name"`
+	Name      *string   `json:"name"`
+	AvatarKey *string   `json:"avatar_key"`
 	AvatarUrl *string   `json:"avatar_url"`
 	Password  *string   `json:"password"`
 	CreatedAt time.Time `json:"created_at"`
@@ -343,8 +349,8 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUse
 		if err := rows.Scan(
 			&i.ID,
 			&i.Email,
-			&i.FirstName,
-			&i.LastName,
+			&i.Name,
+			&i.AvatarKey,
 			&i.AvatarUrl,
 			&i.Password,
 			&i.CreatedAt,
@@ -400,17 +406,17 @@ const updateUser = `-- name: UpdateUser :one
 UPDATE users
 SET
     email = coalesce($1, email),
-    first_name = coalesce($2, first_name),
-    last_name = coalesce($3, last_name),
+    name = coalesce($2, name),
+    avatar_key = coalesce($3, avatar_key),
     avatar_url = coalesce($4, avatar_url)
 WHERE id = $5
-RETURNING id, email, first_name, last_name, password, created_at, updated_at, deleted_at, avatar_url, mfa_secret, mfa_enabled, mfa_verified_at
+RETURNING id, email, name, password, created_at, updated_at, deleted_at, avatar_url, mfa_secret, mfa_enabled, mfa_verified_at, avatar_key
 `
 
 type UpdateUserParams struct {
 	Email     *string   `json:"email"`
-	FirstName *string   `json:"first_name"`
-	LastName  *string   `json:"last_name"`
+	Name      *string   `json:"name"`
+	AvatarKey *string   `json:"avatar_key"`
 	AvatarUrl *string   `json:"avatar_url"`
 	ID        uuid.UUID `json:"id"`
 }
@@ -418,8 +424,8 @@ type UpdateUserParams struct {
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
 	row := q.db.QueryRow(ctx, updateUser,
 		arg.Email,
-		arg.FirstName,
-		arg.LastName,
+		arg.Name,
+		arg.AvatarKey,
 		arg.AvatarUrl,
 		arg.ID,
 	)
@@ -427,8 +433,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 	err := row.Scan(
 		&i.ID,
 		&i.Email,
-		&i.FirstName,
-		&i.LastName,
+		&i.Name,
 		&i.Password,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -437,6 +442,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.MfaSecret,
 		&i.MfaEnabled,
 		&i.MfaVerifiedAt,
+		&i.AvatarKey,
 	)
 	return i, err
 }

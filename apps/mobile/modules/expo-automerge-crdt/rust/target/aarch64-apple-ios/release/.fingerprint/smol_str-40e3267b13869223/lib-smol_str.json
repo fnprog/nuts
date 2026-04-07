@@ -1,0 +1,20 @@
+{
+  "rustc": 8022303366561187541,
+  "features": "[\"default\", \"serde\", \"std\"]",
+  "declared_features": "[\"arbitrary\", \"default\", \"serde\", \"std\"]",
+  "target": 7538947361851984637,
+  "profile": 12693162527509728243,
+  "path": 1698804886025438292,
+  "deps": [[13548984313718623784, "serde", false, 6320427651381075912]],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "aarch64-apple-ios/release/.fingerprint/smol_str-40e3267b13869223/dep-lib-smol_str",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 2069994364910194474,
+  "compile_kind": 3694122122034060669
+}

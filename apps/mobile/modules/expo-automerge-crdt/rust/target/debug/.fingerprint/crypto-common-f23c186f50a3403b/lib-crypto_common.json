@@ -1,0 +1,23 @@
+{
+  "rustc": 10128419115332751062,
+  "features": "[\"std\"]",
+  "declared_features": "[\"getrandom\", \"rand_core\", \"std\"]",
+  "target": 16242158919585437602,
+  "profile": 2241668132362809309,
+  "path": 4556923879933194064,
+  "deps": [
+    [857979250431893282, "typenum", false, 12482060798290885356],
+    [17738927884925025478, "generic_array", false, 13539891758362372007]
+  ],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "debug/.fingerprint/crypto-common-f23c186f50a3403b/dep-lib-crypto_common",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 2069994364910194474,
+  "compile_kind": 0
+}

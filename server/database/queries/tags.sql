@@ -52,3 +52,10 @@ DELETE FROM tags
 WHERE
     id = $1
     AND user_id = $2;
+
+-- name: GetTagsSince :many
+SELECT *
+FROM tags
+WHERE
+    user_id = sqlc.arg('user_id')
+    AND created_at > sqlc.arg('since');

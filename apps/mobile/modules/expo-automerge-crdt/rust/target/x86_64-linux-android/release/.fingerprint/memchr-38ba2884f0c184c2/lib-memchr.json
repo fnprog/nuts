@@ -1,0 +1,20 @@
+{
+  "rustc": 8022303366561187541,
+  "features": "[\"alloc\", \"std\"]",
+  "declared_features": "[\"alloc\", \"core\", \"default\", \"libc\", \"logging\", \"rustc-dep-of-std\", \"std\", \"use_std\"]",
+  "target": 11745930252914242013,
+  "profile": 12693162527509728243,
+  "path": 7739404456880005125,
+  "deps": [],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "x86_64-linux-android/release/.fingerprint/memchr-38ba2884f0c184c2/dep-lib-memchr",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 10255546481339591553,
+  "compile_kind": 13862352012247744383
+}

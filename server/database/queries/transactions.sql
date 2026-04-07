@@ -7,11 +7,39 @@ INSERT INTO transactions (
     category_id,
     description,
     transaction_datetime,
+    transaction_currency,
+    original_amount,
     details,
-    created_by
+    provider_transaction_id,
+    is_external,
+    created_by,
+    recurring_transaction_id,
+    recurring_instance_date
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
 ) RETURNING *;
+
+
+-- name: BatchCreateTransaction :copyfrom
+INSERT INTO transactions (
+    amount,
+    type,
+    account_id,
+    destination_account_id,
+    category_id,
+    description,
+    transaction_datetime,
+    transaction_currency,
+    original_amount,
+    details,
+    provider_transaction_id,
+    is_external,
+    created_by,
+    recurring_transaction_id,
+    recurring_instance_date
+) VALUES (
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+);
 
 -- name: GetTransactionById :one
 SELECT *
@@ -23,32 +51,124 @@ LIMIT 1;
 
 -- name: ListTransactions :many
 SELECT
-    transactions.id,
-    transactions.amount,
-    transactions.type,
-    transactions.destination_account_id,
-    transactions.transaction_datetime,
-    transactions.description,
-    transactions.details,
-    transactions.updated_at,
-    sqlc.embed(categories),
-    sqlc.embed(accounts)
-FROM transactions
-JOIN categories ON transactions.category_id = categories.id
-JOIN accounts ON transactions.account_id = accounts.id
+    t.id,
+    t.amount,
+    t.type,
+    t.destination_account_id,
+    t.transaction_datetime,
+    t.description,
+    t.details,
+    t.is_external,
+    t.updated_at,
+    t.recurring_transaction_id,
+    t.recurring_instance_date,
+    -- Embed the source account
+    sqlc.embed(source_acct),
+    -- Select destination account fields explicitly with aliases
+    -- We use LEFT JOIN because destination_account_id can be NULL
+    dest_acct.id AS destination_account_id_alias,
+    dest_acct.name AS destination_account_name,
+    dest_acct.type AS destination_account_type,
+    dest_acct.currency AS destination_account_currency,
+    -- Embed the category
+    sqlc.embed(cat),
+    -- Include recurring transaction template info
+    rt.auto_post,
+    rt.template_name
+FROM
+    transactions AS t
+JOIN
+    accounts AS source_acct ON t.account_id = source_acct.id
+    AND source_acct.deleted_at IS NULL
+JOIN
+    categories AS cat ON t.category_id = cat.id
+LEFT JOIN
+    accounts AS dest_acct ON t.destination_account_id = dest_acct.id
+    AND dest_acct.deleted_at IS NULL
+LEFT JOIN
+    recurring_transactions AS rt ON t.recurring_transaction_id = rt.id
+    AND rt.deleted_at IS NULL
 WHERE
-    transactions.created_by = sqlc.arg('user_id')
-    AND transactions.deleted_at IS NULL
-    AND (sqlc.narg('type')::text IS NULL OR transactions.type = sqlc.narg('type'))
-    AND (sqlc.narg('start_date')::timestamptz IS NULL OR transactions.transaction_datetime >= sqlc.narg('start_date')::timestamptz)
-    AND (sqlc.narg('end_date')::timestamptz IS NULL OR transactions.transaction_datetime <= sqlc.narg('end_date')::timestamptz)
-    AND (sqlc.narg('account_id')::uuid IS NULL OR transactions.account_id = sqlc.narg('account_id')::uuid)
-ORDER BY transactions.transaction_datetime DESC
-LIMIT CASE
-    WHEN sqlc.narg('limit')::integer IS NULL THEN 50
-    ELSE sqlc.narg('limit')::integer
-END
-OFFSET sqlc.arg('offset')::integer;
+    t.created_by = sqlc.arg('user_id')
+    AND t.deleted_at IS NULL
+    -- Enhanced filters
+    AND (sqlc.narg('type')::text IS NULL OR t.type = sqlc.narg('type'))
+    AND (sqlc.narg('account_id')::uuid IS NULL OR t.account_id = sqlc.narg('account_id'))
+    AND (sqlc.narg('category_id')::uuid IS NULL OR t.category_id = sqlc.narg('category_id'))
+    AND (sqlc.narg('currency')::text IS NULL OR t.transaction_currency = sqlc.narg('currency'))
+    AND (sqlc.narg('is_external')::boolean IS NULL OR t.is_external = sqlc.narg('is_external'))
+    AND (sqlc.narg('is_recurring')::boolean IS NULL OR
+         (sqlc.narg('is_recurring')::boolean = true AND t.recurring_transaction_id IS NOT NULL) OR
+         (sqlc.narg('is_recurring')::boolean = false AND t.recurring_transaction_id IS NULL))
+    AND (sqlc.narg('is_pending')::boolean IS NULL OR
+         (sqlc.narg('is_pending')::boolean = true AND rt.auto_post = false AND t.recurring_transaction_id IS NOT NULL) OR
+         (sqlc.narg('is_pending')::boolean = false AND (rt.auto_post = true OR t.recurring_transaction_id IS NULL)))
+    AND (sqlc.narg('start_date')::timestamptz IS NULL OR t.transaction_datetime >= sqlc.narg('start_date'))
+    AND (sqlc.narg('end_date')::timestamptz IS NULL OR t.transaction_datetime <= sqlc.narg('end_date'))
+    AND (sqlc.narg('min_amount')::decimal IS NULL OR t.amount >= sqlc.narg('min_amount'))
+    AND (sqlc.narg('max_amount')::decimal IS NULL OR t.amount <= sqlc.narg('max_amount'))
+    -- Search filter (case-insensitive)
+    AND (sqlc.narg('search')::text IS NULL OR t.description ILIKE '%' || sqlc.narg('search')::text || '%')
+    -- Tags filter (assuming tags are stored in the details JSONB field)
+    AND (sqlc.narg('tags')::text[] IS NULL OR 
+         EXISTS (
+             SELECT 1 
+             FROM unnest(sqlc.narg('tags')::text[]) AS tag
+             WHERE t.details ? tag OR t.details->>'note' ILIKE '%' || tag || '%'
+         )
+    )
+ORDER BY
+    t.transaction_datetime DESC
+LIMIT
+    sqlc.arg('limit')
+OFFSET
+    sqlc.arg('offset');
+
+-- name: CountTransactions :one
+SELECT count(*)
+FROM
+    transactions AS t
+JOIN
+    accounts AS source_acct ON t.account_id = source_acct.id
+    AND source_acct.deleted_at IS NULL
+
+LEFT JOIN
+    accounts AS dest_acct ON t.destination_account_id = dest_acct.id
+    AND dest_acct.deleted_at IS NULL
+
+LEFT JOIN
+    recurring_transactions AS rt ON t.recurring_transaction_id = rt.id
+    AND rt.deleted_at IS NULL
+
+WHERE
+    t.created_by = sqlc.arg('user_id')
+    AND t.deleted_at IS NULL
+
+    -- Enhanced filters
+    AND (sqlc.narg('type')::text IS NULL OR t.type = sqlc.narg('type'))
+    AND (sqlc.narg('account_id')::uuid IS NULL OR t.account_id = sqlc.narg('account_id'))
+    AND (sqlc.narg('category_id')::uuid IS NULL OR t.category_id = sqlc.narg('category_id'))
+    AND (sqlc.narg('currency')::text IS NULL OR t.transaction_currency = sqlc.narg('currency'))
+    AND (sqlc.narg('is_external')::boolean IS NULL OR t.is_external = sqlc.narg('is_external'))
+    AND (sqlc.narg('is_recurring')::boolean IS NULL OR 
+         (sqlc.narg('is_recurring')::boolean = true AND t.recurring_transaction_id IS NOT NULL) OR
+         (sqlc.narg('is_recurring')::boolean = false AND t.recurring_transaction_id IS NULL))
+    AND (sqlc.narg('is_pending')::boolean IS NULL OR 
+         (sqlc.narg('is_pending')::boolean = true AND rt.auto_post = false AND t.recurring_transaction_id IS NOT NULL) OR
+         (sqlc.narg('is_pending')::boolean = false AND (rt.auto_post = true OR t.recurring_transaction_id IS NULL)))
+    AND (sqlc.narg('start_date')::timestamptz IS NULL OR t.transaction_datetime >= sqlc.narg('start_date'))
+    AND (sqlc.narg('end_date')::timestamptz IS NULL OR t.transaction_datetime <= sqlc.narg('end_date'))
+    AND (sqlc.narg('min_amount')::decimal IS NULL OR t.amount >= sqlc.narg('min_amount'))
+    AND (sqlc.narg('max_amount')::decimal IS NULL OR t.amount <= sqlc.narg('max_amount'))
+    AND (sqlc.narg('search')::text IS NULL OR t.description ILIKE '%' || sqlc.narg('search')::text || '%')
+    -- Tags filter
+    AND (sqlc.narg('tags')::text[] IS NULL OR 
+         EXISTS (
+             SELECT 1 
+             FROM unnest(sqlc.narg('tags')::text[]) AS tag
+             WHERE t.details ? tag OR t.details->>'note' ILIKE '%' || tag || '%'
+         )
+    );
 
 
 -- SELECT
@@ -109,6 +229,33 @@ SET deleted_at = current_timestamp
 WHERE id = sqlc.arg('id')
 RETURNING *;
 
+-- name: BulkDeleteTransactions :exec
+UPDATE transactions
+SET deleted_at = current_timestamp
+WHERE id = ANY(sqlc.arg('ids')::uuid[])
+    AND created_by = sqlc.arg('user_id');
+
+-- name: BulkUpdateTransactionCategories :exec
+UPDATE transactions
+SET 
+    category_id = sqlc.arg('category_id'),
+    updated_by = sqlc.arg('updated_by')
+WHERE id = ANY(sqlc.arg('ids')::uuid[])
+    AND created_by = sqlc.arg('user_id')
+    AND deleted_at IS NULL;
+
+-- name: BulkUpdateManualTransactions :exec
+UPDATE transactions
+SET 
+    category_id = coalesce(sqlc.narg('category_id'), category_id),
+    account_id = coalesce(sqlc.narg('account_id'), account_id),
+    transaction_datetime = coalesce(sqlc.narg('transaction_datetime'), transaction_datetime),
+    updated_by = sqlc.arg('updated_by')
+WHERE id = ANY(sqlc.arg('ids')::uuid[])
+    AND created_by = sqlc.arg('user_id')
+    AND is_external = false
+    AND deleted_at IS NULL;
+
 -- name: GetTransactionStats :one
 SELECT
     count(*) AS total_count,
@@ -136,3 +283,37 @@ WHERE
     AND c.deleted_at IS NULL
 GROUP BY c.id, c.name
 ORDER BY total_amount DESC;
+
+-- name: GetTransactionsSince :many
+SELECT
+    t.id,
+    t.amount,
+    t.type,
+    t.destination_account_id,
+    t.transaction_datetime,
+    t.description,
+    t.details,
+    t.is_external,
+    t.updated_at,
+    t.deleted_at,
+    sqlc.embed(source_acct),
+    dest_acct.id AS destination_account_id_alias,
+    dest_acct.name AS destination_account_name,
+    dest_acct.type AS destination_account_type,
+    dest_acct.currency AS destination_account_currency,
+    sqlc.embed(cat)
+FROM
+    transactions AS t
+JOIN
+    accounts AS source_acct ON t.account_id = source_acct.id
+JOIN
+    categories AS cat ON t.category_id = cat.id
+LEFT JOIN
+    accounts AS dest_acct ON t.destination_account_id = dest_acct.id
+WHERE
+    t.created_by = sqlc.arg('user_id')
+    AND (
+        t.updated_at > sqlc.arg('since')
+        OR (t.deleted_at IS NOT NULL AND t.deleted_at > sqlc.arg('since'))
+    )
+ORDER BY t.transaction_datetime DESC;

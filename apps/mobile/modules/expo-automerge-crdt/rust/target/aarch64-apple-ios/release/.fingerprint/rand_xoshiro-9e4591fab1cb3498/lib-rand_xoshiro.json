@@ -1,0 +1,20 @@
+{
+  "rustc": 8022303366561187541,
+  "features": "[]",
+  "declared_features": "[\"serde\", \"serde1\"]",
+  "target": 8693846537396281209,
+  "profile": 12693162527509728243,
+  "path": 13356558503359365608,
+  "deps": [[18130209639506977569, "rand_core", false, 12161112931059175197]],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "aarch64-apple-ios/release/.fingerprint/rand_xoshiro-9e4591fab1cb3498/dep-lib-rand_xoshiro",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 2069994364910194474,
+  "compile_kind": 3694122122034060669
+}

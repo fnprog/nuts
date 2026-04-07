@@ -3,16 +3,36 @@ package server
 import (
 	"net/http"
 
-	"github.com/Fantasy-Programming/nuts/internal/domain/accounts"
-	"github.com/Fantasy-Programming/nuts/internal/domain/auth"
-	"github.com/Fantasy-Programming/nuts/internal/domain/categories"
-	"github.com/Fantasy-Programming/nuts/internal/domain/meta"
-	"github.com/Fantasy-Programming/nuts/internal/domain/preferences"
-	"github.com/Fantasy-Programming/nuts/internal/domain/tags"
-	"github.com/Fantasy-Programming/nuts/internal/domain/transactions"
-	"github.com/Fantasy-Programming/nuts/internal/domain/user"
-	"github.com/Fantasy-Programming/nuts/internal/domain/webhooks"
-	"github.com/Fantasy-Programming/nuts/internal/utility/respond"
+	accHandler "github.com/Fantasy-Programming/nuts/server/internal/domain/accounts/handlers"
+	accRepo "github.com/Fantasy-Programming/nuts/server/internal/domain/accounts/repository"
+	athHandler "github.com/Fantasy-Programming/nuts/server/internal/domain/auth/handlers"
+	athRepo "github.com/Fantasy-Programming/nuts/server/internal/domain/auth/repository"
+	athService "github.com/Fantasy-Programming/nuts/server/internal/domain/auth/service"
+	"github.com/Fantasy-Programming/nuts/server/internal/domain/mail"
+
+	syncHandler "github.com/Fantasy-Programming/nuts/server/internal/domain/sync/handlers"
+	"github.com/Fantasy-Programming/nuts/server/internal/domain/tags"
+	"github.com/Fantasy-Programming/nuts/server/internal/domain/webhooks"
+
+	accService "github.com/Fantasy-Programming/nuts/server/internal/domain/accounts/service"
+
+	ctgHandler "github.com/Fantasy-Programming/nuts/server/internal/domain/categories/handlers"
+	ctgRepo "github.com/Fantasy-Programming/nuts/server/internal/domain/categories/repository"
+	ctgService "github.com/Fantasy-Programming/nuts/server/internal/domain/categories/service"
+	migHandler "github.com/Fantasy-Programming/nuts/server/internal/domain/migration/handlers"
+	migRepo "github.com/Fantasy-Programming/nuts/server/internal/domain/migration/repository"
+	migService "github.com/Fantasy-Programming/nuts/server/internal/domain/migration/service"
+	trcHandler "github.com/Fantasy-Programming/nuts/server/internal/domain/transactions/handlers"
+	trcRepo "github.com/Fantasy-Programming/nuts/server/internal/domain/transactions/repository"
+	trcService "github.com/Fantasy-Programming/nuts/server/internal/domain/transactions/service"
+	usrHandler "github.com/Fantasy-Programming/nuts/server/internal/domain/user/handlers"
+	usrRepo "github.com/Fantasy-Programming/nuts/server/internal/domain/user/repository"
+	usrService "github.com/Fantasy-Programming/nuts/server/internal/domain/user/service"
+	"github.com/Fantasy-Programming/nuts/server/internal/repository"
+	"github.com/Fantasy-Programming/nuts/server/internal/utils/encrypt"
+
+	"github.com/Fantasy-Programming/nuts/server/internal/utils/respond"
+	"github.com/Fantasy-Programming/nuts/server/pkg/llm"
 )
 
 func (s *Server) RegisterDomain() {
@@ -21,47 +41,97 @@ func (s *Server) RegisterDomain() {
 	s.initAccount()
 	s.initTransaction()
 	s.initCategory()
-	s.initPreferences()
 	s.initTags()
+	s.initSync()
+	s.initMigration()
 	s.initMeta()
 	s.initWebHooks()
+	s.initMail()
 	s.initVersion()
 	s.initHealth()
 }
 
 func (s *Server) initAuth() {
-	AuthDomain := auth.RegisterHTTPHandlers(s.db, s.storage, s.validator, s.jwt, s.cfg, s.logger)
+	encrypter, err := encrypt.NewEncrypter(s.cfg.EncryptionSecretKeyHex)
+	if err != nil {
+		s.logger.Panic().Err(err).Msg("Failed to setup encrypter")
+	}
+
+	usersRepo := usrRepo.NewRepository(s.db)
+	authRepo := athRepo.NewRepository(s.db)
+	categoriesRepo := ctgRepo.NewRepository(s.db)
+	userService := usrService.New(s.db, s.storage, s.cfg, usersRepo, authRepo, categoriesRepo)
+
+	authService := athService.New(s.db, authRepo, usersRepo, userService, s.jwt, encrypter)
+	AuthDomain := athHandler.RegisterHTTPHandlers(authService, s.jwt, s.cfg, s.validator, s.logger)
+
 	s.router.Mount("/auth", AuthDomain)
 }
 
 func (s *Server) initUser() {
-	UserDomain := user.RegisterHTTPHandlers(s.cfg, s.db, s.storage, s.validator, s.jwt, s.logger)
+	usersRepo := usrRepo.NewRepository(s.db)
+	authRepo := athRepo.NewRepository(s.db)
+	categoriesRepo := ctgRepo.NewRepository(s.db)
+	userService := usrService.New(s.db, s.storage, s.cfg, usersRepo, authRepo, categoriesRepo)
+
+	UserDomain := usrHandler.RegisterHTTPHandlers(userService, s.jwt, s.validator, s.logger)
 	s.router.Mount("/users", UserDomain)
 }
 
 func (s *Server) initAccount() {
-	AccountDomain := accounts.RegisterHTTPHandlers(s.db, s.validator, s.jwt, s.openfinance, s.logger)
+	encrypter, err := encrypt.NewEncrypter(s.cfg.EncryptionSecretKeyHex)
+	if err != nil {
+		s.logger.Panic().Err(err).Msg("Failed to setup encrypter")
+	}
+
+	accountsRepo := accRepo.NewRepository(s.db)
+	transactionsRepo := trcRepo.NewRepository(s.db)
+	categoriesRepo := ctgRepo.NewRepository(s.db)
+	accountsService := accService.New(s.db, encrypter, s.openfinance, s.jobsManager, accountsRepo, transactionsRepo, categoriesRepo, s.logger)
+
+	AccountDomain := accHandler.RegisterHTTPHandlers(accountsService, s.validator, s.jwt, s.logger)
 	s.router.Mount("/accounts", AccountDomain)
 }
 
 func (s *Server) initTransaction() {
-	TransactionDomain := transactions.RegisterHTTPHandlers(s.db, s.validator, s.jwt, s.logger)
+	transactionsRepo := trcRepo.NewRepository(s.db)
+	accountsRepo := accRepo.NewRepository(s.db)
+	llmService, err := llm.NewService(s.cfg.LLM, s.logger)
+	if err != nil {
+		s.logger.Panic().Err(err).Msg("Failed to setup llm service")
+	}
+
+	transactionsService := trcService.New(s.db, transactionsRepo, accountsRepo, llmService, s.jobsManager, s.logger)
+	TransactionDomain := trcHandler.RegisterHTTPHandlers(transactionsService, s.jwt, s.validator, s.logger)
 	s.router.Mount("/transactions", TransactionDomain)
 }
 
 func (s *Server) initCategory() {
-	CategoryDomain := categories.RegisterHTTPHandlers(s.db, s.validator, s.jwt, s.logger)
+	categoriesRepo := ctgRepo.NewRepository(s.db)
+	categoriesService := ctgService.New(s.db, categoriesRepo)
+	CategoryDomain := ctgHandler.RegisterHTTPHandlers(categoriesService, s.jwt, s.validator, s.logger)
 	s.router.Mount("/categories", CategoryDomain)
 }
 
-func (s *Server) initPreferences() {
-	Preferences := preferences.RegisterHTTPHandlers(s.db, s.validator, s.jwt, s.logger)
-	s.router.Mount("/preferences", Preferences)
+func (s *Server) initMigration() {
+	migrationRepo := migRepo.NewRepository(s.db)
+	accountsRepo := accRepo.NewRepository(s.db)
+	categoriesRepo := ctgRepo.NewRepository(s.db)
+	transactionsRepo := trcRepo.NewRepository(s.db)
+	migrationService := migService.New(s.db, migrationRepo, accountsRepo, categoriesRepo, transactionsRepo, s.logger)
+	MigrationDomain := migHandler.RegisterHTTPHandlers(migrationService, s.validator, s.jwt, s.logger)
+	s.router.Mount("/migrate", MigrationDomain)
 }
 
 func (s *Server) initTags() {
-	TagsDomain := tags.RegisterHTTPHandlers(s.db, s.validator, s.logger)
+	TagsDomain := tags.RegisterHTTPHandlers()
 	s.router.Mount("/tags", TagsDomain)
+}
+
+func (s *Server) initSync() {
+	queries := repository.New(s.db)
+	SyncDomain := syncHandler.RegisterHTTPHandlers(queries, s.jwt, s.logger)
+	s.router.Mount("/sync", SyncDomain)
 }
 
 func (s *Server) initWebHooks() {
@@ -69,9 +139,9 @@ func (s *Server) initWebHooks() {
 	s.router.Mount("/webhooks", hooksDomain)
 }
 
-func (s *Server) initMeta() {
-	MetaDomain := meta.RegisterHTTPHandlers(s.db, s.logger)
-	s.router.Mount("/meta", MetaDomain)
+func (s *Server) initMail() {
+	MailDomain := mail.RegisterHTTPHandlers(s.db, s.validator, s.jwt, s.mailer, s.logger)
+	s.router.Mount("/mail", MailDomain)
 }
 
 func (s *Server) initHealth() {

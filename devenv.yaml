@@ -7,4 +7,3 @@ inputs:
 
 imports:
   - ./server
-  - ./services/ai

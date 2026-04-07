@@ -6,8 +6,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -71,25 +73,29 @@ type monoAccountResponse struct {
 	} `json:"data"`
 }
 
+type monoTransactionData struct {
+	ID        string  `json:"id"`
+	Narration string  `json:"narration"`
+	Amount    float64 `json:"amount"`
+	Type      string  `json:"type"`
+	Balance   float64 `json:"balance"`
+	Date      string  `json:"date"`
+	Category  string  `json:"category"`
+}
+
+type monoTransactionMeta struct {
+	Total    int     `json:"total"`
+	Page     int     `json:"page"`
+	Previous *string `json:"previous"`
+	Next     *string `json:"next"`
+}
+
 type monoTransactionsResponse struct {
-	Status    string `json:"status"`
-	Message   string `json:"message"`
-	Timestamp string `json:"timestamp"`
-	Data      []struct {
-		ID        string    `json:"id"`
-		Narration string    `json:"narration"`
-		Amount    float64   `json:"amount"`
-		Type      string    `json:"type"`
-		Balance   float64   `json:"balance"`
-		Date      time.Time `json:"date"`
-		Category  string    `json:"category"`
-	} `json:"data"`
-	Meta struct {
-		Total    int     `json:"total"`
-		Page     int     `json:"page"`
-		Previous *string `json:"previous"`
-		Next     *string `json:"next"`
-	} `json:"meta"`
+	Status    string                `json:"status"`
+	Message   string                `json:"message"`
+	Timestamp string                `json:"timestamp"`
+	Data      []monoTransactionData `json:"data"`
+	Meta      monoTransactionMeta   `json:"meta"`
 }
 
 type monoErrorResponse struct {
@@ -142,9 +148,52 @@ func (t *MonoProvider) ExchangePublicToken(ctx context.Context, req ExchangeToke
 	}, nil
 }
 
-// TODO: How to handle this
+// We don't have the multiple thing with mono
 func (m *MonoProvider) GetAccounts(ctx context.Context, accessToken string) ([]Account, error) {
-	return nil, nil
+	resp, err := m.makeRequest(ctx, "GET", fmt.Sprintf("/accounts/%s", accessToken), nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get account details: %w", err)
+	}
+
+	var accountResp monoAccountResponse
+
+	if err := json.Unmarshal(resp, &accountResp); err != nil {
+		return nil, fmt.Errorf("failed to parse account response: %w", err)
+	}
+
+	// Check if the request was successful
+	if accountResp.Status != "successful" {
+		return nil, fmt.Errorf("get account failed: %s", accountResp.Message)
+	}
+
+	// Check if data is available
+	if accountResp.Data.Meta.DataStatus != "AVAILABLE" {
+		return nil, fmt.Errorf("account data not yet available, status: %s", accountResp.Data.Meta.DataStatus)
+	}
+
+	// Map Mono account type to standardized type
+	accountType, accountSubType := mapMonoAccountTypeToStandard(accountResp.Data.Account.Type)
+
+	var accounts []Account
+
+	account := Account{
+		ID:                accountResp.Data.Account.ID,
+		Name:              accountResp.Data.Account.Name,
+		Type:              accountType,
+		Subtype:           &accountSubType,
+		Balance:           accountResp.Data.Account.Balance / 100, // Convert from kobo to naira
+		Currency:          accountResp.Data.Account.Currency,
+		AccountNumber:     &accountResp.Data.Account.AccountNumber,
+		InstitutionName:   accountResp.Data.Account.Institution.Name,
+		InstitutionID:     accountResp.Data.Account.Institution.BankCode,
+		LastUpdated:       time.Now(),
+		IsActive:          true,
+		ProviderAccountID: accessToken,
+	}
+
+	accounts = append(accounts, account)
+
+	return accounts, nil
 }
 
 func (m *MonoProvider) GetAccount(ctx context.Context, accessToken, accountID string) (*Account, error) {
@@ -171,12 +220,13 @@ func (m *MonoProvider) GetAccount(ctx context.Context, accessToken, accountID st
 	}
 
 	// Map Mono account type to standardized type
-	accountType := mapMonoAccountTypeToStandard(accountResp.Data.Account.Type)
+	accountType, accountSubType := mapMonoAccountTypeToStandard(accountResp.Data.Account.Type)
 
 	account := &Account{
 		ID:                accountResp.Data.Account.ID,
 		Name:              accountResp.Data.Account.Name,
 		Type:              accountType,
+		Subtype:           &accountSubType,
 		Balance:           accountResp.Data.Account.Balance / 100, // Convert from kobo to naira
 		Currency:          accountResp.Data.Account.Currency,
 		AccountNumber:     &accountResp.Data.Account.AccountNumber,
@@ -197,22 +247,32 @@ func (m *MonoProvider) GetAccountBalance(ctx context.Context, accessToken, accou
 
 func (m *MonoProvider) GetTransactions(ctx context.Context, accessToken, accountID string, args GetTransactionsArgs) ([]Transaction, error) {
 	endpoint := fmt.Sprintf("/accounts/%s/transactions", accessToken)
-
-	// Add query parameters if provided
 	params := url.Values{}
-	if args.Count > 0 {
-		params.Add("limit", fmt.Sprintf("%d", args.Count))
+
+	account, err := m.GetAccount(ctx, accessToken, accountID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get account info: %w", err)
 	}
-	if !args.startDate.IsZero() {
+
+	if args.Count != nil {
+		params.Set("limit", strconv.Itoa(*args.Count))
+	}
+	if args.FromID != nil {
+		params.Set("from_id", *args.FromID)
+	}
+
+	if args.startDate != nil {
 		params.Add("start", args.startDate.Format("2006-01-02"))
 	}
-	if !args.endDate.IsZero() {
+	if args.endDate != nil {
 		params.Add("end", args.endDate.Format("2006-01-02"))
 	}
 
 	params.Add("paginate", "false")
 
-	endpoint += "?" + params.Encode()
+	if encoded := params.Encode(); encoded != "" {
+		endpoint += "?" + encoded
+	}
 
 	resp, err := m.makeRequest(ctx, "GET", endpoint, nil)
 	if err != nil {
@@ -231,25 +291,20 @@ func (m *MonoProvider) GetTransactions(ctx context.Context, accessToken, account
 
 	transactions := make([]Transaction, len(transResp.Data))
 	for i, t := range transResp.Data {
-		transactions[i] = Transaction{
-			ID:                    t.ID,
-			AccountID:             accountID,
-			Amount:                t.Amount / 100, // Convert from kobo to naira
-			Currency:              "NGN",          // Mono is Nigerian-focused
-			Description:           t.Narration,
-			Category:              &t.Category,
-			Date:                  t.Date,
-			Type:                  t.Type,
-			Status:                "posted", // Mono doesn't provide pending status in this format
-			ProviderTransactionID: t.ID,
+		transaction, err := m.convertMonoTransaction(t, account)
+		if err != nil {
+			fmt.Printf("transaction id %s, failed to convert the transaction", t.ID)
+			continue
 		}
+
+		transactions[i] = transaction
 	}
 
 	return transactions, nil
 }
 
 func (m *MonoProvider) GetRecentTransactions(ctx context.Context, accessToken, accountID string, count int) ([]Transaction, error) {
-	return m.GetTransactions(ctx, accessToken, accountID, GetTransactionsArgs{Count: count})
+	return m.GetTransactions(ctx, accessToken, accountID, GetTransactionsArgs{Count: &count})
 }
 
 // IGNORE (Mono doesn't provide a general institutions endpoint) (might need static list)
@@ -313,23 +368,22 @@ func (m *MonoProvider) GetSupportedCountries() []string {
 
 func (m *MonoProvider) GetSupportedAccountTypes() []AccountType {
 	return []AccountType{
-		AccountTypeChecking,
-		AccountTypeSavings,
 		AccountTypeOther,
 	}
 }
 
 // Helper function to map Mono account types to standardized types
-func mapMonoAccountTypeToStandard(monoType string) AccountType {
+func mapMonoAccountTypeToStandard(monoType string) (AccountType, AccountSubType) {
 	switch strings.ToUpper(monoType) {
 	case "SAVINGS_ACCOUNT", "DIGITAL SAVINGS ACCOUNT":
-		return AccountTypeSavings
-	case "CURRENT_ACCOUNT", "CHECKING_ACCOUNT":
-		return AccountTypeChecking
+		return AccountTypeCash, AccountTypeSavings
+	case "CURRENT_ACCOUNT", "CHECKING_ACCOUNT", "WALLET_ACCOUNT", "CURRENT":
+		return AccountTypeCash, AccountTypeChecking
 	case "BUSINESS_BANKING", "BUSINESS_ACCOUNT":
-		return AccountTypeSavings // Or create AccountTypeBusiness if you have it
+		return AccountTypeInvestment, AccountSTypeInvestment
 	default:
-		return AccountTypeOther
+		fmt.Println("unknown mono account:", monoType)
+		return AccountTypeOther, AccountSubType(AccountTypeOther)
 	}
 }
 
@@ -382,4 +436,64 @@ func (m *MonoProvider) makeRequest(ctx context.Context, method, endpoint string,
 	}
 
 	return respBody, nil
+}
+
+// convertMonoTransaction converts a Mono transaction to the standard Transaction struct
+func (m *MonoProvider) convertMonoTransaction(t monoTransactionData, account *Account) (Transaction, error) {
+	// Convert amount from kobo/cents to main currency unit (assuming Nigerian Naira)
+	amount := float64(t.Amount) / 100.0
+
+	// Parse the ISO timestamp
+	date, err := time.Parse(time.RFC3339, t.Date)
+	if err != nil {
+		return Transaction{}, fmt.Errorf("failed to parse date: %w", err)
+	}
+
+	// Determine transaction type based on Mono's type field and account type
+	transactionType := m.convertMonoType(t.Type)
+	normalizedAmount := m.convertMonoTransactionAmount(amount, transactionType, account.Type)
+
+	// Clean up narration for description
+	description := strings.TrimSpace(t.Narration)
+
+	return Transaction{
+		ID:                    t.ID,
+		AccountID:             account.ID,
+		Amount:                normalizedAmount,
+		Currency:              account.Currency,
+		Description:           description,
+		Category:              &t.Category,
+		Date:                  date,
+		Type:                  transactionType,
+		Status:                "processed",
+		ProviderTransactionID: t.ID,
+		Metadata:              map[string]string{},
+	}, nil
+}
+
+// determineTransactionTypeFromMono determines transaction type from Mono's type field
+func (m *MonoProvider) convertMonoType(monoType string) string {
+	if monoType == "debit" {
+		return "expense"
+	}
+	return "income"
+}
+
+func (m *MonoProvider) convertMonoTransactionAmount(amount float64, transactionType string, accountType AccountType) float64 {
+	var finalAmount float64
+
+	if transactionType == "expense" {
+		finalAmount = -1 * math.Abs(amount)
+	} else {
+		finalAmount = amount
+	}
+
+	switch accountType {
+	case AccountTypeCredit:
+		return -1 * finalAmount
+	case AccountTypeLoan:
+		return -1 * finalAmount
+	default:
+		return finalAmount
+	}
 }

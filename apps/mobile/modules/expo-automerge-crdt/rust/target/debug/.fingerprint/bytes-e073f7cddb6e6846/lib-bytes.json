@@ -1,0 +1,20 @@
+{
+  "rustc": 10128419115332751062,
+  "features": "[\"default\", \"std\"]",
+  "declared_features": "[\"default\", \"extra-platforms\", \"serde\", \"std\"]",
+  "target": 15971911772774047941,
+  "profile": 13827760451848848284,
+  "path": 1016878544231104279,
+  "deps": [],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "debug/.fingerprint/bytes-e073f7cddb6e6846/dep-lib-bytes",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 2069994364910194474,
+  "compile_kind": 0
+}

@@ -10,7 +10,15 @@ INSERT INTO user_financial_connections (
     last_sync_at,
     expires_at
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9
+    sqlc.arg(user_id),
+    sqlc.arg(provider_name),
+    sqlc.arg(access_token_encrypted),
+    sqlc.arg(item_id),
+    sqlc.arg(institution_id),
+    sqlc.arg(institution_name),
+    sqlc.arg(status),
+    sqlc.arg(last_sync_at),
+    sqlc.arg(expires_at)
 ) RETURNING *;
 
 -- name: GetConnectionByID :one
@@ -68,4 +76,3 @@ RETURNING *;
 SELECT * FROM user_financial_connections
 ORDER BY created_at DESC
 LIMIT $1 OFFSET $2;
-

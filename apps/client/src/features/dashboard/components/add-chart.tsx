@@ -1,0 +1,100 @@
+import { useState, useEffect } from "react";
+import { Button } from "@/core/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
+} from "@/core/components/ui/dialog";
+import { getAvailableChartConfigs } from '@/features/dashboard/charts/loader';
+import type { DashboardChartModuleConfig } from '@/features/dashboard/charts/types';
+
+interface AddChartDialogProps {
+  children: React.ReactNode;
+  onClose?: () => void;
+  onAddChart: (config: DashboardChartModuleConfig) => void;
+}
+
+export function AddChartDialog({ onAddChart, children }: AddChartDialogProps) {
+  const [availableCharts, setAvailableCharts] = useState<DashboardChartModuleConfig[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    // Load configs when the dialog is about to open or is open
+    if (isOpen) {
+      setIsLoading(true);
+      getAvailableChartConfigs()
+        .then((configs) => {
+          setAvailableCharts(configs);
+          setIsLoading(false);
+        })
+        .catch((err) => {
+          console.error("Failed to load available chart configs:", err);
+          setIsLoading(false);
+          // Handle error state in UI if needed
+        });
+    }
+  }, [isOpen]); // Re-fetch if dialog re-opens (might be overkill if configs rarely change)
+
+  const handleSelectChart = (config: DashboardChartModuleConfig) => {
+    onAddChart(config);
+    setIsOpen(false); // Close dialog after adding
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        {children}
+      </DialogTrigger>
+      <DialogContent className="grid grid-rows-[auto_1fr_auto] sm:min-h-[80vh]  md:max-w-[60%] overflow-hidden ">
+        <DialogHeader>
+          <DialogTitle>Add Chart to Dashboard</DialogTitle>
+          <DialogDescription>Select a chart widget to add to your current view.</DialogDescription>
+        </DialogHeader>
+        <div className="py-4 h-full min-h-0">
+          {isLoading ? (
+            <div className="p-4 text-center">Loading available charts...</div>
+          ) : availableCharts.length > 0 ? (
+            <div className=" overflow-y-auto h-full min-h-0 ">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
+                {availableCharts.map((config) => (
+                  <Button
+                    key={config.id}
+                    variant="ghost"
+                    className="w-full h-auto p-5 border border-border hover:border-primary/50 rounded-lg transition-colors"
+                    onClick={() => handleSelectChart(config)}
+                  >
+                    <div className="flex flex-col items-start gap-4 w-full">
+                      <div className="w-full h-36 bg-muted rounded-md flex items-center justify-center">
+                        <div className="text-muted-foreground text-sm">Chart Preview</div>
+                      </div>
+                      <div className="text-left w-full">
+                        <div className="font-medium text-base mb-2">{config.title}</div>
+                        {config.description && (
+                          <p className="text-sm text-muted-foreground leading-relaxed whitespace-normal wrap-break-word">
+                            {config.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </Button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-muted-foreground p-4 text-center">No charts available to add.</div>
+          )}
+        </div>
+        {/* Optional Footer with Close button */}
+        {/* <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="outline">Cancel</Button>
+          </DialogClose>
+        </DialogFooter> */}
+      </DialogContent>
+    </Dialog>
+  );
+}

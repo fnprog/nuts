@@ -1,0 +1,24 @@
+{
+  "rustc": 8022303366561187541,
+  "features": "[]",
+  "declared_features": "[\"std\", \"wasm_js\"]",
+  "target": 11669924403970522481,
+  "profile": 15672127201905847078,
+  "path": 3125908574109325858,
+  "deps": [
+    [7667230146095136825, "cfg_if", false, 16517043200906049783],
+    [11499138078358568213, "libc", false, 10210213987955512640],
+    [18408407127522236545, "build_script_build", false, 1500657538701835728]
+  ],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "x86_64-linux-android/release/.fingerprint/getrandom-5b441994c6109a4e/dep-lib-getrandom",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 10255546481339591553,
+  "compile_kind": 13862352012247744383
+}

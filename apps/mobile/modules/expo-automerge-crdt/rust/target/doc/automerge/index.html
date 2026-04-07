@@ -1,0 +1,165 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Automerge"><title>automerge - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-e56847b5.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="automerge" data-themes="" data-resource-suffix="" data-rustdoc-version="1.91.0 (f8297e351 2025-10-28)" data-channel="1.91.0" data-search-js="search-e256b49e.js" data-stringdex-js="stringdex-c3e638e9.js" data-settings-js="settings-c38705f0.js" ><script src="../static.files/storage-e2aeef58.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-6dc2a7f3.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-263c88ec.css"></noscript><link rel="icon" href="https:///raw.githubusercontent.com/automerge/automerge/main/img/favicon.ico"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Crate automerge</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><a class="logo-container" href="../automerge/index.html"><img src="https://raw.githubusercontent.com/automerge/automerge/main/img/brandmark.svg" alt="logo"></a><h2><a href="../automerge/index.html">automerge</a><span class="version">0.5.12</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#automerge" title="Automerge">Automerge</a><ul><li><a href="#data-model" title="Data Model">Data Model</a></li><li><a href="#sync-protocol" title="Sync Protocol">Sync Protocol</a></li><li><a href="#patches-maintaining-materialized-state" title="Patches, maintaining materialized state">Patches, maintaining materialized state</a></li><li><a href="#serde-serialization" title="Serde serialization">Serde serialization</a></li><li><a href="#example" title="Example">Example</a></li><li><a href="#cursors-referring-to-positions-in-sequences" title="Cursors, referring to positions in sequences">Cursors, referring to positions in sequences</a></li></ul></li></ul><h3><a href="#reexports">Crate Items</a></h3><ul class="block"><li><a href="#reexports" title="Re-exports">Re-exports</a></li><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#macros" title="Macros">Macros</a></li><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#constants" title="Constants">Constants</a></li><li><a href="#traits" title="Traits">Traits</a></li><li><a href="#types" title="Type Aliases">Type Aliases</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content"><div class="main-heading"><h1>Crate <span>automerge</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/automerge/lib.rs.html#1-313">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="automerge"><a class="doc-anchor" href="#automerge">§</a>Automerge</h2>
+<p>Automerge is a library of data structures for building collaborative,
+<a href="https://www.inkandswitch.com/local-first/">local-first</a> applications. The
+idea of automerge is to provide a data structure which is quite general
+- consisting of nested key/value maps and/or lists - which can be modified
+entirely locally but which can at any time be merged with other instances of
+the same data structure.</p>
+<p>In addition to the core data structure (which we generally refer to as a
+“document”), we also provide an implementation of a sync protocol (in
+<a href="sync/index.html" title="mod automerge::sync"><code>crate::sync</code></a>) which can be used over any reliable in-order transport; and
+an efficient binary storage format.</p>
+<p>This crate is organised around two representations of a document -
+<a href="struct.Automerge.html" title="struct automerge::Automerge"><code>Automerge</code></a> and <a href="struct.AutoCommit.html" title="struct automerge::AutoCommit"><code>AutoCommit</code></a>. The difference between the two is that
+<a href="struct.AutoCommit.html" title="struct automerge::AutoCommit"><code>AutoCommit</code></a> manages transactions for you. Both of these representations
+implement <a href="trait.ReadDoc.html" title="trait automerge::ReadDoc"><code>ReadDoc</code></a> for reading values from a document and
+<a href="sync/trait.SyncDoc.html" title="trait automerge::sync::SyncDoc"><code>sync::SyncDoc</code></a> for taking part in the sync protocol. <a href="struct.AutoCommit.html" title="struct automerge::AutoCommit"><code>AutoCommit</code></a>
+directly implements <a href="transaction/trait.Transactable.html" title="trait automerge::transaction::Transactable"><code>transaction::Transactable</code></a> for making changes to a
+document, whilst <a href="struct.Automerge.html" title="struct automerge::Automerge"><code>Automerge</code></a> requires you to explicitly create a
+<a href="transaction/struct.Transaction.html" title="struct automerge::transaction::Transaction"><code>transaction::Transaction</code></a>.</p>
+<p>NOTE: The API this library provides for modifying data is quite low level
+(somewhat analogous to directly creating JSON values rather than using
+<a href="https://docs.rs/serde/1.0.228/serde/index.html" title="mod serde"><code>serde</code></a> derive macros or equivalent). If you’re writing a Rust application which uses automerge
+you may want to look at <a href="https://github.com/automerge/autosurgeon">autosurgeon</a>.</p>
+<h3 id="data-model"><a class="doc-anchor" href="#data-model">§</a>Data Model</h3>
+<p>An automerge document is a map from strings to values
+(<a href="enum.Value.html" title="enum automerge::Value"><code>Value</code></a>) where values can be either</p>
+<ul>
+<li>A nested composite value which is either
+<ul>
+<li>A map from strings to values (<a href="enum.ObjType.html#variant.Map" title="variant automerge::ObjType::Map"><code>ObjType::Map</code></a>)</li>
+<li>A list of values (<a href="enum.ObjType.html#variant.List" title="variant automerge::ObjType::List"><code>ObjType::List</code></a>)</li>
+<li>A text object (a sequence of unicode characters) (<a href="enum.ObjType.html#variant.Text" title="variant automerge::ObjType::Text"><code>ObjType::Text</code></a>)</li>
+</ul>
+</li>
+<li>A primitive value (<a href="enum.ScalarValue.html" title="enum automerge::ScalarValue"><code>ScalarValue</code></a>) which is one of
+<ul>
+<li>A string</li>
+<li>A 64 bit floating point number</li>
+<li>A signed 64 bit integer</li>
+<li>An unsigned 64 bit integer</li>
+<li>A boolean</li>
+<li>A counter object (a 64 bit integer which merges by addition)
+(<a href="enum.ScalarValue.html#variant.Counter" title="variant automerge::ScalarValue::Counter"><code>ScalarValue::Counter</code></a>)</li>
+<li>A timestamp (a 64 bit integer which is milliseconds since the unix epoch)</li>
+</ul>
+</li>
+</ul>
+<p>All composite values have an ID (<a href="enum.ObjId.html" title="enum automerge::ObjId"><code>ObjId</code></a>) which is created when the value
+is inserted into the document or is the root object ID <a href="constant.ROOT.html" title="constant automerge::ROOT"><code>ROOT</code></a>. Values in
+the document are then referred to by the pair (<code>object ID</code>, <code>key</code>). The
+<code>key</code> is represented by the <a href="enum.Prop.html" title="enum automerge::Prop"><code>Prop</code></a> type and is either a string for a maps,
+or an index for sequences.</p>
+<h4 id="conflicts"><a class="doc-anchor" href="#conflicts">§</a>Conflicts</h4>
+<p>There are some things automerge cannot merge sensibly. For example, two
+actors concurrently setting the key “name” to different values. In this case
+automerge will pick a winning value in a random but deterministic way, but
+the conflicting value is still available via the <a href="trait.ReadDoc.html#tymethod.get_all" title="method automerge::ReadDoc::get_all"><code>ReadDoc::get_all()</code></a> method.</p>
+<h4 id="change-hashes-and-historical-values"><a class="doc-anchor" href="#change-hashes-and-historical-values">§</a>Change hashes and historical values</h4>
+<p>Like git, points in the history of a document are identified by hash. Unlike
+git there can be multiple hashes representing a particular point (because
+automerge supports concurrent changes). These hashes can be obtained using
+either <a href="struct.Automerge.html#method.get_heads" title="method automerge::Automerge::get_heads"><code>Automerge::get_heads()</code></a> or <a href="struct.AutoCommit.html#method.get_heads" title="method automerge::AutoCommit::get_heads"><code>AutoCommit::get_heads()</code></a> (note these
+methods are not part of <a href="trait.ReadDoc.html" title="trait automerge::ReadDoc"><code>ReadDoc</code></a> because in the case of <a href="struct.AutoCommit.html" title="struct automerge::AutoCommit"><code>AutoCommit</code></a> it
+requires a mutable reference to the document).</p>
+<p>These hashes can be used to read values from the document at a particular
+point in history using the various <code>*_at()</code> methods on <a href="trait.ReadDoc.html" title="trait automerge::ReadDoc"><code>ReadDoc</code></a> which take a
+slice of <a href="struct.ChangeHash.html" title="struct automerge::ChangeHash"><code>ChangeHash</code></a> as an argument.</p>
+<h4 id="actor-ids"><a class="doc-anchor" href="#actor-ids">§</a>Actor IDs</h4>
+<p>Any change to an automerge document is made by an actor, represented by an
+<a href="struct.ActorId.html" title="struct automerge::ActorId"><code>ActorId</code></a>. An actor ID is any random sequence of bytes but each change by
+the same actor ID must be sequential. This often means you will want to
+maintain at least one actor ID per device. It is fine to generate a new
+actor ID for each change, but be aware that each actor ID takes up space in
+a document so if you expect a document to be long lived and/or to have many
+changes then you should try to reuse actor IDs where possible.</p>
+<h4 id="text-encoding"><a class="doc-anchor" href="#text-encoding">§</a>Text Encoding</h4>
+<p>Text is encoded in UTF-8 by default but uses UTF-16 when using the wasm target,
+you can configure it with the feature <code>utf16-indexing</code>.</p>
+<h3 id="sync-protocol"><a class="doc-anchor" href="#sync-protocol">§</a>Sync Protocol</h3>
+<p>See the <a href="sync/index.html" title="mod automerge::sync"><code>sync</code></a> module.</p>
+<h3 id="patches-maintaining-materialized-state"><a class="doc-anchor" href="#patches-maintaining-materialized-state">§</a>Patches, maintaining materialized state</h3>
+<p>Often you will have some state which represents the “current” state of the document. E.g. some
+text in a UI which is a view of a text object in the document. Rather than re-rendering this
+text every single time a change comes in you can use a <a href="patches/struct.PatchLog.html" title="struct automerge::patches::PatchLog"><code>PatchLog</code></a> to capture incremental
+changes made to the document and then use <a href="struct.Automerge.html#method.make_patches" title="method automerge::Automerge::make_patches"><code>Automerge::make_patches()</code></a> to get a set of patches
+to apply to the materialized state.</p>
+<p>Many of the methods on <a href="struct.Automerge.html" title="struct automerge::Automerge"><code>Automerge</code></a>, <a href="sync/trait.SyncDoc.html" title="trait automerge::sync::SyncDoc"><code>crate::sync::SyncDoc</code></a> and
+<a href="transaction/trait.Transactable.html" title="trait automerge::transaction::Transactable"><code>crate::transaction::Transactable</code></a> have a <code>*_log_patches()</code> variant which allow you to pass in
+a <a href="patches/struct.PatchLog.html" title="struct automerge::patches::PatchLog"><code>PatchLog</code></a> to collect these incremental changes.</p>
+<h3 id="serde-serialization"><a class="doc-anchor" href="#serde-serialization">§</a>Serde serialization</h3>
+<p>Sometimes you just want to get the JSON value of an automerge document. For
+this you can use <a href="struct.AutoSerde.html" title="struct automerge::AutoSerde"><code>AutoSerde</code></a>, which implements <a href="https://docs.rs/serde_core/1.0.228/serde_core/ser/trait.Serialize.html" title="trait serde_core::ser::Serialize"><code>serde::Serialize</code></a> for an
+automerge document.</p>
+<h3 id="example"><a class="doc-anchor" href="#example">§</a>Example</h3>
+<p>Let’s create a document representing an address book.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>automerge::{ObjType, AutoCommit, transaction::Transactable, ReadDoc};
+
+<span class="kw">let </span><span class="kw-2">mut </span>doc = AutoCommit::new();
+
+<span class="comment">// `put_object` creates a nested object in the root key/value map and
+// returns the ID of the new object, in this case a list.
+</span><span class="kw">let </span>contacts = doc.put_object(automerge::ROOT, <span class="string">"contacts"</span>, ObjType::List)<span class="question-mark">?</span>;
+
+<span class="comment">// Now we can insert objects into the list
+</span><span class="kw">let </span>alice = doc.insert_object(<span class="kw-2">&amp;</span>contacts, <span class="number">0</span>, ObjType::Map)<span class="question-mark">?</span>;
+
+<span class="comment">// Finally we can set keys in the "alice" map
+</span>doc.put(<span class="kw-2">&amp;</span>alice, <span class="string">"name"</span>, <span class="string">"Alice"</span>)<span class="question-mark">?</span>;
+doc.put(<span class="kw-2">&amp;</span>alice, <span class="string">"email"</span>, <span class="string">"alice@example.com"</span>)<span class="question-mark">?</span>;
+
+<span class="comment">// Create another contact
+</span><span class="kw">let </span>bob = doc.insert_object(<span class="kw-2">&amp;</span>contacts, <span class="number">1</span>, ObjType::Map)<span class="question-mark">?</span>;
+doc.put(<span class="kw-2">&amp;</span>bob, <span class="string">"name"</span>, <span class="string">"Bob"</span>)<span class="question-mark">?</span>;
+doc.put(<span class="kw-2">&amp;</span>bob, <span class="string">"email"</span>, <span class="string">"bob@example.com"</span>)<span class="question-mark">?</span>;
+
+<span class="comment">// Now we save the address book, we can put this in a file
+</span><span class="kw">let </span>data: Vec&lt;u8&gt; = doc.save();</code></pre></div>
+<p>Now modify this document on two separate devices and merge the modifications.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::borrow::Cow;
+<span class="kw">use </span>automerge::{ObjType, AutoCommit, transaction::Transactable, ReadDoc};
+
+
+<span class="comment">// Load the document on the first device and change alices email
+</span><span class="kw">let </span><span class="kw-2">mut </span>doc1 = AutoCommit::load(<span class="kw-2">&amp;</span>saved)<span class="question-mark">?</span>;
+<span class="kw">let </span>contacts = <span class="kw">match </span>doc1.get(automerge::ROOT, <span class="string">"contacts"</span>)<span class="question-mark">? </span>{
+    <span class="prelude-val">Some</span>((automerge::Value::Object(ObjType::List), contacts)) =&gt; contacts,
+    <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"contacts should be a list"</span>),
+};
+<span class="kw">let </span>alice = <span class="kw">match </span>doc1.get(<span class="kw-2">&amp;</span>contacts, <span class="number">0</span>)<span class="question-mark">? </span>{
+   <span class="prelude-val">Some</span>((automerge::Value::Object(ObjType::Map), alice)) =&gt; alice,
+   <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"alice should be a map"</span>),
+};
+doc1.put(<span class="kw-2">&amp;</span>alice, <span class="string">"email"</span>, <span class="string">"alicesnewemail@example.com"</span>)<span class="question-mark">?</span>;
+
+
+<span class="comment">// Load the document on the second device and change bobs name
+</span><span class="kw">let </span><span class="kw-2">mut </span>doc2 = AutoCommit::load(<span class="kw-2">&amp;</span>saved)<span class="question-mark">?</span>;
+<span class="kw">let </span>contacts = <span class="kw">match </span>doc2.get(automerge::ROOT, <span class="string">"contacts"</span>)<span class="question-mark">? </span>{
+   <span class="prelude-val">Some</span>((automerge::Value::Object(ObjType::List), contacts)) =&gt; contacts,
+   <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"contacts should be a list"</span>),
+};
+<span class="kw">let </span>bob = <span class="kw">match </span>doc2.get(<span class="kw-2">&amp;</span>contacts, <span class="number">1</span>)<span class="question-mark">? </span>{
+  <span class="prelude-val">Some</span>((automerge::Value::Object(ObjType::Map), bob)) =&gt; bob,
+  <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"bob should be a map"</span>),
+};
+doc2.put(<span class="kw-2">&amp;</span>bob, <span class="string">"name"</span>, <span class="string">"Robert"</span>)<span class="question-mark">?</span>;
+
+<span class="comment">// Finally, we can merge the changes from the two devices
+</span>doc1.merge(<span class="kw-2">&amp;mut </span>doc2)<span class="question-mark">?</span>;
+<span class="kw">let </span>bobsname: <span class="prelude-ty">Option</span>&lt;automerge::Value&gt; = doc1.get(<span class="kw-2">&amp;</span>bob, <span class="string">"name"</span>)<span class="question-mark">?</span>.map(|(v, <span class="kw">_</span>)| v);
+<span class="macro">assert_eq!</span>(bobsname, <span class="prelude-val">Some</span>(automerge::Value::Scalar(Cow::Owned(<span class="string">"Robert"</span>.into()))));
+
+<span class="kw">let </span>alices_email: <span class="prelude-ty">Option</span>&lt;automerge::Value&gt; = doc1.get(<span class="kw-2">&amp;</span>alice, <span class="string">"email"</span>)<span class="question-mark">?</span>.map(|(v, <span class="kw">_</span>)| v);
+<span class="macro">assert_eq!</span>(alices_email, <span class="prelude-val">Some</span>(automerge::Value::Scalar(Cow::Owned(<span class="string">"alicesnewemail@example.com"</span>.into()))));</code></pre></div><h3 id="cursors-referring-to-positions-in-sequences"><a class="doc-anchor" href="#cursors-referring-to-positions-in-sequences">§</a>Cursors, referring to positions in sequences</h3>
+<p>When working with text or other sequences it is often useful to be able to
+refer to a specific position within the sequence whilst merging remote
+changes. You can manually do this by maintaining your own offsets and
+observing patches, but this is error prone. The <a href="struct.Cursor.html" title="struct automerge::Cursor"><code>Cursor</code></a> type provides
+an API for allowing automerge to do the index translations for you. Cursors
+are created with <a href="trait.ReadDoc.html#tymethod.get_cursor" title="method automerge::ReadDoc::get_cursor"><code>ReadDoc::get_cursor()</code></a> and dereferenced with
+<a href="trait.ReadDoc.html#tymethod.get_cursor_position" title="method automerge::ReadDoc::get_cursor_position"><code>ReadDoc::get_cursor_position()</code></a>.</p>
+</div></details><h2 id="reexports" class="section-header">Re-exports<a href="#reexports" class="anchor">§</a></h2><dl class="item-table reexports"><dt id="reexport.AutomergeError"><code>pub use error::<a class="enum" href="error/enum.AutomergeError.html" title="enum automerge::error::AutomergeError">AutomergeError</a>;</code></dt><dt id="reexport.InvalidActorId"><code>pub use error::<a class="struct" href="error/struct.InvalidActorId.html" title="struct automerge::error::InvalidActorId">InvalidActorId</a>;</code></dt><dt id="reexport.InvalidChangeHashSlice"><code>pub use error::<a class="struct" href="error/struct.InvalidChangeHashSlice.html" title="struct automerge::error::InvalidChangeHashSlice">InvalidChangeHashSlice</a>;</code></dt><dt id="reexport.Patch"><code>pub use patches::<a class="struct" href="patches/struct.Patch.html" title="struct automerge::patches::Patch">Patch</a>;</code></dt><dt id="reexport.PatchAction"><code>pub use patches::<a class="enum" href="patches/enum.PatchAction.html" title="enum automerge::patches::PatchAction">PatchAction</a>;</code></dt><dt id="reexport.PatchLog"><code>pub use patches::<a class="struct" href="patches/struct.PatchLog.html" title="struct automerge::patches::PatchLog">PatchLog</a>;</code></dt><dt id="reexport.BlockOrText"><code>pub use transaction::<a class="enum" href="transaction/enum.BlockOrText.html" title="enum automerge::transaction::BlockOrText">BlockOrText</a>;</code></dt></dl><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="error/index.html" title="mod automerge::error">error</a></dt><dt><a class="mod" href="hydrate/index.html" title="mod automerge::hydrate">hydrate</a></dt><dt><a class="mod" href="iter/index.html" title="mod automerge::iter">iter</a></dt><dt><a class="mod" href="marks/index.html" title="mod automerge::marks">marks</a></dt><dt><a class="mod" href="op_tree/index.html" title="mod automerge::op_tree">op_tree</a></dt><dt><a class="mod" href="patches/index.html" title="mod automerge::patches">patches</a></dt><dt><a class="mod" href="sync/index.html" title="mod automerge::sync">sync</a></dt><dd>Sync Protocol</dd><dt><a class="mod" href="transaction/index.html" title="mod automerge::transaction">transaction</a></dt></dl><h2 id="macros" class="section-header">Macros<a href="#macros" class="anchor">§</a></h2><dl class="item-table"><dt><a class="macro" href="macro.hydrate_list.html" title="macro automerge::hydrate_list">hydrate_<wbr>list</a></dt><dt><a class="macro" href="macro.hydrate_map.html" title="macro automerge::hydrate_map">hydrate_<wbr>map</a></dt><dt><a class="macro" href="macro.hydrate_text.html" title="macro automerge::hydrate_text">hydrate_<wbr>text</a></dt></dl><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.ActorId.html" title="struct automerge::ActorId">ActorId</a></dt><dd>An actor id is a sequence of bytes. By default we use a uuid which can be nicely stack
+allocated.</dd><dt><a class="struct" href="struct.AutoCommit.html" title="struct automerge::AutoCommit">Auto<wbr>Commit</a></dt><dd>An automerge document that automatically manages transactions.</dd><dt><a class="struct" href="struct.AutoSerde.html" title="struct automerge::AutoSerde">Auto<wbr>Serde</a></dt><dd>A wrapper type which implements <a href="https://docs.rs/serde_core/1.0.228/serde_core/ser/trait.Serialize.html" title="trait serde_core::ser::Serialize"><code>serde::Serialize</code></a> for a <a href="trait.ReadDoc.html" title="trait automerge::ReadDoc"><code>ReadDoc</code></a>.</dd><dt><a class="struct" href="struct.Automerge.html" title="struct automerge::Automerge">Automerge</a></dt><dd>An automerge document which does not manage transactions for you.</dd><dt><a class="struct" href="struct.Change.html" title="struct automerge::Change">Change</a></dt><dt><a class="struct" href="struct.ChangeHash.html" title="struct automerge::ChangeHash">Change<wbr>Hash</a></dt><dd>The sha256 hash of a change.</dd><dt><a class="struct" href="struct.Cursor.html" title="struct automerge::Cursor">Cursor</a></dt><dd>An identifier of a position in a Sequence (either Self::List or Self::Text).</dd><dt><a class="struct" href="struct.ExpandedChange.html" title="struct automerge::ExpandedChange">Expanded<wbr>Change</a></dt><dd>A change represents a group of operations performed by an actor.</dd><dt><a class="struct" href="struct.LoadOptions.html" title="struct automerge::LoadOptions">Load<wbr>Options</a></dt><dt><a class="struct" href="struct.Parent.html" title="struct automerge::Parent">Parent</a></dt><dd>A component of a path to an object</dd><dt><a class="struct" href="struct.Parents.html" title="struct automerge::Parents">Parents</a></dt><dd>An iterator over the “parents” of an object</dd><dt><a class="struct" href="struct.SaveOptions.html" title="struct automerge::SaveOptions">Save<wbr>Options</a></dt><dd>Options to pass to <a href="struct.Automerge.html#method.save_with_options" title="method automerge::Automerge::save_with_options"><code>Automerge::save_with_options()</code></a> and <a href="struct.AutoCommit.html#method.save_with_options" title="method automerge::AutoCommit::save_with_options"><code>crate::AutoCommit::save_with_options()</code></a></dd></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.LoadChangeError.html" title="enum automerge::LoadChangeError">Load<wbr>Change<wbr>Error</a></dt><dt><a class="enum" href="enum.ObjId.html" title="enum automerge::ObjId">ObjId</a></dt><dd>An identifier for an object in a document</dd><dt><a class="enum" href="enum.ObjIdFromBytesError.html" title="enum automerge::ObjIdFromBytesError">ObjId<wbr>From<wbr>Bytes<wbr>Error</a></dt><dt><a class="enum" href="enum.ObjType.html" title="enum automerge::ObjType">ObjType</a></dt><dd>The type of an object</dd><dt><a class="enum" href="enum.OnPartialLoad.html" title="enum automerge::OnPartialLoad">OnPartial<wbr>Load</a></dt><dd>What to do when loading a document partially succeeds</dd><dt><a class="enum" href="enum.OpType.html" title="enum automerge::OpType">OpType</a></dt><dt><a class="enum" href="enum.ParseChangeHashError.html" title="enum automerge::ParseChangeHashError">Parse<wbr>Change<wbr>Hash<wbr>Error</a></dt><dt><a class="enum" href="enum.Prop.html" title="enum automerge::Prop">Prop</a></dt><dd>A property of an object</dd><dt><a class="enum" href="enum.ScalarValue.html" title="enum automerge::ScalarValue">Scalar<wbr>Value</a></dt><dd>A value which is not a composite value</dd><dt><a class="enum" href="enum.StringMigration.html" title="enum automerge::StringMigration">String<wbr>Migration</a></dt><dd>Whether to convert <a href="enum.ScalarValue.html#variant.Str" title="variant automerge::ScalarValue::Str"><code>ScalarValue::Str</code></a>s in the loaded document to <a href="enum.ObjType.html#variant.Text" title="variant automerge::ObjType::Text"><code>ObjType::Text</code></a></dd><dt><a class="enum" href="enum.Value.html" title="enum automerge::Value">Value</a></dt><dd>The type of values in an automerge document</dd><dt><a class="enum" href="enum.VerificationMode.html" title="enum automerge::VerificationMode">Verification<wbr>Mode</a></dt></dl><h2 id="constants" class="section-header">Constants<a href="#constants" class="anchor">§</a></h2><dl class="item-table"><dt><a class="constant" href="constant.ROOT.html" title="constant automerge::ROOT">ROOT</a></dt><dd>The object ID for the root map of a document</dd></dl><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><dl class="item-table"><dt><a class="trait" href="trait.ReadDoc.html" title="trait automerge::ReadDoc">ReadDoc</a></dt><dd>Methods for reading values from an automerge document</dd></dl><h2 id="types" class="section-header">Type Aliases<a href="#types" class="anchor">§</a></h2><dl class="item-table"><dt><a class="type" href="type.SequenceTree.html" title="type automerge::SequenceTree">Sequence<wbr>Tree</a></dt></dl></section></div></main></body></html>

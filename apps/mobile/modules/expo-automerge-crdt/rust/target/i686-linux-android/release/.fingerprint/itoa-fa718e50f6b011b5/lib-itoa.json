@@ -1,0 +1,20 @@
+{
+  "rustc": 8022303366561187541,
+  "features": "[]",
+  "declared_features": "[\"no-panic\"]",
+  "target": 8239509073162986830,
+  "profile": 12693162527509728243,
+  "path": 16151369139546570217,
+  "deps": [],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "i686-linux-android/release/.fingerprint/itoa-fa718e50f6b011b5/dep-lib-itoa",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 10255546481339591553,
+  "compile_kind": 10878095854680285812
+}

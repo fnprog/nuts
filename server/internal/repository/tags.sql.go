@@ -9,6 +9,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createTag = `-- name: CreateTag :one
@@ -22,9 +23,9 @@ INSERT INTO tags (
 `
 
 type CreateTagParams struct {
-	UserID uuid.UUID   `json:"user_id"`
-	Name   string      `json:"name"`
-	Color  interface{} `json:"color"`
+	UserID uuid.UUID `json:"user_id"`
+	Name   string    `json:"name"`
+	Color  string    `json:"color"`
 }
 
 func (q *Queries) CreateTag(ctx context.Context, arg CreateTagParams) (Tag, error) {
@@ -71,7 +72,7 @@ type GetTagByIdRow struct {
 	ID     uuid.UUID `json:"id"`
 	UserID uuid.UUID `json:"user_id"`
 	Name   string    `json:"name"`
-	Color  COLORENUM `json:"color"`
+	Color  string    `json:"color"`
 }
 
 func (q *Queries) GetTagById(ctx context.Context, id uuid.UUID) (GetTagByIdRow, error) {
@@ -99,7 +100,7 @@ ORDER BY name
 type GetTagsByUserIdRow struct {
 	ID    uuid.UUID `json:"id"`
 	Name  string    `json:"name"`
-	Color COLORENUM `json:"color"`
+	Color string    `json:"color"`
 }
 
 func (q *Queries) GetTagsByUserId(ctx context.Context, userID uuid.UUID) ([]GetTagsByUserIdRow, error) {
@@ -112,6 +113,45 @@ func (q *Queries) GetTagsByUserId(ctx context.Context, userID uuid.UUID) ([]GetT
 	for rows.Next() {
 		var i GetTagsByUserIdRow
 		if err := rows.Scan(&i.ID, &i.Name, &i.Color); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getTagsSince = `-- name: GetTagsSince :many
+SELECT id, user_id, name, color, created_at
+FROM tags
+WHERE
+    user_id = $1
+    AND created_at > $2
+`
+
+type GetTagsSinceParams struct {
+	UserID uuid.UUID          `json:"user_id"`
+	Since  pgtype.Timestamptz `json:"since"`
+}
+
+func (q *Queries) GetTagsSince(ctx context.Context, arg GetTagsSinceParams) ([]Tag, error) {
+	rows, err := q.db.Query(ctx, getTagsSince, arg.UserID, arg.Since)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Tag{}
+	for rows.Next() {
+		var i Tag
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Name,
+			&i.Color,
+			&i.CreatedAt,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -144,7 +184,7 @@ type ListTagsRow struct {
 	ID     uuid.UUID `json:"id"`
 	UserID uuid.UUID `json:"user_id"`
 	Name   string    `json:"name"`
-	Color  COLORENUM `json:"color"`
+	Color  string    `json:"color"`
 }
 
 func (q *Queries) ListTags(ctx context.Context, arg ListTagsParams) ([]ListTagsRow, error) {
@@ -184,10 +224,10 @@ RETURNING id, user_id, name, color, created_at
 `
 
 type UpdateTagParams struct {
-	Name   *string     `json:"name"`
-	Color  interface{} `json:"color"`
-	ID     uuid.UUID   `json:"id"`
-	UserID uuid.UUID   `json:"user_id"`
+	Name   *string   `json:"name"`
+	Color  *string   `json:"color"`
+	ID     uuid.UUID `json:"id"`
+	UserID uuid.UUID `json:"user_id"`
 }
 
 func (q *Queries) UpdateTag(ctx context.Context, arg UpdateTagParams) (Tag, error) {

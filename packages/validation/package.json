@@ -1,0 +1,26 @@
+{
+  "name": "@nuts/validation",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "arktype": "^2.0.0-rc.31",
+    "neverthrow": "^8.1.2"
+  },
+  "devDependencies": {
+    "@nuts/types": "workspace:*",
+    "typescript": "^5.7.2"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "rustc": 10128419115332751062,
+  "features": "[]",
+  "declared_features": "[\"default\", \"i128\", \"libm\", \"std\"]",
+  "target": 4278088450330190724,
+  "profile": 2241668132362809309,
+  "path": 12140678096151757616,
+  "deps": [[5157631553186200874, "build_script_build", false, 15938059746659048406]],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "debug/.fingerprint/num-traits-1e89e4c32607ecfa/dep-lib-num_traits",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 2069994364910194474,
+  "compile_kind": 0
+}

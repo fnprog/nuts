@@ -1,0 +1,61 @@
+---
+import { Image } from "astro:assets";
+import PicOne from "../assets/images/img3.png"
+
+const features = [
+  {
+    title: 'Expense Tracking',
+    description: 'Easily track your expenses across multiple accounts and categories.',
+  },
+  {
+    title: 'Budget Planning',
+    description: 'Create and manage budgets to help you stay on track with your financial goals.',
+  },
+  {
+    title: 'Financial Insights',
+    description: 'Get personalized insights and recommendations to improve your financial health.',
+  },
+  {
+    title: 'Cross-Platform',
+    description: 'Access your financial data from any device - desktop, mobile, or web.',
+  },
+  {
+    title: 'Secure & Private',
+    description: 'Your financial data is encrypted and never shared with third parties.',
+  },
+  {
+    title: 'Open Source',
+    description: 'Fully open source and transparent. Host it yourself or use our cloud service.',
+  }
+];
+
+
+---
+
+<section class="py-12 bg-gray-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between border-b border-b-gray-200 pb-8">
+    <div>
+      <h2 class="text-base font-subheading text-primary-600 font-semibold tracking-wide uppercase">Features</h2>
+      <p class="mt-2 font-heading text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+        Everything you need<br/>to manage your finances
+      </p>
+      <p class="mt-8 max-w-2xl text-xl text-gray-600 ">
+        Nut combines powerful features<br/> with a simple, intuitive interface to help you<br/> take control of your financial life.
+      </p>
+      </div>
+      <div class="">
+<Image src={PicOne} class="size-[450px] rounded-2xl" alt="look" /> </div>
+</div>
+    <div class="mt-10">
+      <div class="space-y-10 md:space-y-0 md:grid md:grid-cols-3 md:gap-x-16 md:gap-y-10">
+        {features.map(feature => (
+          <div class="relative">
+              <h3 class="text-lg leading-6 font-medium font-subheading text-gray-900">{feature.title}</h3>
+              <p class="mt-2 text-base text-gray-600">{feature.description}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>

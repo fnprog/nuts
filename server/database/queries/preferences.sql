@@ -16,6 +16,7 @@ SELECT
     currency,
     start_week_on_monday,
     dark_sidebar,
+    budget_style,
     created_at,
     updated_at
 FROM preferences
@@ -35,6 +36,7 @@ SET
     date_format = coalesce(sqlc.narg('date_format'), date_format),
     start_week_on_monday = coalesce(sqlc.narg('start_week_on_monday'), start_week_on_monday),
     dark_sidebar = coalesce(sqlc.narg('dark_sidebar'), dark_sidebar),
+    budget_style = coalesce(sqlc.narg('budget_style'), budget_style),
     updated_at = current_timestamp
 WHERE
     user_id = sqlc.arg('user_id')
@@ -64,3 +66,13 @@ ORDER BY user_id
 LIMIT
     $1
     OFFSET $2;
+
+-- name: GetPreferencesSince :many
+SELECT *
+FROM preferences
+WHERE
+    user_id = sqlc.arg('user_id')
+    AND (
+        updated_at > sqlc.arg('since')
+        OR (deleted_at IS NOT NULL AND deleted_at > sqlc.arg('since'))
+    );

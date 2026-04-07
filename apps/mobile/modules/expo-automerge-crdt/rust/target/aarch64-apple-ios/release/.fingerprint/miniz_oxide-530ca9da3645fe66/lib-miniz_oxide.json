@@ -1,0 +1,23 @@
+{
+  "rustc": 8022303366561187541,
+  "features": "[\"simd\", \"simd-adler32\", \"with-alloc\"]",
+  "declared_features": "[\"alloc\", \"block-boundary\", \"core\", \"default\", \"rustc-dep-of-std\", \"serde\", \"simd\", \"simd-adler32\", \"std\", \"with-alloc\"]",
+  "target": 8661567070972402511,
+  "profile": 3166032544309380278,
+  "path": 9921339551734594232,
+  "deps": [
+    [4018467389006652250, "simd_adler32", false, 14072770345017933776],
+    [7911289239703230891, "adler2", false, 17990091133567372696]
+  ],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "aarch64-apple-ios/release/.fingerprint/miniz_oxide-530ca9da3645fe66/dep-lib-miniz_oxide",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 2069994364910194474,
+  "compile_kind": 3694122122034060669
+}

@@ -1,0 +1,489 @@
+import { useState, useEffect, useMemo, memo } from "react";
+import { useForm } from "react-hook-form";
+import { arktypeResolver } from '@hookform/resolvers/arktype';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { logger } from "@/lib/logger";
+import { transactionService } from "@/features/transactions/services/transaction.service";
+import { useTransaction } from "../services/transaction.queries";
+import { categoryService } from "@/features/categories/services/category.service";
+import { getAllAccounts } from "@/features/accounts/services/account.queries";
+import { cn, debounce } from "@/lib/utils";
+
+import { Button } from "@/core/components/ui/button";
+import { Input } from "@/core/components/ui/input";
+import { Textarea } from "@/core/components/ui/textarea";
+import { Sheet, SheetContent, SheetTitle, SheetClose, SheetHeader, SheetDescription } from "@/core/components/ui/sheet";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/core/components/ui/tabs";
+import { X, ArrowDownLeft, ArrowUpRight, Loader2, Info, Lock, Wand2 } from "lucide-react";
+import { RecordUpdateSchema, recordUpdateSchema } from "../services/transaction.types";
+import { Form, FormField, FormItem, FormControl, FormMessage, FormLabel } from "@/core/components/ui/form"
+import { DatetimePicker } from "@/core/components/ui/datetime"
+import { SearchableSelect, SearchableSelectOption } from "@/core/components/ui/search-select"
+import { Root } from "@radix-ui/react-visually-hidden"
+import { useBrandImage } from "@/features/accounts/hooks/useBrand"
+import { config } from "@/lib/env"
+import { Account } from "@/features/accounts/services/account.types"
+import { toast } from "sonner"
+import { RecurringSelect } from "./recurring-select"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/core/components/ui/tooltip"
+import { CreateEditRuleDialog } from "./create-edit-rule-dialog"
+
+interface EditTransactionSheetProps {
+  isOpen: boolean;
+  onClose: () => void;
+  transactionId: string | null;
+}
+
+const FormLabelWithLock = ({ isLocked, children }: { isLocked: boolean; children: React.ReactNode }) => (
+  <FormLabel className="flex items-center gap-1.5">
+    {children}
+    {isLocked && <Lock className="text-muted-foreground h-3 w-3" />}
+  </FormLabel>
+);
+
+export default function EditTransactionSheet({ isOpen, onClose, transactionId }: EditTransactionSheetProps) {
+  const [transactionNature, setTransactionNature] = useState<"expense" | "income">("expense");
+  const [showCreateRuleDialog, setShowCreateRuleDialog] = useState(false);
+  const [recurringType, setRecurringType] = useState<string>("one-time");
+  const queryClient = useQueryClient();
+
+  const { data: transaction, isFetching: detailFetching } = useTransaction(transactionId!);
+
+  const { data: categories } = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => {
+      const result = await categoryService.getCategories();
+      if (result.isErr()) throw result.error;
+      return result.value;
+    },
+    gcTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 2,
+    refetchOnMount: false,
+    retry: 1,
+  });
+
+  const { data: accounts, isLoading: accountsLoading } = useQuery({
+    ...getAllAccounts(),
+    refetchOnWindowFocus: false,
+  });
+
+  const form = useForm<RecordUpdateSchema>({
+    resolver: arktypeResolver(recordUpdateSchema),
+    mode: "onChange",
+    defaultValues: {
+      description: "",
+      amount: 0,
+      transaction_datetime: new Date(),
+      category_id: "",
+      account_id: "",
+      details: { note: "" },
+    },
+  });
+
+  const isSyncedTransaction = transaction?.is_external === true;
+
+  const updateMutation = useMutation({
+    mutationFn: async (params: { id: string; data: RecordUpdateSchema }) => {
+      const result = await transactionService.updateTransaction(params.id, params.data);
+      if (result.isErr()) throw result.error;
+      return result.value;
+    },
+    onSuccess: () => {
+      toast.success("Transaction updated successfully!");
+      // Invalidate queries to refresh the data
+      queryClient.invalidateQueries({ queryKey: ["transaction", transactionId] });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+    },
+    onError: (error: Error) => {
+      logger.error(error.message);
+      toast.error(error.message || "An error occurred.");
+    },
+  });
+
+  const debouncedSave = useMemo(
+    () =>
+      debounce((values: RecordUpdateSchema) => {
+        console.log("Debounced save triggered with values:", values);
+
+        if (!transaction) {
+          console.log("No transaction found, skipping save");
+          return;
+        }
+
+        if (!form.formState.isValid) {
+          console.log("Form is not valid, skipping save. Errors:", form.formState.errors);
+          return;
+        }
+
+        console.log("Submitting update payload:", values);
+        updateMutation.mutateAsync({ id: transaction.id, data: values as RecordUpdateSchema });
+      }, 600),
+    [transaction, updateMutation, form.formState.isValid, form.formState.errors]
+  );
+
+  useEffect(() => {
+    const subscription = form.watch((values, { name, type }) => {
+      // Only trigger save on actual field changes, not on form reset
+      if (type === "change" && form.formState.isDirty && form.formState.isValid && transaction) {
+        console.log("Triggering debounced save for field:", name);
+        debouncedSave(values as RecordUpdateSchema);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [form, transaction, debouncedSave]);
+
+  // Cancel debounced calls when sheet closes
+  useEffect(() => () => debouncedSave.cancel(), [debouncedSave]);
+
+  useEffect(() => {
+    if (transaction) {
+      let nature: "expense" | "income" = "expense";
+
+      if (transaction.type === "expense") {
+        nature = "expense";
+      } else if (transaction.type === "income") {
+        nature = "income";
+      } else if (transaction.type === "transfer") {
+        console.warn("EditTransactionSheet: Editing a 'transfer' transaction. This form is designed for 'expense' or 'income'.");
+        nature = "income";
+      } else {
+        nature = transaction.amount >= 0 ? "income" : "expense";
+      }
+
+      setTransactionNature(nature);
+
+      const formData = {
+        type: nature,
+        old_type: nature,
+        new_type: nature,
+        description: transaction.description || "",
+        amount: Math.abs(transaction.amount) || 0,
+        transaction_datetime: new Date(transaction.transaction_datetime),
+        category_id: transaction.category_id || "",
+        account_id: transaction.account_id || "",
+        details: {
+          note: transaction.details?.note || "",
+        },
+      };
+
+      console.log("Resetting form with data:", formData);
+      form.reset(formData);
+    } else {
+      form.reset();
+      setTransactionNature("expense");
+    }
+  }, [transaction, form]);
+
+  const categoriesOptionsForSelect: SearchableSelectOption[] = useMemo(() => {
+    if (!categories) return [];
+    return categories.map((category) => ({
+      value: category.id,
+      label: `${category.name}`,
+      keywords: [category.name],
+    }));
+  }, [categories]);
+
+  if (!isOpen || !transaction) return null;
+
+  const currencySymbol = "$";
+
+  return (
+    <Sheet open={isOpen} onOpenChange={onClose}>
+      <SheetContent
+        className={cn(
+          "p-0",
+          "flex flex-col",
+          "top-4",
+          "bottom-4",
+          "right-4",
+          "h-auto",
+          "w-[calc(100%-(--spacing(4)))]",
+          "sm:w-auto sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl",
+          "[&>button:last-child]:hidden",
+          "rounded-lg",
+          "border-t border-b border-l",
+          "shadow-xl",
+          "bg-background"
+        )}
+      >
+        <SheetHeader className="bg-muted/20 p-6 pb-0">
+          <div className="flex items-center justify-between">
+            <SheetTitle className="flex items-center gap-1 text-lg">
+              Edit Transaction
+              {detailFetching && (
+                <div className="text-muted-foreground flex items-center gap-2 px-2 text-sm">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  refreshing details…
+                </div>
+              )}
+            </SheetTitle>
+            <Root>
+              <SheetDescription>Edit details about your transactions</SheetDescription>
+            </Root>
+            <SheetClose asChild>
+              <Button variant="ghost" size="icon">
+                <X className="h-4 w-4" />
+              </Button>
+            </SheetClose>
+          </div>
+        </SheetHeader>
+
+        <Form {...form}>
+          <form className="flex-1 space-y-6 overflow-y-auto p-6 pt-0">
+            {isSyncedTransaction && (
+              <div className="mt-4 flex items-center gap-3 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
+                <Info className="h-5 w-5 shrink-0" />
+                <p>This is a synced transaction. Core details are locked to match your bank record. You can still change the category and notes.</p>
+              </div>
+            )}
+
+            <Tabs
+              value={transactionNature}
+              onValueChange={(value) => {
+                if (isSyncedTransaction) return; // Prevent changing type for synced transactions
+                setTransactionNature(value as "expense" | "income");
+              }}
+            >
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="expense" disabled={isSyncedTransaction} className="flex items-center gap-2">
+                  <ArrowDownLeft className="h-4 w-4" /> Expense
+                </TabsTrigger>
+                <TabsTrigger value="income" disabled={isSyncedTransaction} className="flex items-center gap-2">
+                  <ArrowUpRight className="h-4 w-4" /> Income
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+
+            <TooltipProvider>
+              {/* Description Field */}
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div>
+                          <FormLabelWithLock isLocked={isSyncedTransaction}>Description</FormLabelWithLock>
+                        </div>
+                      </TooltipTrigger>
+                      {isSyncedTransaction && (
+                        <TooltipContent>
+                          <p>The merchant name is synced from your bank and cannot be changed.</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                    <FormControl>
+                      <Input placeholder="e.g., Coffee with team" {...field} disabled={isSyncedTransaction} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Amount & Date Fields */}
+              <div className="grid gap-4 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="amount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div>
+                            <FormLabelWithLock isLocked={isSyncedTransaction}>Amount</FormLabelWithLock>
+                          </div>
+                        </TooltipTrigger>
+                        {isSyncedTransaction && (
+                          <TooltipContent>
+                            <p>Amount is synced from your bank and cannot be changed.</p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                      <FormControl>
+                        <div className="relative">
+                          <span className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2 text-sm">{currencySymbol}</span>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            placeholder="0.00"
+                            className="pl-7"
+                            {...field}
+                            disabled={isSyncedTransaction}
+                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="transaction_datetime"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div>
+                            <FormLabelWithLock isLocked={isSyncedTransaction}>Date & Time</FormLabelWithLock>
+                          </div>
+                        </TooltipTrigger>
+                        {isSyncedTransaction && (
+                          <TooltipContent>
+                            <p>The transaction date is synced from your bank and cannot be changed.</p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                      <FormControl>
+                        <DatetimePicker value={field.value} onChange={field.onChange} disabled={isSyncedTransaction} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Category & Account Fields */}
+              <div className="grid gap-4 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="category_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Category</FormLabel>
+                      <FormControl>
+                        <SearchableSelect
+                          options={categoriesOptionsForSelect}
+                          value={field.value || ""}
+                          onChange={field.onChange}
+                          placeholder="Select category"
+                          searchPlaceholder="Search category..."
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="account_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div>
+                            <FormLabelWithLock isLocked={isSyncedTransaction}>Account</FormLabelWithLock>
+                          </div>
+                        </TooltipTrigger>
+                        {isSyncedTransaction && (
+                          <TooltipContent>
+                            <p>The account is synced from your bank and cannot be changed.</p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                      <Select onValueChange={field.onChange} disabled={accountsLoading || isSyncedTransaction} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select an account" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>{accounts?.map((account) => <AccountOption key={account.id} account={account} />)}</SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="details.note"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Notes <span className="text-muted-foreground text-xs">(Optional)</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Add any additional details or memo" {...field} value={field.value ?? ""} rows={3} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Create Rule Section */}
+              <div className="bg-muted/20 mt-6 rounded-lg border p-4">
+                <div className="mb-2 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Wand2 className="text-muted-foreground size-4" />
+                    <span className="text-sm font-medium">Automation</span>
+                  </div>
+                </div>
+                <p className="text-muted-foreground mb-3 text-xs">Create a rule to automatically categorize similar transactions in the future.</p>
+                <Button type="button" variant="outline" size="sm" onClick={() => setShowCreateRuleDialog(true)} className="w-full">
+                  <Wand2 className="mr-2 size-4" />
+                  Create Rule from Transaction
+                </Button>
+              </div>
+              {/* Recurring Transaction Option - Only show for non-synced transactions */}
+              {!isSyncedTransaction && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
+                    Recurrence
+                  </label>
+                  <RecurringSelect
+                    value={recurringType}
+                    onChange={setRecurringType}
+                    onCustomSave={(data) => {
+                      console.log("Custom recurring data:", data);
+                      // Handle custom recurring data
+                    }}
+                  />
+                </div>
+              )}
+            </TooltipProvider >
+          </form >
+        </Form >
+
+        {/* Create Rule Dialog */}
+        {
+          transaction && (
+            <CreateEditRuleDialog
+              open={showCreateRuleDialog}
+              onOpenChange={setShowCreateRuleDialog}
+              rule={null}
+              prefillData={{
+                description: transaction.description,
+                amount: transaction.amount,
+                account_id: transaction.account_id?.toString(),
+                category_id: transaction.category_id || undefined,
+              }}
+            />
+          )
+        }
+      </SheetContent >
+    </Sheet >
+  )
+}
+
+const AccountOption = memo(({ account }: { account: Account }) => {
+  const { imageUrl } = useBrandImage(account.meta?.institution_name ?? "", config.VITE_BRANDFETCH_CLIENTID);
+
+  return (
+    <SelectItem value={account.id.toString()}>
+      <div className="flex items-center gap-2">
+        {imageUrl ? <img src={imageUrl} alt="" className="h-5 w-5 rounded-full" /> : <div className="bg-muted h-5 w-5 rounded-full" />}
+        <span>{account.name}</span>
+      </div>
+    </SelectItem>
+  );
+});

@@ -9,31 +9,41 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createCategory = `-- name: CreateCategory :one
 INSERT INTO categories (
     name,
+    icon,
+    color,
     parent_id,
     is_default,
+    type,
     created_by
 ) VALUES (
-    $1, $2, $3, $4
-) RETURNING id, name, parent_id, is_default, created_by, updated_by, created_at, updated_at, deleted_at
+    $1, $2, $3, $4, $5, $6, $7
+) RETURNING id, name, parent_id, is_default, created_by, updated_by, created_at, updated_at, deleted_at, type, color, icon
 `
 
 type CreateCategoryParams struct {
 	Name      string     `json:"name"`
+	Icon      string     `json:"icon"`
+	Color     *string    `json:"color"`
 	ParentID  *uuid.UUID `json:"parent_id"`
 	IsDefault *bool      `json:"is_default"`
+	Type      string     `json:"type"`
 	CreatedBy uuid.UUID  `json:"created_by"`
 }
 
 func (q *Queries) CreateCategory(ctx context.Context, arg CreateCategoryParams) (Category, error) {
 	row := q.db.QueryRow(ctx, createCategory,
 		arg.Name,
+		arg.Icon,
+		arg.Color,
 		arg.ParentID,
 		arg.IsDefault,
+		arg.Type,
 		arg.CreatedBy,
 	)
 	var i Category
@@ -47,6 +57,9 @@ func (q *Queries) CreateCategory(ctx context.Context, arg CreateCategoryParams) 
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.Type,
+		&i.Color,
+		&i.Icon,
 	)
 	return i, err
 }
@@ -56,230 +69,85 @@ WITH parent_categories AS (
     INSERT INTO categories (
         name,
         is_default,
-        created_by
+        created_by,
+        type,
+        color,
+        icon
     )
     VALUES
-    ('Food & Beverage', TRUE, $1),
-    ('Shopping', TRUE, $1),
-    ('Housing', TRUE, $1),
-    ('Transportation', TRUE, $1),
-    ('Vehicle', TRUE, $1),
-    ('Life & Entertainment', TRUE, $1),
-    ('Communication & PC', TRUE, $1),
-    ('Financial Expenses', TRUE, $1),
-    ('Investments', TRUE, $1),
-    ('Income', TRUE, $1),
-    ('Others', TRUE, $1),
-    ('Transfers', TRUE, $1)
-    RETURNING id, name
+    ('Food & Beverage', TRUE, $1, 'expense', '#FF7043', 'Pizza'),
+    ('Shopping', TRUE, $1, 'expense', '#AB47BC', 'ShoppingBag'),
+    ('Housing', TRUE, $1, 'expense', '#29B6F6', 'Gome'),
+    ('Transportation', TRUE, $1, 'expense', '#42A5F5', 'Bus'),
+    ('Vehicle', TRUE, $1, 'expense', '#8D6E63', 'Car'),
+    ('Life & Entertainment', TRUE, $1, 'expense', '#66BB6A', 'Music'),
+    ('Communication & PC', TRUE, $1, 'expense', '#26A69A', 'Smartphone'),
+    ('Financial Expenses', TRUE, $1, 'expense', '#EC407A', 'Credit-card'),
+    ('Investments', TRUE, $1, 'expense', '#7E57C2', 'BarChart2'),
+    ('Income', TRUE, $1, 'income', '#26C6DA', 'DollarSign'),
+    ('Others', TRUE, $1, 'expense', '#78909C', 'Circle'),
+    ('Transfers', TRUE, $1, 'expense', '#FFA726', 'Repeat')
+    RETURNING id, name, color, icon
 ),
 food_subcategories AS (
-    INSERT INTO categories (
-        name,
-        parent_id,
-        is_default,
-        created_by
-    )
-    SELECT
-        subcat.name,
-        (SELECT id FROM parent_categories WHERE name = 'Food & Beverage'),
-        TRUE,
-        $1
-    FROM (
-        VALUES
-        ('Bar & Cafe'),
-        ('Groceries'),
-        ('Restaurant & Fast Food')
-    ) AS subcat (name)
+    INSERT INTO categories (name, parent_id, is_default, created_by, type, color, icon)
+    SELECT subcat.name, pc.id, TRUE, $1, 'expense', pc.color, pc.icon
+    FROM (VALUES ('Bar & Cafe'), ('Groceries'), ('Restaurant & Fast Food')) AS subcat(name)
+    JOIN parent_categories pc ON pc.name = 'Food & Beverage'
 ),
 shopping_subcategories AS (
-    INSERT INTO categories (
-        name,
-        parent_id,
-        is_default,
-        created_by
-    )
-    SELECT
-        subcat.name,
-        (SELECT id FROM parent_categories WHERE name = 'Shopping'),
-        TRUE,
-        $1
-    FROM (
-        VALUES
-        ('Clothing & Shoes'),
-        ('Electronics'),
-        ('Health & Beauty'),
-        ('Home & Garden'),
-        ('Gifts'),
-        ('Sports Equipment')
-    ) AS subcat (name)
+    INSERT INTO categories (name, parent_id, is_default, created_by, type, color, icon)
+    SELECT subcat.name, pc.id, TRUE, $1, 'expense', pc.color, pc.icon
+    FROM (VALUES ('Clothing & Shoes'), ('Electronics'), ('Health & Beauty'), ('Home & Garden'), ('Gifts'), ('Sports Equipment')) AS subcat(name)
+    JOIN parent_categories pc ON pc.name = 'Shopping'
 ),
 housing_subcategories AS (
-    INSERT INTO categories (
-        name,
-        parent_id,
-        is_default,
-        created_by
-    )
-    SELECT
-        subcat.name,
-        (SELECT id FROM parent_categories WHERE name = 'Housing'),
-        TRUE,
-        $1
-    FROM (
-        VALUES
-        ('Rent'),
-        ('Mortgage'),
-        ('Utilities'),
-        ('Maintenance & Repairs'),
-        ('Property Tax')
-    ) AS subcat (name)
+    INSERT INTO categories (name, parent_id, is_default, created_by, type, color, icon)
+    SELECT subcat.name, pc.id, TRUE, $1, 'expense', pc.color, pc.icon
+    FROM (VALUES ('Rent'), ('Mortgage'), ('Utilities'), ('Maintenance & Repairs'), ('Property Tax')) AS subcat(name)
+    JOIN parent_categories pc ON pc.name = 'Housing'
 ),
 transportation_subcategories AS (
-    INSERT INTO categories (
-        name,
-        parent_id,
-        is_default,
-        created_by
-    )
-    SELECT
-        subcat.name,
-        (SELECT id FROM parent_categories WHERE name = 'Transportation'),
-        TRUE,
-        $1
-    FROM (
-        VALUES
-        ('Public Transport'),
-        ('Taxi & Ride Share'),
-        ('Parking'),
-        ('Travel')
-    ) AS subcat (name)
+    INSERT INTO categories (name, parent_id, is_default, created_by, type, color, icon)
+    SELECT subcat.name, pc.id, TRUE, $1, 'expense', pc.color, pc.icon
+    FROM (VALUES ('Public Transport'), ('Taxi & Ride Share'), ('Parking'), ('Travel')) AS subcat(name)
+    JOIN parent_categories pc ON pc.name = 'Transportation'
 ),
 vehicle_subcategories AS (
-    INSERT INTO categories (
-        name,
-        parent_id,
-        is_default,
-        created_by
-    )
-    SELECT
-        subcat.name,
-        (SELECT id FROM parent_categories WHERE name = 'Vehicle'),
-        TRUE,
-        $1
-    FROM (
-        VALUES
-        ('Fuel'),
-        ('Service & Maintenance'),
-        ('Insurance'),
-        ('Registration & Tax')
-    ) AS subcat (name)
+    INSERT INTO categories (name, parent_id, is_default, created_by, type, color, icon)
+    SELECT subcat.name, pc.id, TRUE, $1, 'expense', pc.color, pc.icon
+    FROM (VALUES ('Fuel'), ('Service & Maintenance'), ('Insurance'), ('Registration & Tax')) AS subcat(name)
+    JOIN parent_categories pc ON pc.name = 'Vehicle'
 ),
 life_entertainment_subcategories AS (
-    INSERT INTO categories (
-        name,
-        parent_id,
-        is_default,
-        created_by
-    )
-    SELECT
-        subcat.name,
-        (SELECT id FROM parent_categories WHERE name = 'Life & Entertainment'),
-        TRUE,
-        $1
-    FROM (
-        VALUES
-        ('Entertainment'),
-        ('Health & Fitness'),
-        ('Hobbies'),
-        ('Education'),
-        ('Pets'),
-        ('Subscriptions')
-    ) AS subcat (name)
+    INSERT INTO categories (name, parent_id, is_default, created_by, type, color, icon)
+    SELECT subcat.name, pc.id, TRUE, $1, 'expense', pc.color, pc.icon
+    FROM (VALUES ('Entertainment'), ('Health & Fitness'), ('Hobbies'), ('Education'), ('Pets'), ('Subscriptions')) AS subcat(name)
+    JOIN parent_categories pc ON pc.name = 'Life & Entertainment'
 ),
 communication_pc_subcategories AS (
-    INSERT INTO categories (
-        name,
-        parent_id,
-        is_default,
-        created_by
-    )
-    SELECT
-        subcat.name,
-        (SELECT id FROM parent_categories WHERE name = 'Communication & PC'),
-        TRUE,
-        $1
-    FROM (
-        VALUES
-        ('Phone'),
-        ('Internet'),
-        ('Software & Apps'),
-        ('Hardware & Devices')
-    ) AS subcat (name)
+    INSERT INTO categories (name, parent_id, is_default, created_by, type, color, icon)
+    SELECT subcat.name, pc.id, TRUE, $1, 'expense', pc.color, pc.icon
+    FROM (VALUES ('Phone'), ('Internet'), ('Software & Apps'), ('Hardware & Devices')) AS subcat(name)
+    JOIN parent_categories pc ON pc.name = 'Communication & PC'
 ),
 financial_expenses_subcategories AS (
-    INSERT INTO categories (
-        name,
-        parent_id,
-        is_default,
-        created_by
-    )
-    SELECT
-        subcat.name,
-        (SELECT id FROM parent_categories WHERE name = 'Financial Expenses'),
-        TRUE,
-        $1
-    FROM (
-        VALUES
-        ('Bank Fees'),
-        ('Interest'),
-        ('Taxes'),
-        ('Insurance')
-    ) AS subcat (name)
+    INSERT INTO categories (name, parent_id, is_default, created_by, type, color, icon)
+    SELECT subcat.name, pc.id, TRUE, $1, 'expense', pc.color, pc.icon
+    FROM (VALUES ('Bank Fees'), ('Interest'), ('Taxes'), ('Insurance')) AS subcat(name)
+    JOIN parent_categories pc ON pc.name = 'Financial Expenses'
 ),
 investments_subcategories AS (
-    INSERT INTO categories (
-        name,
-        parent_id,
-        is_default,
-        created_by
-    )
-    SELECT
-        subcat.name,
-        (SELECT id FROM parent_categories WHERE name = 'Investments'),
-        TRUE,
-        $1
-    FROM (
-        VALUES
-        ('Stocks'),
-        ('Crypto'),
-        ('Real Estate'),
-        ('Retirement'),
-        ('Savings')
-    ) AS subcat (name)
+    INSERT INTO categories (name, parent_id, is_default, created_by, type, color, icon)
+    SELECT subcat.name, pc.id, TRUE, $1, 'expense', pc.color, pc.icon
+    FROM (VALUES ('Stocks'), ('Crypto'), ('Real Estate'), ('Retirement'), ('Savings')) AS subcat(name)
+    JOIN parent_categories pc ON pc.name = 'Investments'
 ),
 income_subcategories AS (
-    INSERT INTO categories (
-        name,
-        parent_id,
-        is_default,
-        created_by
-    )
-    SELECT
-        subcat.name,
-        (SELECT id FROM parent_categories WHERE name = 'Income'),
-        TRUE,
-        $1
-    FROM (
-        VALUES
-        ('Salary'),
-        ('Business'),
-        ('Dividends'),
-        ('Interest'),
-        ('Rental'),
-        ('Sale'),
-        ('Gifts Received')
-    ) AS subcat (name)
+    INSERT INTO categories (name, parent_id, is_default, created_by, type, color, icon)
+    SELECT subcat.name, pc.id, TRUE, $1, 'income', pc.color, pc.icon
+    FROM (VALUES ('Salary'), ('Business'), ('Dividends'), ('Interest'), ('Rental'), ('Sale'), ('Gifts Received')) AS subcat(name)
+    JOIN parent_categories pc ON pc.name = 'Income'
 )
 SELECT 1
 `
@@ -293,7 +161,7 @@ const deleteCategory = `-- name: DeleteCategory :exec
 UPDATE categories
 SET deleted_at = current_timestamp
 WHERE id = $1
-RETURNING id, name, parent_id, is_default, created_by, updated_by, created_at, updated_at, deleted_at
+RETURNING id, name, parent_id, is_default, created_by, updated_by, created_at, updated_at, deleted_at, type, color, icon
 `
 
 func (q *Queries) DeleteCategory(ctx context.Context, id uuid.UUID) error {
@@ -301,8 +169,57 @@ func (q *Queries) DeleteCategory(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const getCategoriesSince = `-- name: GetCategoriesSince :many
+SELECT id, name, parent_id, is_default, created_by, updated_by, created_at, updated_at, deleted_at, type, color, icon
+FROM categories
+WHERE
+    created_by = $1
+    AND (
+        updated_at > $2
+        OR (deleted_at IS NOT NULL AND deleted_at > $2)
+    )
+`
+
+type GetCategoriesSinceParams struct {
+	UserID uuid.UUID          `json:"user_id"`
+	Since  pgtype.Timestamptz `json:"since"`
+}
+
+func (q *Queries) GetCategoriesSince(ctx context.Context, arg GetCategoriesSinceParams) ([]Category, error) {
+	rows, err := q.db.Query(ctx, getCategoriesSince, arg.UserID, arg.Since)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Category{}
+	for rows.Next() {
+		var i Category
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.ParentID,
+			&i.IsDefault,
+			&i.CreatedBy,
+			&i.UpdatedBy,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.Type,
+			&i.Color,
+			&i.Icon,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getCategoryById = `-- name: GetCategoryById :one
-SELECT id, name, parent_id, is_default, created_by, updated_by, created_at, updated_at, deleted_at
+SELECT id, name, parent_id, is_default, created_by, updated_by, created_at, updated_at, deleted_at, type, color, icon
 FROM categories
 WHERE
     id = $1
@@ -323,12 +240,15 @@ func (q *Queries) GetCategoryById(ctx context.Context, id uuid.UUID) (Category, 
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.Type,
+		&i.Color,
+		&i.Icon,
 	)
 	return i, err
 }
 
 const getCategoryByName = `-- name: GetCategoryByName :one
-SELECT id, name, parent_id, is_default, created_by, updated_by, created_at, updated_at, deleted_at
+SELECT id, name, parent_id, is_default, created_by, updated_by, created_at, updated_at, deleted_at, type, color, icon
 FROM categories
 WHERE
     name = $1
@@ -348,12 +268,15 @@ func (q *Queries) GetCategoryByName(ctx context.Context, name string) (Category,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.Type,
+		&i.Color,
+		&i.Icon,
 	)
 	return i, err
 }
 
 const getDefaultCategories = `-- name: GetDefaultCategories :many
-SELECT id, name, parent_id, is_default, created_by, updated_by, created_at, updated_at, deleted_at
+SELECT id, name, parent_id, is_default, created_by, updated_by, created_at, updated_at, deleted_at, type, color, icon
 FROM categories
 WHERE
     created_by = $1
@@ -380,6 +303,9 @@ func (q *Queries) GetDefaultCategories(ctx context.Context, userID uuid.UUID) ([
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
+			&i.Type,
+			&i.Color,
+			&i.Icon,
 		); err != nil {
 			return nil, err
 		}
@@ -392,7 +318,7 @@ func (q *Queries) GetDefaultCategories(ctx context.Context, userID uuid.UUID) ([
 }
 
 const listCategories = `-- name: ListCategories :many
-SELECT id, name, parent_id, is_default, created_by, updated_by, created_at, updated_at, deleted_at
+SELECT id, name, parent_id, is_default, created_by, updated_by, created_at, updated_at, deleted_at, type, color, icon
 FROM categories
 WHERE
     created_by = $1
@@ -418,6 +344,9 @@ func (q *Queries) ListCategories(ctx context.Context, userID uuid.UUID) ([]Categ
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
+			&i.Type,
+			&i.Color,
+			&i.Icon,
 		); err != nil {
 			return nil, err
 		}
@@ -430,7 +359,7 @@ func (q *Queries) ListCategories(ctx context.Context, userID uuid.UUID) ([]Categ
 }
 
 const listChildCategories = `-- name: ListChildCategories :many
-SELECT id, name, parent_id, is_default, created_by, updated_by, created_at, updated_at, deleted_at
+SELECT id, name, parent_id, is_default, created_by, updated_by, created_at, updated_at, deleted_at, type, color, icon
 FROM categories
 WHERE
     parent_id = $1
@@ -456,6 +385,9 @@ func (q *Queries) ListChildCategories(ctx context.Context, parentID *uuid.UUID) 
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
+			&i.Type,
+			&i.Color,
+			&i.Icon,
 		); err != nil {
 			return nil, err
 		}
@@ -477,7 +409,7 @@ SET
 WHERE
     id = $5
     AND deleted_at IS NULL
-RETURNING id, name, parent_id, is_default, created_by, updated_by, created_at, updated_at, deleted_at
+RETURNING id, name, parent_id, is_default, created_by, updated_by, created_at, updated_at, deleted_at, type, color, icon
 `
 
 type UpdateCategoryParams struct {
@@ -507,6 +439,9 @@ func (q *Queries) UpdateCategory(ctx context.Context, arg UpdateCategoryParams) 
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.Type,
+		&i.Color,
+		&i.Icon,
 	)
 	return i, err
 }

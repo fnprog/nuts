@@ -1,0 +1,20 @@
+{
+  "rustc": 8022303366561187541,
+  "features": "[\"once_cell\", \"std\"]",
+  "declared_features": "[\"default\", \"once_cell\", \"std\", \"valuable\"]",
+  "target": 14276081467424924844,
+  "profile": 16801132384915908614,
+  "path": 18293355193870572425,
+  "deps": [[3722963349756955755, "once_cell", false, 10691404813945867787]],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "aarch64-linux-android/release/.fingerprint/tracing-core-876831615b4f59a0/dep-lib-tracing_core",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 10255546481339591553,
+  "compile_kind": 6373778340919622063
+}

@@ -1,0 +1,20 @@
+{
+  "rustc": 8022303366561187541,
+  "features": "[\"std\", \"use_std\"]",
+  "declared_features": "[\"default\", \"serde\", \"std\", \"use_std\"]",
+  "target": 17124342308084364240,
+  "profile": 12693162527509728243,
+  "path": 17674604391397956521,
+  "deps": [],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "armv7-linux-androideabi/release/.fingerprint/either-5f690bef28264076/dep-lib-either",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 10255546481339591553,
+  "compile_kind": 1251166477268974764
+}

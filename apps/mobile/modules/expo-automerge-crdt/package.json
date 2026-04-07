@@ -1,0 +1,25 @@
+{
+  "name": "expo-automerge-crdt",
+  "version": "0.1.0",
+  "description": "Native Automerge CRDT module for React Native using Rust",
+  "main": "index.ts",
+  "types": "src/types.ts",
+  "scripts": {
+    "build:rust:android": "cd rust && cargo ndk --target aarch64-linux-android --target armv7-linux-androideabi --target x86_64-linux-android --platform 24 build --release",
+    "build:rust:ios": "cd rust && cargo build --target aarch64-apple-ios --release && cargo build --target aarch64-apple-ios-sim --release && cargo build --target x86_64-apple-ios --release",
+    "copy:android": "mkdir -p android/src/main/jniLibs/{arm64-v8a,armeabi-v7a,x86_64} && cp rust/target/aarch64-linux-android/release/libexpo_automerge.so android/src/main/jniLibs/arm64-v8a/ && cp rust/target/armv7-linux-androideabi/release/libexpo_automerge.so android/src/main/jniLibs/armeabi-v7a/ && cp rust/target/x86_64-linux-android/release/libexpo_automerge.so android/src/main/jniLibs/x86_64/",
+    "build:android": "npm run build:rust:android && npm run copy:android",
+    "build:ios": "npm run build:rust:ios"
+  },
+  "keywords": [
+    "expo",
+    "expo-module",
+    "automerge",
+    "crdt",
+    "rust"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "expo": "*"
+  }
+}

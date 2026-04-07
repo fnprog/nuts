@@ -1,0 +1,24 @@
+{
+  "rustc": 8022303366561187541,
+  "features": "[\"alloc\", \"clock\", \"default\", \"iana-time-zone\", \"js-sys\", \"now\", \"oldtime\", \"serde\", \"std\", \"wasm-bindgen\", \"wasmbind\", \"winapi\", \"windows-link\"]",
+  "declared_features": "[\"__internal_bench\", \"alloc\", \"arbitrary\", \"clock\", \"core-error\", \"default\", \"iana-time-zone\", \"js-sys\", \"libc\", \"now\", \"oldtime\", \"pure-rust-locales\", \"rkyv\", \"rkyv-16\", \"rkyv-32\", \"rkyv-64\", \"rkyv-validation\", \"serde\", \"std\", \"unstable-locales\", \"wasm-bindgen\", \"wasmbind\", \"winapi\", \"windows-link\"]",
+  "target": 15315924755136109342,
+  "profile": 12693162527509728243,
+  "path": 15061565583868689867,
+  "deps": [
+    [5157631553186200874, "num_traits", false, 15316274032419809122],
+    [12317487911761266689, "iana_time_zone", false, 1176552531771011004],
+    [13548984313718623784, "serde", false, 6320427651381075912]
+  ],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "aarch64-apple-ios/release/.fingerprint/chrono-27860a488146cf02/dep-lib-chrono",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": ["-C", "link-arg=-fuse-ld=mold"],
+  "config": 2069994364910194474,
+  "compile_kind": 3694122122034060669
+}

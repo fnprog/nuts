@@ -6,7 +6,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/Fantasy-Programming/nuts/internal/repository"
+	"github.com/Fantasy-Programming/nuts/server/internal/repository"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -34,7 +34,7 @@ func (r *SQLCTokenRepository) SaveToken(ctx context.Context, session SessionInfo
 		BrowserName:  session.BrowserName,
 		DeviceName:   session.DeviceName,
 		RefreshToken: refreshToken,
-		ExpiresAt:    pgtype.Timestamptz{Time: expiresAt, Valid: true},
+		ExpiresAt:    pgtype.Timestamptz{Valid: true, Time: expiresAt},
 	})
 	if err != nil {
 		return err
