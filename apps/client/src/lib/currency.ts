@@ -1,4 +1,4 @@
-import { api } from "@/lib/axios";
+import { api } from "@/lib/api";
 import { ResultAsync, ServiceError } from "@/lib/result";
 
 export interface ExchangeRate {
@@ -31,8 +31,8 @@ export function getExchangeRate(fromCurrency: string, toCurrency: string, date?:
   }
 
   return ResultAsync.fromPromise(
-    api.get(`/exchange-rates?${params.toString()}`).then((res) => res.data),
-    ServiceError.fromAxiosError
+    api.get(`/exchange-rates?${params.toString()}`).json<ExchangeRate>(),
+    ServiceError.fromKyError
   );
 }
 
@@ -88,8 +88,8 @@ export async function convertMultipleCurrencies(
 
 export function getLatestExchangeRates(baseCurrency: string) {
   return ResultAsync.fromPromise(
-    api.get(`/exchange-rates/latest?base=${baseCurrency}`).then((res) => res.data),
-    ServiceError.fromAxiosError
+    api.get(`/exchange-rates/latest?base=${baseCurrency}`).json<ExchangeRate[]>(),
+    ServiceError.fromKyError
   );
 }
 

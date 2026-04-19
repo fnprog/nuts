@@ -1,4 +1,4 @@
-import { api } from "@/lib/axios";
+import { api } from "@/lib/api";
 
 const FEEDBACK_ENDPOINT = "/feedback";
 
@@ -14,7 +14,7 @@ export interface FeedbackData {
  * @returns A promise that resolves when the feedback has been submitted
  */
 const submitFeedback = async (feedback: FeedbackData): Promise<void> => {
-  await api.post(FEEDBACK_ENDPOINT, feedback);
+  await api.post(FEEDBACK_ENDPOINT, { json: feedback });
 };
 
 export const feedbackService = {

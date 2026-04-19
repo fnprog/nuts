@@ -1,4 +1,4 @@
-import { api as axios } from "@/lib/axios";
+import { api } from "@/lib/ky";
 import { ResultAsync } from "neverthrow";
 import { ServiceError } from "@/lib/result";
 
@@ -24,35 +24,38 @@ export interface LinkedAccount {
 
 export const getMe = () => {
   return ResultAsync.fromPromise(
-    axios.get<UserInfo>(`${BASEURI}/me`).then((res) => res.data),
-    ServiceError.fromAxiosError
+    api.get(`${BASEURI}/me`).json<UserInfo>(),
+    ServiceError.fromKyError
   );
 };
 
 export const updateMe = (info: Partial<UserInfo>) => {
   return ResultAsync.fromPromise(
-    axios.put<UserInfo>(`${BASEURI}/me`, info).then((res) => res.data),
-    ServiceError.fromAxiosError
+    api.put(`${BASEURI}/me`, { json: info }).json<UserInfo>(),
+    ServiceError.fromKyError
   );
 };
 
 export const createPassword = (password: string) => {
-  return ResultAsync.fromPromise(axios.post(`${BASEURI}/me/password`, { password }), ServiceError.fromAxiosError);
+  return ResultAsync.fromPromise(
+    api.post(`${BASEURI}/me/password`, { json: { password } }),
+    ServiceError.fromKyError
+  );
 };
 
 export const updatePassword = ({ current_password, password }: { current_password: string; password: string }) => {
-  return ResultAsync.fromPromise(axios.put(`${BASEURI}/me/password`, { password, current_password }), ServiceError.fromAxiosError);
+  return ResultAsync.fromPromise(
+    api.put(`${BASEURI}/me/password`, { json: { password, current_password } }),
+    ServiceError.fromKyError
+  );
 };
 
 export const updateAvatar = (formData: FormData) => {
   return ResultAsync.fromPromise(
-    axios
-      .put<{ avatar_url: string }>(`${BASEURI}/me/avatar`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      })
-      .then((res) => res.data),
-    ServiceError.fromAxiosError
+    api.put(`${BASEURI}/me/avatar`, {
+      body: formData,
+      headers: {}, // Content-Type set automatically for FormData in ky
+    }).json<{ avatar_url: string }>(),
+    ServiceError.fromKyError
   );
 };

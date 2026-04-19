@@ -1,4 +1,6 @@
 import { useState, useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+
 import { Calendar } from "@/core/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
 import { Badge } from "@/core/components/ui/badge";
@@ -81,6 +83,8 @@ interface CalendarViewProps {
 }
 
 export function CalendarView({ initialPage = 1, hasAccounts }: CalendarViewProps) {
+  const queryClient = useQueryClient();
+
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
@@ -88,13 +92,29 @@ export function CalendarView({ initialPage = 1, hasAccounts }: CalendarViewProps
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
 
-  const { data: realTransactionsData, isLoading } = useTransactions({
+  // Build query key matching the loader prefetch for default (current) month
+  const defaultParams = {
     page: initialPage,
     q: "",
     group_by: "date",
     start_date: monthStart.toISOString().split("T")[0],
     end_date: monthEnd.toISOString().split("T")[0],
-    enabled: hasAccounts === true,
+  };
+  const defaultKey = ["transactions", "list", defaultParams];
+
+  // Determine if we're fetching for the default/cached case
+  const usingDefaultParams = true; // Here, defaultParams is always built for the current month. If you add filters, you should check like RecordsTable.
+  const cachedData = usingDefaultParams ? queryClient.getQueryData(defaultKey) : undefined;
+  const shouldFetch = hasAccounts === true && !cachedData;
+
+
+  const { data: realTransactionsData = cachedData, isLoading } = useTransactions({
+    page: initialPage,
+    q: "",
+    group_by: "date",
+    start_date: monthStart.toISOString().split("T")[0],
+    end_date: monthEnd.toISOString().split("T")[0],
+    enabled: shouldFetch,
   });
 
   const transactionsData = hasAccounts ? realTransactionsData : DUMMY_CALENDAR_DATA;

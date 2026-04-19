@@ -1,6 +1,7 @@
 import { crdtService } from "./crdt";
 import { anonymousUserService } from "@/features/auth/services/anonymous-user.service";
-import { api as axios } from "@/lib/axios";
+import { api } from "@/lib/api";
+import { ServiceError } from "@/lib/service-error";
 import { logger } from "@/lib/logger";
 import { db } from "@/core/storage/client";
 
@@ -263,17 +264,28 @@ class DataMigrationService {
 
     this.notifyProgress({ stage: "uploading", progress: 30 });
 
-    const response = await this.executeWithRetry(() => axios.post("/migrate", migrationRequest), maxRetries, state);
+    const response = await this.executeWithRetry(
+  async () => {
+    try {
+      const res = await api.post("migrate", { json: migrationRequest });
+      return await res.json();
+    } catch (error) {
+      throw await ServiceError.fromKyError(error);
+    }
+  },
+  maxRetries,
+  state
+);
 
     this.notifyProgress({ stage: "uploading", progress: 90 });
 
-    if (response.data) {
-      state.migrated_categories = response.data.categories_migrated || 0;
-      state.migrated_accounts = response.data.accounts_migrated || 0;
-      state.migrated_transactions = response.data.transactions_migrated || 0;
-      state.failed_categories = response.data.categories_failed || 0;
-      state.failed_accounts = response.data.accounts_failed || 0;
-      state.failed_transactions = response.data.transactions_failed || 0;
+    if (response) {
+      state.migrated_categories = response.categories_migrated || 0;
+      state.migrated_accounts = response.accounts_migrated || 0;
+      state.migrated_transactions = response.transactions_migrated || 0;
+      state.failed_categories = response.categories_failed || 0;
+      state.failed_accounts = response.accounts_failed || 0;
+      state.failed_transactions = response.transactions_failed || 0;
       state.status = "completed";
       state.stage = "completed";
       state.progress = 100;
@@ -344,15 +356,26 @@ class DataMigrationService {
       });
 
       try {
-        const response = await this.executeWithRetry(() => axios.post("/migrate", chunkRequest), maxRetries, state);
+        const response = await this.executeWithRetry(
+  async () => {
+    try {
+      const res = await api.post("migrate", { json: chunkRequest });
+      return await res.json();
+    } catch (error) {
+      throw await ServiceError.fromKyError(error);
+    }
+  },
+  maxRetries,
+  state
+);
 
-        if (response.data) {
-          state.migrated_categories += response.data.categories_migrated || 0;
-          state.migrated_accounts += response.data.accounts_migrated || 0;
-          state.migrated_transactions += response.data.transactions_migrated || 0;
-          state.failed_categories += response.data.categories_failed || 0;
-          state.failed_accounts += response.data.accounts_failed || 0;
-          state.failed_transactions += response.data.transactions_failed || 0;
+        if (response) {
+          state.migrated_categories += response.categories_migrated || 0;
+          state.migrated_accounts += response.accounts_migrated || 0;
+          state.migrated_transactions += response.transactions_migrated || 0;
+          state.failed_categories += response.categories_failed || 0;
+          state.failed_accounts += response.accounts_failed || 0;
+          state.failed_transactions += response.transactions_failed || 0;
         }
 
         state.current_chunk = chunkIndex + 1;

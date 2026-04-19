@@ -1,4 +1,4 @@
-import { api as axios } from "@/lib/axios";
+import { api } from "@/lib/ky";
 import { RecordCreateSchema, RecordSchema, TransactionsResponse, RecordUpdateSchema } from "../services/transaction.types";
 
 const BASEURI = "/transactions";
@@ -33,38 +33,36 @@ export const getTransactions = async (params: GetTransactionsParams): Promise<Tr
 
   const url = buildUrlWithParams(`${BASEURI}/`, { limit: 25, ...cleanParams });
 
-  const { data } = await axios.get<TransactionsResponse>(url);
-  return data;
+  return await api.get(url).json<TransactionsResponse>();
 };
 
 export const deleteTransactions = async (ids: string[] | string) => {
-  await axios.delete(`${BASEURI}`, { data: ids });
+  await api.delete(`${BASEURI}`, { json: ids });
 };
 
 export const getTransaction = async (id: string): Promise<RecordSchema> => {
-  const { data } = await axios.get<RecordSchema>(`${BASEURI}/${id}`);
-  return data;
+  return await api.get(`${BASEURI}/${id}`).json<RecordSchema>();
 };
 
 export const updateTransaction = async (id: string, updatedTransactions: RecordUpdateSchema): Promise<RecordSchema> => {
-  const { data } = await axios.put<RecordSchema>(`${BASEURI}/${id}`, updatedTransactions);
-  return data;
+  return await api.put(`${BASEURI}/${id}`, { json: updatedTransactions }).json<RecordSchema>();
 };
 
 export const createTransaction = async (transaction: RecordCreateSchema): Promise<RecordSchema[]> => {
   const uri = transaction.type === "transfer" ? `${BASEURI}/transfert` : `${BASEURI}/`;
-  const { data } = await axios.post<RecordSchema[]>(uri, transaction);
-  return data;
+  return await api.post(uri, { json: transaction }).json<RecordSchema[]>();
 };
 
 export const bulkDeleteTransactions = async (transactionIds: string[]): Promise<void> => {
-  await axios.delete(`${BASEURI}/`, { data: { transaction_ids: transactionIds } });
+  await api.delete(`${BASEURI}/`, { json: { transaction_ids: transactionIds } });
 };
 
 export const bulkUpdateCategories = async (transactionIds: string[], categoryId: string): Promise<void> => {
-  await axios.put(`${BASEURI}/bulk/categories`, {
-    transaction_ids: transactionIds,
-    category_id: categoryId,
+  await api.put(`${BASEURI}/bulk/categories`, {
+    json: {
+      transaction_ids: transactionIds,
+      category_id: categoryId,
+    },
   });
 };
 
@@ -82,17 +80,17 @@ export const bulkUpdateManualTransactions = async (params: {
   if (params.accountId) body.account_id = params.accountId;
   if (params.transactionDatetime) body.transaction_datetime = params.transactionDatetime.toISOString();
 
-  await axios.put(`${BASEURI}/bulk/manual`, body);
+  await api.put(`${BASEURI}/bulk/manual`, { json: body });
 };
 
 export const bulkCreateTransactions = async (params: {
   accountId: string;
   transactions: RecordCreateSchema[];
 }): Promise<{ created_count: number; error_count: number; total_requested: number; errors?: string[] }> => {
-  const { data } = await axios.post(`${BASEURI}/bulk`, {
-    account_id: params.accountId,
-    transactions: params.transactions,
-  });
-
-  return data;
+  return await api.post(`${BASEURI}/bulk`, {
+    json: {
+      account_id: params.accountId,
+      transactions: params.transactions,
+    },
+  }).json<{ created_count: number; error_count: number; total_requested: number; errors?: string[] }>();
 };

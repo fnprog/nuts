@@ -99,10 +99,15 @@ function RouteComponent() {
   const { openModal } = Route.useSearch();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { data: realData } = useSuspenseQuery(getAllAccountsWithTrends());
-  const hasAccounts = realData.length > 0;
+// Prefer cache-first approach to avoid redundant requests
+const cachedData = queryClient.getQueryData<Array<any>>(["accounts", "trends"]);
 
-  const data = hasAccounts ? realData : DUMMY_ACCOUNTS;
+// Only run the query if there's no cached data (should rarely run, thanks to loader)
+const shouldFetch = !cachedData;
+const { data: realData = cachedData || [] } = useSuspenseQuery(getAllAccountsWithTrends(), { enabled: shouldFetch });
+const hasAccounts = realData.length > 0;
+
+const data = hasAccounts ? realData : DUMMY_ACCOUNTS;
   const cashTotal = data.reduce((sum, account) => sum + account.balance, 0);
   const grouppedAccounts = groupAccountsByType(data);
 

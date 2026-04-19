@@ -2,7 +2,7 @@ import { crdtService } from "./crdt";
 import { kyselyQueryService } from "./query";
 import { connectivityService } from "./connectivity";
 import { authService } from "@/features/auth/services/auth.service";
-import { api as axios } from "@/lib/axios";
+import { api } from "@/lib/api";
 import { logger } from "@/lib/logger";
 import { ResourceType, SyncConflict, SyncState } from "@nuts/types";
 import { Result, ok, err } from "@/lib/result";
@@ -68,13 +68,17 @@ class SyncService {
     const hasConnectivity = connectivityService.hasServerAccess();
     const hasAuth = authService.isAuthenticated();
 
-    logger.info(`Sync service initialized in offline mode - ${!hasConnectivity ? "no connectivity" : "no valid auth"}`);
+    logger.info(
+      `Sync service initialized in offline mode - ${!hasConnectivity ? "no connectivity" : "no valid auth"}`
+    );
 
     this.updateSyncState({
       status: "offline",
       isOnline: hasConnectivity,
       hasValidAuth: hasAuth,
-      error: !hasConnectivity ? "No server connectivity - sync will resume when online" : "No valid authentication - sync requires valid auth tokens",
+      error: !hasConnectivity
+        ? "No server connectivity - sync will resume when online"
+        : "No valid authentication - sync requires valid auth tokens",
     });
 
     return ok(undefined);
@@ -150,9 +154,9 @@ class SyncService {
 
     if (pushResult.isErr()) {
       logger.error("Sync failed:", pushResult.error);
-
-      const axiosError = pushResult.error.cause as { response?: { status?: number } };
-      if (axiosError?.response?.status === 401 || axiosError?.response?.status === 403) {
+      const httpError = pushResult.error.cause as any;
+      const status = httpError?.response?.status ?? httpError?.status;
+      if (status === 401 || status === 403) {
         this.updateSyncState({
           status: "error",
           error: "Authentication failed during sync - please re-authenticate",
@@ -171,10 +175,9 @@ class SyncService {
 
     if (pullResult.isErr()) {
       logger.error("Sync failed:", pullResult.error);
-
-      const axiosError = pullResult.error.cause as { response?: { status?: number } };
-
-      if (axiosError?.response?.status === 401 || axiosError?.response?.status === 403) {
+      const httpError = pullResult.error.cause as any;
+      const status = httpError?.response?.status ?? httpError?.status;
+      if (status === 401 || status === 403) {
         this.updateSyncState({
           status: "error",
           error: "Authentication failed during sync - please re-authenticate",
@@ -203,9 +206,7 @@ class SyncService {
 
   /**
    * Push local changes to server
-   * TODO: Add retries with exponential backofff (max retry or an error queue)
    */
-
   private async pushLocalChanges(): Promise<Result<void, ServiceError>> {
     const queueCopy = [...this.syncQueue];
     const successfulOperations: string[] = [];
@@ -231,22 +232,21 @@ class SyncService {
    */
   private async pushOperation(operation: any): Promise<Result<void, ServiceError>> {
     const endpoint = this.getEndpointForOperation(operation);
-
     try {
       switch (operation.operation) {
         case "create":
-          await axios.post(endpoint, operation.data);
+          await api.post(endpoint, { json: operation.data });
           break;
         case "update":
-          await axios.put(`${endpoint}/${operation.data.id}`, operation.data);
+          await api.put(`${endpoint}/${operation.data.id}`, { json: operation.data });
           break;
         case "delete":
-          await axios.delete(`${endpoint}/${operation.data.id}`);
+          await api.delete(`${endpoint}/${operation.data.id}`);
           break;
       }
       return ok(undefined);
     } catch (error) {
-      return err(ServiceError.fromAxiosError(error));
+      return err(ServiceError.fromKyError(error));
     }
   }
 
@@ -256,19 +256,15 @@ class SyncService {
   private async pullServerChanges(): Promise<Result<void, ServiceError>> {
     try {
       const lastSync = this.syncState.lastSyncAt?.toISOString() || new Date(0).toISOString();
-
-      const syncResponse = await axios.get("/sync", {
-        params: { since: lastSync },
-        validateStatus: (status) => status < 400,
-      });
-
-      const data = syncResponse.data;
+      // Ky: build query string manually
+      const url = `/sync?since=${encodeURIComponent(lastSync)}`;
+      const response = await api.get(url);
+      const data = await response.json();
 
       if (!data || typeof data !== "object") {
         logger.error("Invalid sync response:", data);
         return err(ServiceError.sync("Invalid sync response format"));
       }
-
       const transactionsData = Array.isArray(data.transactions) ? data.transactions : [];
       const accountsData = Array.isArray(data.accounts) ? data.accounts : [];
       const categoriesData = Array.isArray(data.categories) ? data.categories : [];
@@ -284,11 +280,9 @@ class SyncService {
         tags: tagsData,
         preferences: preferencesData,
       });
-
       if (mergeResult.isErr()) {
         return err(mergeResult.error);
       }
-
       const serverTimestamp = data.server_timestamp || new Date().toISOString();
       this.syncState.lastSyncAt = new Date(serverTimestamp);
       return ok(undefined);
@@ -304,28 +298,25 @@ class SyncService {
   private async performFullSync(): Promise<Result<void, ServiceError>> {
     try {
       const [transactionsResponse, accountsResponse, categoriesResponse] = await Promise.all([
-        axios.get("/transactions"),
-        axios.get("/accounts"),
-        axios.get("/categories"),
+        api.get("/transactions").then((r) => r.json()),
+        api.get("/accounts").then((r) => r.json()),
+        api.get("/categories").then((r) => r.json()),
       ]);
-
       const extractData = (response: any) => {
-        if (response.data?.data && Array.isArray(response.data.data)) {
-          return response.data.data;
-        } else if (Array.isArray(response.data)) {
+        if (response?.data && Array.isArray(response.data)) {
           return response.data;
+        } else if (Array.isArray(response)) {
+          return response;
         } else {
-          logger.warn("Unexpected server response format:", response.data);
+          logger.warn("Unexpected server response format:", response);
           return [];
         }
       };
-
       const serverData = {
         transactions: this.convertServerDataToCRDT(extractData(transactionsResponse)),
         accounts: this.convertServerDataToCRDT(extractData(accountsResponse)),
         categories: this.convertServerDataToCRDT(extractData(categoriesResponse)),
       };
-
       return await this.mergeServerChanges(serverData);
     } catch (error) {
       logger.error("Full sync failed:", error);

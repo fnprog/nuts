@@ -1,81 +1,83 @@
-import { api as axios } from "@/lib/axios";
+import { api } from "@/lib/ky";
 import { ResultAsync, ServiceError } from "@/lib/result";
 import { InitMFASchema, LoginFormValues, LoginResponse, RefreshAuthRes, SessionSchema, SignupFormValues } from "../services/auth.types";
-import { AxiosResponse } from "axios";
 
 const BASEURI = "/auth";
 
 const signup = (credentials: SignupFormValues) => {
   return ResultAsync.fromPromise(
-    axios.post<unknown>(`${BASEURI}/signup`, credentials).then((res) => res.data),
-    ServiceError.fromAxiosError
+    api.post(`${BASEURI}/signup`, { json: credentials }).json<unknown>(),
+    ServiceError.fromKyError
   );
 };
 
-const login = (credentials: LoginFormValues): ResultAsync<AxiosResponse<LoginResponse>, ServiceError> => {
-  return ResultAsync.fromPromise(axios.post<LoginResponse>(`${BASEURI}/login`, credentials), ServiceError.fromAxiosError);
+const login = (credentials: LoginFormValues): ResultAsync<LoginResponse, ServiceError> => {
+  return ResultAsync.fromPromise(
+    api.post(`${BASEURI}/login`, { json: credentials }).json<LoginResponse>(),
+    ServiceError.fromKyError
+  );
 };
 
 const logout = () => {
   return ResultAsync.fromPromise(
-    axios.post(`${BASEURI}/logout`).then(() => {}),
-    ServiceError.fromAxiosError
+    api.post(`${BASEURI}/logout`).then(() => {}),
+    ServiceError.fromKyError
   );
 };
 
 const refresh = () => {
   return ResultAsync.fromPromise(
-    axios.post<RefreshAuthRes>(`${BASEURI}/refresh`).then((res) => res.data),
-    ServiceError.fromAxiosError
+    api.post(`${BASEURI}/refresh`).json<RefreshAuthRes>(),
+    ServiceError.fromKyError
   );
 };
 
 const initiateMfaSetup = () => {
   return ResultAsync.fromPromise(
-    axios.post<InitMFASchema>(`${BASEURI}/mfa/generate`).then((res) => res.data),
-    ServiceError.fromAxiosError
+    api.post(`${BASEURI}/mfa/generate`).json<InitMFASchema>(),
+    ServiceError.fromKyError
   );
 };
 
 const verifyMfaSetup = (code: string) => {
   return ResultAsync.fromPromise(
-    axios.post(`${BASEURI}/mfa/enable`, { otp: code }).then(() => {}),
-    ServiceError.fromAxiosError
+    api.post(`${BASEURI}/mfa/enable`, { json: { otp: code } }).then(() => {}),
+    ServiceError.fromKyError
   );
 };
 
 const disableMfa = () => {
   return ResultAsync.fromPromise(
-    axios.delete(`${BASEURI}/mfa/disable`).then(() => {}),
-    ServiceError.fromAxiosError
+    api.delete(`${BASEURI}/mfa/disable`).then(() => {}),
+    ServiceError.fromKyError
   );
 };
 
 const getSessions = () => {
   return ResultAsync.fromPromise(
-    axios.get<SessionSchema[]>(`${BASEURI}/sessions`).then((res) => res.data),
-    ServiceError.fromAxiosError
+    api.get(`${BASEURI}/sessions`).json<SessionSchema[]>(),
+    ServiceError.fromKyError
   );
 };
 
 const revokeSession = (sessionId: string) => {
   return ResultAsync.fromPromise(
-    axios.delete(`${BASEURI}/sessions/${sessionId}/logout`).then(() => {}),
-    ServiceError.fromAxiosError
+    api.delete(`${BASEURI}/sessions/${sessionId}/logout`).then(() => {}),
+    ServiceError.fromKyError
   );
 };
 
 const unlinkSocialAccount = (provider: "google" | "apple") => {
   return ResultAsync.fromPromise(
-    axios.delete(`${BASEURI}/oauth/${provider}/unlink`).then(() => {}),
-    ServiceError.fromAxiosError
+    api.delete(`${BASEURI}/oauth/${provider}/unlink`).then(() => {}),
+    ServiceError.fromKyError
   );
 };
 
 const revokeAllOtherSessions = () => {
   return ResultAsync.fromPromise(
-    axios.delete(`${BASEURI}/sessions`).then(() => {}),
-    ServiceError.fromAxiosError
+    api.delete(`${BASEURI}/sessions`).then(() => {}),
+    ServiceError.fromKyError
   );
 };
 

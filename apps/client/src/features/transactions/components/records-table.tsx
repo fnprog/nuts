@@ -258,9 +258,19 @@ export const RecordsTable = ({ initialPage, onPageChange, hasAccounts }: Records
     return params;
   }, [initialPage, debouncedSearch, debouncedFilters]);
 
-  const { data: realTransactions, isFetching } = useTransactionsSuspense({
+  // Default query key for the first page (as prefetched by loader)
+  const defaultParams = { page: 1, q: "", group_by: "date" };
+  const defaultKey = ["transactions", "list", defaultParams];
+
+  const usingDefaultParams =
+    JSON.stringify(queryParams) === JSON.stringify(defaultParams);
+
+  const defaultCachedData = usingDefaultParams ? queryClient.getQueryData(defaultKey) : undefined;
+
+  const shouldFetch = hasAccounts === true && !defaultCachedData;
+  const { data: realTransactions = defaultCachedData || [], isFetching } = useTransactionsSuspense({
     ...queryParams,
-    enabled: hasAccounts === true,
+    enabled: shouldFetch,
   });
 
   const transactions = hasAccounts ? realTransactions : DUMMY_TRANSACTIONS;

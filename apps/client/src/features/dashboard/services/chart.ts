@@ -1,8 +1,4 @@
-import axios from "axios";
-
-const api = axios.create({
-  baseURL: "http://localhost:3001",
-});
+import { api } from '@/lib/ky';
 
 export interface ChartData {
   balanceOverview: Array<{ name: string; value: number }>;
@@ -11,6 +7,7 @@ export interface ChartData {
 }
 
 export const getChartData = async (): Promise<ChartData> => {
-  const { data } = await api.get<ChartData>("/chartData");
-  return data;
+  // The baseUrl in ky config should be set to "http://localhost:3001" in .env for local/dev usage,
+  // Or adjust as necessary here if this endpoint is non-standard compared to the rest.
+  return await api.get('chartData').json<ChartData>();
 };

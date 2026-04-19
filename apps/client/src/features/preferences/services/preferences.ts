@@ -1,4 +1,4 @@
-import { api } from "@/lib/axios";
+import { api } from "@/lib/api";
 import { ResultAsync } from "neverthrow";
 import { ServiceError } from "@/lib/result";
 
@@ -17,15 +17,15 @@ export interface PreferencesResponse {
 
 const getPreferences = () => {
   return ResultAsync.fromPromise(
-    api.get(PREFERENCES_ENDPOINT).then((res) => res.data),
-    ServiceError.fromAxiosError
+    api.get(PREFERENCES_ENDPOINT).json<PreferencesResponse>(),
+    ServiceError.fromKyError
   );
 };
 
 const updatePreferences = (preferences: Partial<PreferencesResponse>) => {
   return ResultAsync.fromPromise(
-    api.put(PREFERENCES_ENDPOINT, preferences).then((res) => res.data),
-    ServiceError.fromAxiosError
+    api.put(PREFERENCES_ENDPOINT, { json: preferences }).json<PreferencesResponse>(),
+    ServiceError.fromKyError
   );
 };
 
@@ -33,8 +33,8 @@ const PREFBASEURI = "/meta";
 
 const getLangs = () => {
   return ResultAsync.fromPromise(
-    api.get(`${PREFBASEURI}/lang`).then((res) => res.data),
-    ServiceError.fromAxiosError
+    api.get(`${PREFBASEURI}/lang`).json<unknown>(),
+    ServiceError.fromKyError
   );
 };
 
