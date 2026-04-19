@@ -16,14 +16,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-
 } from "@/core/components/ui/alert-dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from "@/core/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/core/components/ui/dropdown-menu";
 import { CreateRuleDialog } from "./create-rule-dialog";
 import { EditRuleDialog } from "./edit-rule-dialog";
 import { RuleConditionBadge } from "./rule-condition-badge";
@@ -46,7 +40,7 @@ export function RulesManagement() {
       toast.success(`Rule "${rule.name}" deleted successfully`);
       setDeletingRule(null);
     } catch (error) {
-      logger.error(error)
+      logger.error(error);
       toast.error("Failed to delete rule");
     }
   };
@@ -56,7 +50,7 @@ export function RulesManagement() {
       await toggleRule.mutateAsync(rule.id);
       toast.success(`Rule "${rule.name}" ${rule.is_active ? "deactivated" : "activated"}`);
     } catch (error) {
-      logger.error(error)
+      logger.error(error);
       toast.error("Failed to toggle rule");
     }
   };
@@ -152,11 +146,8 @@ export function RulesManagement() {
                           <Edit2 className="mr-2 h-4 w-4" />
                           Edit Rule
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => setDeletingRule(rule)}
-                          className="text-red-600"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
+                        <DropdownMenuItem onClick={() => setDeletingRule(rule)} className="text-red-600">
+                          <Trash2 className="mr-2 h-4 w-4" />
                           Delete Rule
                         </DropdownMenuItem>
                       </DropdownMenuContent>

@@ -12,11 +12,11 @@ interface AccountNetWorthCardProps {
   hasAccounts?: boolean;
 }
 
-const DUMMY_CASH_TOTAL = 52350.00;
+const DUMMY_CASH_TOTAL = 52350.0;
 
 export const NetWorthCard = ({ cashTotal, hasAccounts }: AccountNetWorthCardProps) => {
   const displayTotal = hasAccounts ? cashTotal : DUMMY_CASH_TOTAL;
-  
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center gap-2 pb-2">

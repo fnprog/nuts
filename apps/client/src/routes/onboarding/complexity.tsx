@@ -66,23 +66,23 @@ function RouteComponent() {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.3 }}
-      className="flex min-h-[calc(100vh-200px)] flex-col w-full  max-w-md"
+      className="flex min-h-[calc(100vh-200px)] w-full max-w-md flex-col"
     >
       <div className="flex-1 space-y-8">
         <div className="space-y-3 text-center">
-          <H1 className="text-3xl font-semibold ">Do you feel like your finances have become more complex over time?</H1>
+          <H1 className="text-3xl font-semibold">Do you feel like your finances have become more complex over time?</H1>
           <Muted className="text-base">This helps us understand how to best present your financial information.</Muted>
         </div>
 
         <div className="space-y-4 pt-4">
-          <Muted className="mt-1 ">We'll provide detailed insights and organization tools</Muted>
+          <Muted className="mt-1">We'll provide detailed insights and organization tools</Muted>
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-            <Button onClick={() => handleAnswer(true)} variant="primary" className="w-full" >
+            <Button onClick={() => handleAnswer(true)} variant="primary" className="w-full">
               <span className="font-medium">Yes, they've gotten more complex</span>
             </Button>
           </motion.div>
 
-          <Muted className="mt-1 ">We'll focus on clean, simple overviews</Muted>
+          <Muted className="mt-1">We'll focus on clean, simple overviews</Muted>
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
             <Button
               onClick={() => handleAnswer(false)}

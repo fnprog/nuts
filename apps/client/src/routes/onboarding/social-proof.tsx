@@ -51,7 +51,7 @@ function RouteComponent() {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.3 }}
-      className="flex min-h-[calc(100vh-200px)] flex-col w-full  max-w-md"
+      className="flex min-h-[calc(100vh-200px)] w-full max-w-md flex-col"
     >
       <div className="flex-1 space-y-8">
         <div className="space-y-3 text-center">
@@ -98,7 +98,7 @@ function RouteComponent() {
           <ArrowLeft className="h-4 w-4" />
           Back
         </Button>
-        <Button variant="primary" onClick={handleContinue} className=" px-8">
+        <Button variant="primary" onClick={handleContinue} className="px-8">
           Continue
         </Button>
       </motion.div>

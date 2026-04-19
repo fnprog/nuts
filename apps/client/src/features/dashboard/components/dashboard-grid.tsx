@@ -2,7 +2,7 @@ import React, { useCallback } from "react";
 import { DndContext, DragEndEvent, MouseSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
 import { useDashboardStore } from "@/features/dashboard/stores/dashboard.store";
-import Masonry from 'react-masonry-css'
+import Masonry from "react-masonry-css";
 
 interface DashboardGridProps {
   children: React.ReactNode;
@@ -29,10 +29,7 @@ export const DashboardGrid = React.memo(({ children }: DashboardGridProps) => {
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       <SortableContext items={chartOrder} strategy={rectSortingStrategy}>
-        <Masonry
-          breakpointCols={{ default: 3, 1200: 2, 800: 1 }}
-          className="nuts-grid"
-          columnClassName="nuts-grid_column">
+        <Masonry breakpointCols={{ default: 3, 1200: 2, 800: 1 }} className="nuts-grid" columnClassName="nuts-grid_column">
           {children}
         </Masonry>
       </SortableContext>

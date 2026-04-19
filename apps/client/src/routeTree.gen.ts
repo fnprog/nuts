@@ -26,7 +26,6 @@ import { Route as OnboardingComplexityRouteImport } from './routes/onboarding/co
 import { Route as DashboardRecordsRouteImport } from './routes/dashboard/records'
 import { Route as DashboardInboxRouteImport } from './routes/dashboard/inbox'
 import { Route as DashboardHomeRouteImport } from './routes/dashboard/home'
-import { Route as DashboardFilesRouteImport } from './routes/dashboard/files'
 import { Route as DashboardBudgetsRouteImport } from './routes/dashboard/budgets'
 import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard/analytics'
 import { Route as DashboardAccountsRouteImport } from './routes/dashboard/accounts'
@@ -133,11 +132,6 @@ const DashboardInboxRoute = DashboardInboxRouteImport.update({
 const DashboardHomeRoute = DashboardHomeRouteImport.update({
   id: '/home',
   path: '/home',
-  getParentRoute: () => DashboardRouteRoute,
-} as any)
-const DashboardFilesRoute = DashboardFilesRouteImport.update({
-  id: '/files',
-  path: '/files',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
 const DashboardBudgetsRoute = DashboardBudgetsRouteImport.update({
@@ -272,7 +266,6 @@ export interface FileRoutesByFullPath {
   '/dashboard/accounts': typeof DashboardAccountsRouteWithChildren
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/budgets': typeof DashboardBudgetsRoute
-  '/dashboard/files': typeof DashboardFilesRoute
   '/dashboard/home': typeof DashboardHomeRoute
   '/dashboard/inbox': typeof DashboardInboxRoute
   '/dashboard/records': typeof DashboardRecordsRoute
@@ -310,7 +303,6 @@ export interface FileRoutesByTo {
   '/dashboard/accounts': typeof DashboardAccountsRouteWithChildren
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/budgets': typeof DashboardBudgetsRoute
-  '/dashboard/files': typeof DashboardFilesRoute
   '/dashboard/home': typeof DashboardHomeRoute
   '/dashboard/inbox': typeof DashboardInboxRoute
   '/dashboard/records': typeof DashboardRecordsRoute
@@ -353,7 +345,6 @@ export interface FileRoutesById {
   '/dashboard/accounts': typeof DashboardAccountsRouteWithChildren
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/budgets': typeof DashboardBudgetsRoute
-  '/dashboard/files': typeof DashboardFilesRoute
   '/dashboard/home': typeof DashboardHomeRoute
   '/dashboard/inbox': typeof DashboardInboxRoute
   '/dashboard/records': typeof DashboardRecordsRoute
@@ -396,7 +387,6 @@ export interface FileRouteTypes {
     | '/dashboard/accounts'
     | '/dashboard/analytics'
     | '/dashboard/budgets'
-    | '/dashboard/files'
     | '/dashboard/home'
     | '/dashboard/inbox'
     | '/dashboard/records'
@@ -434,7 +424,6 @@ export interface FileRouteTypes {
     | '/dashboard/accounts'
     | '/dashboard/analytics'
     | '/dashboard/budgets'
-    | '/dashboard/files'
     | '/dashboard/home'
     | '/dashboard/inbox'
     | '/dashboard/records'
@@ -476,7 +465,6 @@ export interface FileRouteTypes {
     | '/dashboard/accounts'
     | '/dashboard/analytics'
     | '/dashboard/budgets'
-    | '/dashboard/files'
     | '/dashboard/home'
     | '/dashboard/inbox'
     | '/dashboard/records'
@@ -633,13 +621,6 @@ declare module '@tanstack/react-router' {
       path: '/home'
       fullPath: '/dashboard/home'
       preLoaderRoute: typeof DashboardHomeRouteImport
-      parentRoute: typeof DashboardRouteRoute
-    }
-    '/dashboard/files': {
-      id: '/dashboard/files'
-      path: '/files'
-      fullPath: '/dashboard/files'
-      preLoaderRoute: typeof DashboardFilesRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
     '/dashboard/budgets': {
@@ -831,7 +812,6 @@ interface DashboardRouteRouteChildren {
   DashboardAccountsRoute: typeof DashboardAccountsRouteWithChildren
   DashboardAnalyticsRoute: typeof DashboardAnalyticsRoute
   DashboardBudgetsRoute: typeof DashboardBudgetsRoute
-  DashboardFilesRoute: typeof DashboardFilesRoute
   DashboardHomeRoute: typeof DashboardHomeRoute
   DashboardInboxRoute: typeof DashboardInboxRoute
   DashboardRecordsRoute: typeof DashboardRecordsRoute
@@ -843,7 +823,6 @@ const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
   DashboardAccountsRoute: DashboardAccountsRouteWithChildren,
   DashboardAnalyticsRoute: DashboardAnalyticsRoute,
   DashboardBudgetsRoute: DashboardBudgetsRoute,
-  DashboardFilesRoute: DashboardFilesRoute,
   DashboardHomeRoute: DashboardHomeRoute,
   DashboardInboxRoute: DashboardInboxRoute,
   DashboardRecordsRoute: DashboardRecordsRoute,

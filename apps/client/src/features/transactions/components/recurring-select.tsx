@@ -49,7 +49,7 @@ export function RecurringSelect({ value, onChange, onCustomSave }: RecurringSele
     // Generate preview text from the custom data
     const previewText = generatePreviewText(data);
     setCustomPattern(previewText);
-    
+
     // Set the value to "custom" and store the preview text
     onChange("custom");
     onCustomSave?.(data);
@@ -60,20 +60,20 @@ export function RecurringSelect({ value, onChange, onCustomSave }: RecurringSele
     if (data.parsedPattern) {
       return data.parsedPattern;
     }
-    
+
     let text = `Every ${data.interval} ${data.period}`;
     if (data.interval > 1) {
       text = `Every ${data.interval} ${data.period}s`;
     } else {
       text = `Every ${data.period}`;
     }
-    
+
     if (data.period === "week" && data.dayOfWeek && data.dayOfWeek.length > 0) {
       const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
       const selectedDays = data.dayOfWeek.map((day: number) => dayNames[day]).join(", ");
       text += ` on ${selectedDays}`;
     }
-    
+
     return text;
   };
 
@@ -91,12 +91,8 @@ export function RecurringSelect({ value, onChange, onCustomSave }: RecurringSele
           ))}
         </SelectContent>
       </Select>
-      
-      <CustomRecurringModal
-        isOpen={isCustomModalOpen}
-        onClose={() => setIsCustomModalOpen(false)}
-        onSave={handleCustomSave}
-      />
+
+      <CustomRecurringModal isOpen={isCustomModalOpen} onClose={() => setIsCustomModalOpen(false)} onSave={handleCustomSave} />
     </>
   );
 }

@@ -1,15 +1,8 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/core/components/ui/card';
-import { Button } from '@/core/components/ui/button';
-import { Badge } from '@/core/components/ui/badge';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from '@/core/components/ui/dialog';
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
+import { Button } from "@/core/components/ui/button";
+import { Badge } from "@/core/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/core/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,22 +12,12 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/core/components/ui/alert-dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/core/components/ui/tabs';
-import {
-  MapPin,
-  Calendar,
-  ChevronRight,
-  Building,
-  Bed,
-  Bath,
-  Square,
-  Trash2,
-  Edit,
-} from 'lucide-react';
-import { Property } from '../types';
-import { PropertyImage } from '@/core/components/ui/optimized-image';
-import { useRealEstateStore } from '../store';
+} from "@/core/components/ui/alert-dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/core/components/ui/tabs";
+import { MapPin, Calendar, ChevronRight, Building, Bed, Bath, Square, Trash2, Edit } from "lucide-react";
+import { Property } from "../types";
+import { PropertyImage } from "@/core/components/ui/optimized-image";
+import { useRealEstateStore } from "../store";
 
 interface PropertyCardProps {
   property: Property;
@@ -54,17 +37,9 @@ export const PropertyCard = React.memo(({ property }: PropertyCardProps) => {
   return (
     <Card className="overflow-hidden">
       <div className="relative h-48 w-full">
-        <PropertyImage
-          src={property.image}
-          alt={property.address}
-          className="h-full w-full"
-          aspectRatio="wide"
-        />
-        <Badge
-          className="absolute left-2 top-2"
-          variant={property.type === 'rental' ? 'default' : 'secondary'}
-        >
-          {property.type === 'rental' ? 'Rental' : 'Primary Residence'}
+        <PropertyImage src={property.image} alt={property.address} className="h-full w-full" aspectRatio="wide" />
+        <Badge className="absolute top-2 left-2" variant={property.type === "rental" ? "default" : "secondary"}>
+          {property.type === "rental" ? "Rental" : "Primary Residence"}
         </Badge>
       </div>
       <CardHeader className="pb-2">
@@ -88,12 +63,7 @@ export const PropertyCard = React.memo(({ property }: PropertyCardProps) => {
                 </TabsList>
                 <TabsContent value="details" className="space-y-4 pt-4">
                   <div className="aspect-video overflow-hidden rounded-lg">
-                    <PropertyImage
-                      src={property.image}
-                      alt={property.address}
-                      aspectRatio="video"
-                      className="rounded-lg"
-                    />
+                    <PropertyImage src={property.image} alt={property.address} aspectRatio="video" className="rounded-lg" />
                   </div>
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
@@ -234,11 +204,7 @@ export const PropertyCard = React.memo(({ property }: PropertyCardProps) => {
               </Tabs>
               <DialogFooter className="flex gap-2 sm:justify-between">
                 <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                  <Button
-                    variant="destructive"
-                    onClick={() => setShowDeleteDialog(true)}
-                    className="gap-2"
-                  >
+                  <Button variant="destructive" onClick={() => setShowDeleteDialog(true)} className="gap-2">
                     <Trash2 className="h-4 w-4" />
                     Delete Property
                   </Button>

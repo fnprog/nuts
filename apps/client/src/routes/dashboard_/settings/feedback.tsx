@@ -29,7 +29,7 @@ function RouteComponent() {
         setFeedback("");
         setFeedbackType("general");
       } catch (error) {
-        logger.error(error)
+        logger.error(error);
       }
     }
   };

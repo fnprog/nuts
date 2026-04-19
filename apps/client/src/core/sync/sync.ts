@@ -8,7 +8,6 @@ import { ResourceType, SyncConflict, SyncState } from "@nuts/types";
 import { Result, ok, err } from "@/lib/result";
 import { ServiceError } from "@/lib/service-error";
 
-
 /**
  * Synchronization Service for Offline-First Architecture
  *
@@ -17,7 +16,6 @@ import { ServiceError } from "@/lib/service-error";
  */
 
 class SyncService {
-
   private syncState: SyncState = {
     status: "offline",
     lastSyncAt: null,
@@ -49,7 +47,6 @@ class SyncService {
    * Initialize the sync service
    */
   async initialize(): Promise<Result<void, ServiceError>> {
-
     if (authService.canSync()) {
       const result = await this.startBackgroundSync();
 
@@ -119,7 +116,6 @@ class SyncService {
    * Perform a complete sync cycle
    */
   async performSync(): Promise<Result<void, ServiceError>> {
-
     if (this.syncState.status === "syncing") {
       return ok(undefined);
     }
@@ -535,7 +531,7 @@ class SyncService {
 
   /**
    * Check if local data has modifications that conflict with server
-   * NOTE: This may be inneficient we must consider 
+   * NOTE: This may be inneficient we must consider
    * Deep equality check for actual data changes
    * Vector clocks or Lamport timestamps for proper CRDT conflict detection
    * Hash-based comparison for performance
@@ -807,10 +803,8 @@ class SyncService {
     }
   }
 
-
   //NOTE: Should this be in local-storage or in our sqlite db. what is most secure and what makes since
   private loadSyncQueue(): void {
-
     const result = Result.fromThrowable(() => {
       const stored = localStorage.getItem("nuts-sync-queue");
       if (!stored) return null;
@@ -831,7 +825,6 @@ class SyncService {
         logger.error("Failed to load sync queue:", error);
         this.syncQueue = [];
       });
-
   }
 
   private persistConflicts(): void {

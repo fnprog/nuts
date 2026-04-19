@@ -3,7 +3,6 @@ import { accountService } from "./account.ts";
 import { AccountFormSchema } from "./account.types.ts";
 
 export const useCreateAccount = () => {
-
   return useMutation({
     mutationFn: async (account: AccountFormSchema) => {
       const result = await accountService.createAccount(account);
@@ -17,7 +16,6 @@ export const useCreateAccount = () => {
 };
 
 export const useUpdateAccount = () => {
-
   return useMutation({
     mutationFn: async ({ id, account }: { id: string; account: AccountFormSchema }) => {
       const result = await accountService.updateAccount(id, account);
@@ -31,7 +29,6 @@ export const useUpdateAccount = () => {
 };
 
 export const useDeleteAccount = () => {
-
   return useMutation({
     mutationFn: async (id: string) => {
       const result = await accountService.deleteAccount(id);

@@ -68,7 +68,7 @@ class OfflineFirstInitService {
         if (attempt < maxRetries) {
           const delay = this.RETRY_DELAY_MS * attempt;
           logger.info(`Retrying in ${delay}ms...`);
-          await new Promise(resolve => setTimeout(resolve, delay));
+          await new Promise((resolve) => setTimeout(resolve, delay));
 
           await this.cleanupPartialInitialization();
           this.initializedServices.clear();
@@ -82,9 +82,7 @@ class OfflineFirstInitService {
   private async withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
     return Promise.race([
       promise,
-      new Promise<T>((_, reject) =>
-        setTimeout(() => reject(new Error(`Initialization timeout after ${timeoutMs}ms`)), timeoutMs)
-      )
+      new Promise<T>((_, reject) => setTimeout(() => reject(new Error(`Initialization timeout after ${timeoutMs}ms`)), timeoutMs)),
     ]);
   }
 
@@ -93,7 +91,7 @@ class OfflineFirstInitService {
       logger.info("Initializing offline-first services...");
 
       const isAnonymous = useAuthStore.getState().isAnonymous;
-      console.log("initStore", isAnonymous)
+      console.log("initStore", isAnonymous);
 
       if (isAnonymous) {
         logger.info("1. Initializing anonymous user...");
@@ -154,7 +152,6 @@ class OfflineFirstInitService {
       } else {
         logger.info("9. Sync service disabled");
       }
-
 
       const transactions = crdtService.getTransactions();
       const accounts = crdtService.getAccounts();

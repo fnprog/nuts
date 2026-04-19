@@ -19,7 +19,6 @@ interface ChartConfigItem {
 
 type ChartConfig = Record<string, ChartConfigItem>;
 
-
 interface CategoryBreakdown {
   name: string;
   total: number;
@@ -56,7 +55,7 @@ export const SummaryCard = ({ accounts }: SummaryCardProps) => {
 
   useEffect(() => {
     const convertAccountBalances = async () => {
-      const uniqueCurrencies = new Set(accounts.map(a => a.currency));
+      const uniqueCurrencies = new Set(accounts.map((a) => a.currency));
 
       if (uniqueCurrencies.size === 1 && uniqueCurrencies.has(appCurrency)) {
         return;
@@ -69,11 +68,7 @@ export const SummaryCard = ({ accounts }: SummaryCardProps) => {
         if (account.currency === appCurrency) {
           newConversions.set(account.id, account.balance);
         } else {
-          const result = await currencyConverter.convert(
-            account.balance,
-            account.currency,
-            appCurrency
-          );
+          const result = await currencyConverter.convert(account.balance, account.currency, appCurrency);
 
           if (result) {
             newConversions.set(account.id, result.convertedAmount);
@@ -185,8 +180,8 @@ export const SummaryCard = ({ accounts }: SummaryCardProps) => {
       <CardHeader className="pb-4">
         <Tabs defaultValue="summary" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="summary">{t('analytics.overview')}</TabsTrigger>
-            <TabsTrigger value="percent">{t('analytics.percent')}</TabsTrigger>
+            <TabsTrigger value="summary">{t("analytics.overview")}</TabsTrigger>
+            <TabsTrigger value="percent">{t("analytics.percent")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="summary" className="mt-6">
@@ -220,10 +215,7 @@ export const SummaryCard = ({ accounts }: SummaryCardProps) => {
                   {summaryData.assets.map((category) => (
                     <div key={category.name} className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: category.color }}
-                        />
+                        <div className="h-3 w-3 rounded-full" style={{ backgroundColor: category.color }} />
                         <span className="text-sm">{category.name}</span>
                       </div>
                       <span className="font-mono text-sm font-medium">{formatCurrency(category.total, appCurrency)}</span>
@@ -256,10 +248,7 @@ export const SummaryCard = ({ accounts }: SummaryCardProps) => {
                     {summaryData.liabilities.map((category) => (
                       <div key={category.name} className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div
-                            className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: category.color }}
-                          />
+                          <div className="h-3 w-3 rounded-full" style={{ backgroundColor: category.color }} />
                           <span className="text-sm">{category.name}</span>
                         </div>
                         <span className="font-mono text-sm font-medium">{formatCurrency(category.total, appCurrency)}</span>

@@ -1,17 +1,6 @@
-
-import {
-  ChevronDown,
-  ExternalLink,
-  FileText,
-  Globe,
-  Quote,
-} from "lucide-react";
+import { ChevronDown, ExternalLink, FileText, Globe, Quote } from "lucide-react";
 import { useState } from "react";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/core/components/ui/collapsible";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/core/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 
 export interface CitationSource {
@@ -40,10 +29,7 @@ export interface AICitationsProps {
   onSourceClick?: (source: CitationSource) => void;
 }
 
-const SOURCE_ICONS: Record<
-  NonNullable<CitationSource["type"]>,
-  React.ComponentType<{ className?: string }>
-> = {
+const SOURCE_ICONS: Record<NonNullable<CitationSource["type"]>, React.ComponentType<{ className?: string }>> = {
   document: FileText,
   paper: FileText,
   web: Globe,
@@ -61,20 +47,7 @@ function formatDomain(url: string): string {
 
 function formatDate(date: Date): string {
   // Use consistent format to avoid hydration mismatches
-  const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const month = months[date.getMonth()];
   const day = date.getDate();
   const year = date.getFullYear();
@@ -88,29 +61,17 @@ interface CitationNumberProps {
   asButton?: boolean; // When false, renders as span (for use inside buttons)
 }
 
-function CitationNumber({
-  number,
-  onClick,
-  className,
-  asButton = true,
-}: CitationNumberProps) {
+function CitationNumber({ number, onClick, className, asButton = true }: CitationNumberProps) {
   const baseClassName = cn(
     "inline-flex size-5 items-center justify-center rounded-full border bg-primary/10 font-mono font-semibold text-primary text-xs transition-colors",
-    asButton &&
-    onClick &&
-    "cursor-pointer hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
+    asButton && onClick && "cursor-pointer hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
     !asButton && "pointer-events-none",
     className
   );
 
   if (asButton && onClick) {
     return (
-      <button
-        aria-label={`Citation ${number}`}
-        className={baseClassName}
-        onClick={onClick}
-        type="button"
-      >
+      <button aria-label={`Citation ${number}`} className={baseClassName} onClick={onClick} type="button">
         {number}
       </button>
     );
@@ -129,30 +90,23 @@ interface SourcePreviewProps {
   onSourceClick?: (source: CitationSource) => void;
 }
 
-function SourcePreview({
-  source,
-  citationNumber,
-  onSourceClick,
-}: SourcePreviewProps) {
+function SourcePreview({ source, citationNumber, onSourceClick }: SourcePreviewProps) {
   const domain = source.domain || formatDomain(source.url);
-  const IconComponent =
-    SOURCE_ICONS[source.type || "other"] || SOURCE_ICONS.web;
+  const IconComponent = SOURCE_ICONS[source.type || "other"] || SOURCE_ICONS.web;
 
   return (
-    <div className="group flex flex-col gap-2 rounded-lg border bg-card p-4 transition-colors hover:bg-accent">
+    <div className="group bg-card hover:bg-accent flex flex-col gap-2 rounded-lg border p-4 transition-colors">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-1 items-start gap-3">
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-            <IconComponent className="size-4 text-primary" />
+          <div className="bg-primary/10 flex size-8 shrink-0 items-center justify-center rounded-lg">
+            <IconComponent className="text-primary size-4" />
           </div>
           <div className="flex min-w-0 flex-1 flex-col gap-1">
             <div className="flex items-start gap-2">
-              <h4 className="line-clamp-2 font-medium text-sm leading-snug">
-                {source.title}
-              </h4>
+              <h4 className="line-clamp-2 text-sm leading-snug font-medium">{source.title}</h4>
               <CitationNumber number={citationNumber} />
             </div>
-            <div className="flex flex-wrap items-center gap-2 text-muted-foreground text-xs">
+            <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
               <span className="truncate">{domain}</span>
               {source.author && (
                 <>
@@ -163,9 +117,7 @@ function SourcePreview({
               {source.publishedAt && (
                 <>
                   <span aria-hidden="true">•</span>
-                  <time dateTime={source.publishedAt.toISOString()}>
-                    {formatDate(source.publishedAt)}
-                  </time>
+                  <time dateTime={source.publishedAt.toISOString()}>{formatDate(source.publishedAt)}</time>
                 </>
               )}
             </div>
@@ -173,7 +125,7 @@ function SourcePreview({
         </div>
         <a
           aria-label={`Open ${source.title} in new tab`}
-          className="flex size-8 shrink-0 items-center justify-center rounded-md border bg-background text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          className="bg-background text-muted-foreground hover:bg-accent hover:text-foreground focus:ring-ring flex size-8 shrink-0 items-center justify-center rounded-md border transition-colors focus:ring-2 focus:ring-offset-2 focus:outline-none"
           href={source.url}
           rel="noopener noreferrer"
           target="_blank"
@@ -183,10 +135,8 @@ function SourcePreview({
       </div>
       {source.snippet && (
         <div className="flex gap-2 pl-11">
-          <Quote className="size-3 shrink-0 translate-y-0.5 text-muted-foreground" />
-          <p className="line-clamp-2 text-muted-foreground text-xs leading-relaxed">
-            {source.snippet}
-          </p>
+          <Quote className="text-muted-foreground size-3 shrink-0 translate-y-0.5" />
+          <p className="text-muted-foreground line-clamp-2 text-xs leading-relaxed">{source.snippet}</p>
         </div>
       )}
     </div>
@@ -212,39 +162,24 @@ function CitationItem({ citation, onSourceClick }: CitationItemProps) {
       <div className="flex flex-col gap-2">
         {hasMultipleSources ? (
           <CollapsibleTrigger
-            className="flex items-center justify-between rounded-lg border bg-card p-3 text-left transition-colors hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            className="bg-card hover:bg-accent focus:ring-ring flex items-center justify-between rounded-lg border p-3 text-left transition-colors focus:ring-2 focus:ring-offset-2 focus:outline-none"
             type="button"
           >
             <div className="flex items-center gap-3">
               <CitationNumber asButton={false} number={citation.number} />
               <div className="flex flex-col">
-                <span className="font-medium text-sm">
-                  {citation.sources.length} sources
-                </span>
-                {citation.text && (
-                  <span className="text-muted-foreground text-xs">
-                    {citation.text}
-                  </span>
-                )}
+                <span className="text-sm font-medium">{citation.sources.length} sources</span>
+                {citation.text && <span className="text-muted-foreground text-xs">{citation.text}</span>}
               </div>
             </div>
-            <ChevronDown
-              className={cn(
-                "size-4 shrink-0 text-muted-foreground transition-transform motion-safe:duration-200",
-                isOpen && "rotate-180"
-              )}
-            />
+            <ChevronDown className={cn("text-muted-foreground size-4 shrink-0 transition-transform motion-safe:duration-200", isOpen && "rotate-180")} />
           </CollapsibleTrigger>
         ) : (
-          <div className="flex items-center gap-3 rounded-lg border bg-card p-3">
+          <div className="bg-card flex items-center gap-3 rounded-lg border p-3">
             <CitationNumber number={citation.number} />
             <div className="flex flex-col">
-              <span className="font-medium text-sm">Source</span>
-              {citation.text && (
-                <span className="text-muted-foreground text-xs">
-                  {citation.text}
-                </span>
-              )}
+              <span className="text-sm font-medium">Source</span>
+              {citation.text && <span className="text-muted-foreground text-xs">{citation.text}</span>}
             </div>
           </div>
         )}
@@ -253,21 +188,12 @@ function CitationItem({ citation, onSourceClick }: CitationItemProps) {
           <CollapsibleContent className="overflow-hidden transition-all motion-safe:duration-200 motion-reduce:transition-none">
             <div className="flex flex-col gap-2 pt-2">
               {citation.sources.map((source) => (
-                <SourcePreview
-                  citationNumber={citation.number}
-                  key={source.id}
-                  onSourceClick={onSourceClick}
-                  source={source}
-                />
+                <SourcePreview citationNumber={citation.number} key={source.id} onSourceClick={onSourceClick} source={source} />
               ))}
             </div>
           </CollapsibleContent>
         ) : (
-          <SourcePreview
-            citationNumber={citation.number}
-            onSourceClick={onSourceClick}
-            source={citation.sources[0]}
-          />
+          <SourcePreview citationNumber={citation.number} onSourceClick={onSourceClick} source={citation.sources[0]} />
         )}
       </div>
     </Collapsible>
@@ -280,22 +206,10 @@ interface InlineCitationProps {
 }
 
 function InlineCitation({ number, onClick }: InlineCitationProps) {
-  return (
-    <CitationNumber
-      className="-top-0.5 relative mx-0.5"
-      number={number}
-      onClick={onClick}
-    />
-  );
+  return <CitationNumber className="relative -top-0.5 mx-0.5" number={number} onClick={onClick} />;
 }
 
-export default function AICitations({
-  citations,
-  className,
-  defaultExpanded = false,
-  showInlineNumbers = false,
-  onSourceClick,
-}: AICitationsProps) {
+export default function AICitations({ citations, className, defaultExpanded = false, showInlineNumbers = false, onSourceClick }: AICitationsProps) {
   if (!citations || citations.length === 0) {
     return null;
   }
@@ -303,22 +217,16 @@ export default function AICitations({
   return (
     <div className={cn("flex w-full flex-col gap-3", className)}>
       <div className="flex items-center gap-2">
-        <div className="flex size-6 items-center justify-center rounded-lg bg-primary/10">
-          <Quote className="size-3.5 text-primary" />
+        <div className="bg-primary/10 flex size-6 items-center justify-center rounded-lg">
+          <Quote className="text-primary size-3.5" />
         </div>
-        <h3 className="font-semibold text-sm">Sources & Citations</h3>
-        <span className="text-muted-foreground text-xs">
-          ({citations.length})
-        </span>
+        <h3 className="text-sm font-semibold">Sources & Citations</h3>
+        <span className="text-muted-foreground text-xs">({citations.length})</span>
       </div>
 
       <div className="flex flex-col gap-3">
         {citations.map((citation) => (
-          <CitationItem
-            citation={citation}
-            key={citation.id}
-            onSourceClick={onSourceClick}
-          />
+          <CitationItem citation={citation} key={citation.id} onSourceClick={onSourceClick} />
         ))}
       </div>
     </div>

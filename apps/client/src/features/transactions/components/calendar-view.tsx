@@ -92,8 +92,8 @@ export function CalendarView({ initialPage = 1, hasAccounts }: CalendarViewProps
     page: initialPage,
     q: "",
     group_by: "date",
-    start_date: monthStart.toISOString().split('T')[0],
-    end_date: monthEnd.toISOString().split('T')[0],
+    start_date: monthStart.toISOString().split("T")[0],
+    end_date: monthEnd.toISOString().split("T")[0],
     enabled: hasAccounts === true,
   });
 
@@ -106,7 +106,7 @@ export function CalendarView({ initialPage = 1, hasAccounts }: CalendarViewProps
     const map = new Map<string, TableRecordSchema[]>();
 
     transactionsData.data.forEach((dayGroup) => {
-      const dateKey = format(dayGroup.date, 'yyyy-MM-dd');
+      const dateKey = format(dayGroup.date, "yyyy-MM-dd");
       map.set(dateKey, dayGroup.transactions);
     });
 
@@ -116,14 +116,14 @@ export function CalendarView({ initialPage = 1, hasAccounts }: CalendarViewProps
   // Get transactions for the selected date
   const selectedDateTransactions = useMemo(() => {
     if (!selectedDate) return [];
-    const dateKey = format(selectedDate, 'yyyy-MM-dd');
+    const dateKey = format(selectedDate, "yyyy-MM-dd");
     return transactionsByDate.get(dateKey) || [];
   }, [selectedDate, transactionsByDate]);
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
     }).format(Math.abs(amount));
   };
 
@@ -132,40 +132,30 @@ export function CalendarView({ initialPage = 1, hasAccounts }: CalendarViewProps
     return amount >= 0 ? "green" : "red";
   };
 
-  const navigateMonth = (direction: 'prev' | 'next') => {
-    setCurrentDate(prev => direction === 'prev' ? subMonths(prev, 1) : addMonths(prev, 1));
+  const navigateMonth = (direction: "prev" | "next") => {
+    setCurrentDate((prev) => (direction === "prev" ? subMonths(prev, 1) : addMonths(prev, 1)));
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
       {/* Calendar */}
       <div className="lg:col-span-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-            <CardTitle className="text-lg font-semibold">
-              {format(currentDate, 'MMMM yyyy')}
-            </CardTitle>
+            <CardTitle className="text-lg font-semibold">{format(currentDate, "MMMM yyyy")}</CardTitle>
             <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => navigateMonth('prev')}
-              >
+              <Button variant="outline" size="icon" onClick={() => navigateMonth("prev")}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => navigateMonth('next')}
-              >
+              <Button variant="outline" size="icon" onClick={() => navigateMonth("next")}>
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <div className="flex h-64 items-center justify-center">
+                <div className="border-primary h-8 w-8 animate-spin rounded-full border-b-2"></div>
               </div>
             ) : (
               <Calendar
@@ -177,13 +167,13 @@ export function CalendarView({ initialPage = 1, hasAccounts }: CalendarViewProps
                 className="w-full"
                 modifiers={{
                   hasTransactions: (date) => {
-                    const dateKey = format(date, 'yyyy-MM-dd');
+                    const dateKey = format(date, "yyyy-MM-dd");
                     const dayTransactions = transactionsByDate.get(dateKey) || [];
                     return dayTransactions.length > 0;
-                  }
+                  },
                 }}
                 modifiersClassNames={{
-                  hasTransactions: "bg-primary/10 font-semibold"
+                  hasTransactions: "bg-primary/10 font-semibold",
                 }}
               />
             )}
@@ -195,50 +185,38 @@ export function CalendarView({ initialPage = 1, hasAccounts }: CalendarViewProps
       <div>
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg font-semibold">
-              {selectedDate ? format(selectedDate, 'MMMM d, yyyy') : 'Select a date'}
-            </CardTitle>
+            <CardTitle className="text-lg font-semibold">{selectedDate ? format(selectedDate, "MMMM d, yyyy") : "Select a date"}</CardTitle>
           </CardHeader>
           <CardContent>
             {selectedDateTransactions.length === 0 ? (
-              <p className="text-muted-foreground text-sm">
-                No transactions on this date
-              </p>
+              <p className="text-muted-foreground text-sm">No transactions on this date</p>
             ) : (
               <div className="space-y-3">
                 {selectedDateTransactions.map((transaction: TableRecordSchema) => (
-                  <div
-                    key={transaction.id}
-                    className="flex items-center justify-between p-3 border rounded-lg"
-                  >
+                  <div key={transaction.id} className="flex items-center justify-between rounded-lg border p-3">
                     <div className="flex-1">
                       <div className="flex items-center space-x-2">
-                        <p className="font-medium text-sm">{transaction.description}</p>
+                        <p className="text-sm font-medium">{transaction.description}</p>
                         <Badge
                           variant="outline"
-                          className={`text-xs ${getTransactionTypeColor(transaction.type, transaction.amount) === 'red'
-                            ? 'border-red-200 text-red-700'
-                            : getTransactionTypeColor(transaction.type, transaction.amount) === 'green'
-                              ? 'border-green-200 text-green-700'
-                              : 'border-blue-200 text-blue-700'
-                            }`}
+                          className={`text-xs ${
+                            getTransactionTypeColor(transaction.type, transaction.amount) === "red"
+                              ? "border-red-200 text-red-700"
+                              : getTransactionTypeColor(transaction.type, transaction.amount) === "green"
+                                ? "border-green-200 text-green-700"
+                                : "border-blue-200 text-blue-700"
+                          }`}
                         >
                           {transaction.type}
                         </Badge>
                       </div>
-                      {transaction.category && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {transaction.category.name}
-                        </p>
-                      )}
-                      <p className="text-xs text-muted-foreground">
-                        {transaction.account.name}
-                      </p>
+                      {transaction.category && <p className="text-muted-foreground mt-1 text-xs">{transaction.category.name}</p>}
+                      <p className="text-muted-foreground text-xs">{transaction.account.name}</p>
                     </div>
                     <div className="text-right">
-                      <p className={`font-semibold ${transaction.amount >= 0 ? 'text-green-600' : 'text-red-600'
-                        }`}>
-                        {transaction.amount >= 0 ? '+' : ''}{formatCurrency(transaction.amount)}
+                      <p className={`font-semibold ${transaction.amount >= 0 ? "text-green-600" : "text-red-600"}`}>
+                        {transaction.amount >= 0 ? "+" : ""}
+                        {formatCurrency(transaction.amount)}
                       </p>
                     </div>
                   </div>

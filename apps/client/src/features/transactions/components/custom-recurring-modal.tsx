@@ -34,12 +34,7 @@ interface CustomRecurringModalProps {
   defaultValues?: Partial<CustomRecurringData>;
 }
 
-export function CustomRecurringModal({
-  isOpen,
-  onClose,
-  onSave,
-  defaultValues
-}: CustomRecurringModalProps) {
+export function CustomRecurringModal({ isOpen, onClose, onSave, defaultValues }: CustomRecurringModalProps) {
   const [naturalLanguageInput, setNaturalLanguageInput] = useState("");
   const [parsedPattern, setParsedPattern] = useState<string>("");
 
@@ -99,7 +94,7 @@ export function CustomRecurringModal({
         interval: 1,
         period: "month" as const,
         specificDates: [14, 18, 19],
-        dayOfWeek: undefined as number[] | undefined
+        dayOfWeek: undefined as number[] | undefined,
       };
     }
 
@@ -110,7 +105,7 @@ export function CustomRecurringModal({
         period: "year" as const,
         monthOfYear: 3,
         dayOfMonth: 12,
-        dayOfWeek: undefined as number[] | undefined
+        dayOfWeek: undefined as number[] | undefined,
       };
     }
 
@@ -120,10 +115,10 @@ export function CustomRecurringModal({
       const interval = parseInt(intervalMatch[1]);
       const period = intervalMatch[2] as "day" | "week" | "month" | "year";
       return {
-        description: `Every ${interval} ${period}${interval > 1 ? 's' : ''}`,
+        description: `Every ${interval} ${period}${interval > 1 ? "s" : ""}`,
         interval,
         period,
-        dayOfWeek: undefined as number[] | undefined
+        dayOfWeek: undefined as number[] | undefined,
       };
     }
 
@@ -132,7 +127,7 @@ export function CustomRecurringModal({
       description: `Custom pattern: ${input}`,
       interval: 1,
       period: "week" as const,
-      dayOfWeek: undefined as number[] | undefined
+      dayOfWeek: undefined as number[] | undefined,
     };
   };
 
@@ -160,7 +155,7 @@ export function CustomRecurringModal({
 
     if (period === "week" && dayOfWeek && dayOfWeek.length > 0) {
       const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-      const selectedDays = dayOfWeek.map(day => dayNames[day]).join(", ");
+      const selectedDays = dayOfWeek.map((day) => dayNames[day]).join(", ");
       text += ` on ${selectedDays}`;
     }
 
@@ -178,7 +173,7 @@ export function CustomRecurringModal({
     const enhancedData = {
       ...data,
       naturalLanguagePattern: naturalLanguageInput || undefined,
-      parsedPattern: parsedPattern || undefined
+      parsedPattern: parsedPattern || undefined,
     };
     onSave(enhancedData);
     onClose();
@@ -222,9 +217,7 @@ export function CustomRecurringModal({
                 onChange={(e) => handleNaturalLanguageChange(e.target.value)}
                 className="w-full"
               />
-              {parsedPattern && (
-                <p className="text-xs text-blue-600">Parsed: {parsedPattern}</p>
-              )}
+              {parsedPattern && <p className="text-xs text-blue-600">Parsed: {parsedPattern}</p>}
             </div>
 
             {/* Repeat Every */}
@@ -237,14 +230,7 @@ export function CustomRecurringModal({
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <Input
-                          type="number"
-                          min={1}
-                          max={365}
-                          className="w-20"
-                          {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
-                        />
+                        <Input type="number" min={1} max={365} className="w-20" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 1)} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -291,11 +277,11 @@ export function CustomRecurringModal({
                               key={day}
                               type="button"
                               variant={field.value?.includes(day) ? "default" : "outline"}
-                              className="w-8 h-8 p-0"
+                              className="h-8 w-8 p-0"
                               onClick={() => {
                                 const currentDays = field.value || [];
                                 if (currentDays.includes(day)) {
-                                  field.onChange(currentDays.filter(d => d !== day));
+                                  field.onChange(currentDays.filter((d) => d !== day));
                                 } else {
                                   field.onChange([...currentDays, day]);
                                 }
@@ -322,11 +308,7 @@ export function CustomRecurringModal({
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <RadioGroup
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        className="space-y-3"
-                      >
+                      <RadioGroup value={field.value} onValueChange={field.onChange} className="space-y-3">
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="never" id="never" />
                           <Label htmlFor="never">Never</Label>
@@ -341,11 +323,7 @@ export function CustomRecurringModal({
                               render={({ field }) => (
                                 <FormItem>
                                   <FormControl>
-                                    <DatePicker
-                                      date={field.value}
-                                      onDateChange={field.onChange}
-                                      placeholder="Oct 17, 2025"
-                                    />
+                                    <DatePicker date={field.value} onDateChange={field.onChange} placeholder="Oct 17, 2025" />
                                   </FormControl>
                                 </FormItem>
                               )}
@@ -375,9 +353,7 @@ export function CustomRecurringModal({
                               )}
                             />
                           )}
-                          {endType === "occurrences" && (
-                            <span className="text-sm text-muted-foreground">occurrences</span>
-                          )}
+                          {endType === "occurrences" && <span className="text-muted-foreground text-sm">occurrences</span>}
                         </div>
                       </RadioGroup>
                     </FormControl>
@@ -396,40 +372,32 @@ export function CustomRecurringModal({
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <RadioGroup
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        className="space-y-3"
-                      >
+                      <RadioGroup value={field.value} onValueChange={field.onChange} className="space-y-3">
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="always" id="always" />
                           <div className="flex flex-col">
                             <Label htmlFor="always">Always auto-post</Label>
-                            <span className="text-xs text-muted-foreground">
-                              Transactions are created automatically without review
-                            </span>
+                            <span className="text-muted-foreground text-xs">Transactions are created automatically without review</span>
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="review" id="review" />
                           <div className="flex flex-col">
                             <Label htmlFor="review">Require manual approval</Label>
-                            <span className="text-xs text-muted-foreground">
-                              All transactions need review before posting
-                            </span>
+                            <span className="text-muted-foreground text-xs">All transactions need review before posting</span>
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="smart" id="smart" />
                           <div className="flex flex-col">
                             <Label htmlFor="smart">Smart auto-posting</Label>
-                            <span className="text-xs text-muted-foreground">
-                              Auto-post small amounts, review large amounts
-                            </span>
+                            <span className="text-muted-foreground text-xs">Auto-post small amounts, review large amounts</span>
                           </div>
                           {field.value === "smart" && (
                             <div className="ml-4 flex items-center space-x-2">
-                              <Label htmlFor="threshold" className="text-xs">Threshold:</Label>
+                              <Label htmlFor="threshold" className="text-xs">
+                                Threshold:
+                              </Label>
                               <FormField
                                 control={form.control}
                                 name="smartThreshold"
@@ -449,7 +417,7 @@ export function CustomRecurringModal({
                                   </FormItem>
                                 )}
                               />
-                              <span className="text-xs text-muted-foreground">USD</span>
+                              <span className="text-muted-foreground text-xs">USD</span>
                             </div>
                           )}
                         </div>
@@ -457,9 +425,7 @@ export function CustomRecurringModal({
                           <RadioGroupItem value="preview" id="preview" />
                           <div className="flex flex-col">
                             <Label htmlFor="preview">Preview period</Label>
-                            <span className="text-xs text-muted-foreground">
-                              Show upcoming transactions for review
-                            </span>
+                            <span className="text-muted-foreground text-xs">Show upcoming transactions for review</span>
                           </div>
                           {field.value === "preview" && (
                             <div className="ml-4 flex items-center space-x-2">
@@ -482,7 +448,7 @@ export function CustomRecurringModal({
                                   </FormItem>
                                 )}
                               />
-                              <span className="text-xs text-muted-foreground">days early</span>
+                              <span className="text-muted-foreground text-xs">days early</span>
                             </div>
                           )}
                         </div>
@@ -500,7 +466,7 @@ export function CustomRecurringModal({
                 <CardTitle className="text-sm">Preview</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">{previewText}</p>
+                <p className="text-muted-foreground text-sm">{previewText}</p>
               </CardContent>
             </Card>
 
@@ -508,9 +474,7 @@ export function CustomRecurringModal({
               <Button type="button" variant="outline" onClick={handleCancel}>
                 Cancel
               </Button>
-              <Button type="submit">
-                Done
-              </Button>
+              <Button type="submit">Done</Button>
             </DialogFooter>
           </form>
         </Form>

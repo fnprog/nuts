@@ -138,16 +138,9 @@ function RouteComponent() {
               </div>
               <div className="space-y-2">
                 <Label>Color</Label>
-                <ColorPicker
-                  value={newCategory.color}
-                  onChange={(color) => setNewCategory({ ...newCategory, color })}
-                />
+                <ColorPicker value={newCategory.color} onChange={(color) => setNewCategory({ ...newCategory, color })} />
               </div>
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={!newCategory.name || !newCategory.icon || createCategoryMutation.isPending}
-              >
+              <Button type="submit" className="w-full" disabled={!newCategory.name || !newCategory.icon || createCategoryMutation.isPending}>
                 {createCategoryMutation.isPending ? "Creating..." : "Create Category"}
               </Button>
             </form>
@@ -165,17 +158,12 @@ function RouteComponent() {
             <div className="space-y-4">
               {categoryList.map((category) => (
                 <div key={category.id} className="space-y-3">
-                  <div className="flex items-center justify-between p-3 rounded-lg border bg-card">
+                  <div className="bg-card flex items-center justify-between rounded-lg border p-3">
                     <div className="flex items-center gap-3">
-                      <div
-                        className="h-3 w-3 rounded-full border"
-                        style={{ backgroundColor: category.color || "#6b7280" }}
-                      />
+                      <div className="h-3 w-3 rounded-full border" style={{ backgroundColor: category.color || "#6b7280" }} />
                       {renderIcon(category.icon, { className: "h-5 w-5" })}
                       <span className="font-medium">{category.name}</span>
-                      <span className="text-sm text-muted-foreground">
-                        ({getSubcategories(category.id).length} subcategories)
-                      </span>
+                      <span className="text-muted-foreground text-sm">({getSubcategories(category.id).length} subcategories)</span>
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -203,9 +191,9 @@ function RouteComponent() {
                   {getSubcategories(category.id).length > 0 && (
                     <div className="ml-6 space-y-2">
                       {getSubcategories(category.id).map((subcategory) => (
-                        <div key={subcategory.id} className="flex items-center justify-between p-2 rounded-md bg-muted/30 border-l-2 border-muted">
+                        <div key={subcategory.id} className="bg-muted/30 border-muted flex items-center justify-between rounded-md border-l-2 p-2">
                           <div className="flex items-center gap-2">
-                            <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground" />
+                            <div className="bg-muted-foreground h-1.5 w-1.5 rounded-full" />
                             <span className="text-sm">{subcategory.name}</span>
                           </div>
                           <Button
@@ -228,7 +216,7 @@ function RouteComponent() {
                         placeholder="Subcategory name"
                         value={newSubcategoryName}
                         onChange={(e) => setNewSubcategoryName(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && handleAddSubcategory(category.id)}
+                        onKeyPress={(e) => e.key === "Enter" && handleAddSubcategory(category.id)}
                         className="flex-1"
                       />
                       <Button
@@ -252,7 +240,7 @@ function RouteComponent() {
             </P>
           )}
         </CardContent>
-    </Card>
-    </div >
+      </Card>
+    </div>
   );
 }

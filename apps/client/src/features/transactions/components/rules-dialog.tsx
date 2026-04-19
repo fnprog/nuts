@@ -49,7 +49,7 @@ export function RulesDialog({ children }: RulesDialogProps) {
   const handleToggleRule = async (rule: TransactionRule) => {
     try {
       await toggleRule.mutateAsync(rule.id);
-      toast.success(`Rule "${rule.name}" ${rule.is_active ? 'disabled' : 'enabled'}`);
+      toast.success(`Rule "${rule.name}" ${rule.is_active ? "disabled" : "enabled"}`);
     } catch {
       toast.error("Failed to toggle rule");
     }

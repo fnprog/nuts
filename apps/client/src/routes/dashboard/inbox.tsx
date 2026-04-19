@@ -23,32 +23,26 @@ export const Route = createFileRoute("/dashboard/inbox")({
 
 function RouteComponent() {
   const [selectedTransactionId, setSelectedTransactionId] = useState<string | null>(null);
-  
+
   const { data, isLoading } = useTransactions({
     page: 1,
     limit: 100,
   });
 
-  const uncategorizedTransactions = data?.data.flatMap(group => 
-    group.transactions.filter(t => !t.category)
-  ) || [];
+  const uncategorizedTransactions = data?.data.flatMap((group) => group.transactions.filter((t) => !t.category)) || [];
 
-  const selectedTransaction = uncategorizedTransactions.find(t => t.id === selectedTransactionId);
+  const selectedTransaction = uncategorizedTransactions.find((t) => t.id === selectedTransactionId);
 
   return (
     <div className="space-y-6">
       <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear">
         <div className="flex w-full items-center justify-between gap-2">
           <H2>Inbox</H2>
-          {!isLoading && uncategorizedTransactions.length > 0 && (
-            <Badge variant="secondary">
-              {uncategorizedTransactions.length} to review
-            </Badge>
-          )}
+          {!isLoading && uncategorizedTransactions.length > 0 && <Badge variant="secondary">{uncategorizedTransactions.length} to review</Badge>}
         </div>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-[calc(100vh-12rem)]">
+      <div className="grid h-[calc(100vh-12rem)] grid-cols-1 gap-4 lg:grid-cols-2">
         <Card className="flex flex-col">
           <CardHeader>
             <div className="flex items-center gap-3">
@@ -66,7 +60,7 @@ function RouteComponent() {
               </div>
             ) : uncategorizedTransactions.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12">
-                <Inbox className="h-16 w-16 text-muted-foreground/30 mb-4" />
+                <Inbox className="text-muted-foreground/30 mb-4 h-16 w-16" />
                 <P variant="muted">No transactions to process</P>
                 <P variant="muted" className="text-sm">
                   All transactions are categorized
@@ -96,12 +90,9 @@ function RouteComponent() {
           </CardHeader>
           <CardContent className="flex-1">
             {selectedTransaction ? (
-              <TransactionDetails
-                transaction={selectedTransaction}
-                onCategorized={() => setSelectedTransactionId(null)}
-              />
+              <TransactionDetails transaction={selectedTransaction} onCategorized={() => setSelectedTransactionId(null)} />
             ) : (
-              <div className="flex flex-col items-center justify-center h-full text-center">
+              <div className="flex h-full flex-col items-center justify-center text-center">
                 <P variant="muted">Select a transaction from the list to view details</P>
               </div>
             )}
@@ -112,15 +103,7 @@ function RouteComponent() {
   );
 }
 
-function TransactionItem({
-  transaction,
-  isSelected,
-  onSelect,
-}: {
-  transaction: TableRecordSchema;
-  isSelected: boolean;
-  onSelect: () => void;
-}) {
+function TransactionItem({ transaction, isSelected, onSelect }: { transaction: TableRecordSchema; isSelected: boolean; onSelect: () => void }) {
   const amount = Math.abs(transaction.amount);
   const isExpense = transaction.type === "expense";
   const isTransfer = transaction.type === "transfer";
@@ -128,45 +111,27 @@ function TransactionItem({
   return (
     <button
       onClick={onSelect}
-      className={cn(
-        "w-full p-3 rounded-lg border transition-colors text-left",
-        "hover:bg-accent/50",
-        isSelected && "bg-accent border-primary"
-      )}
+      className={cn("w-full rounded-lg border p-3 text-left transition-colors", "hover:bg-accent/50", isSelected && "bg-accent border-primary")}
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="flex items-start gap-3 flex-1 min-w-0">
+        <div className="flex min-w-0 flex-1 items-start gap-3">
           <Avatar className="h-10 w-10 shrink-0">
-            <AvatarFallback className="bg-[#595959] text-background">
-              {transaction.account.name.slice(0, 2).toUpperCase()}
-            </AvatarFallback>
+            <AvatarFallback className="text-background bg-[#595959]">{transaction.account.name.slice(0, 2).toUpperCase()}</AvatarFallback>
           </Avatar>
-          <div className="flex flex-col gap-1 min-w-0 flex-1">
-            <div className="font-medium truncate">{transaction.description}</div>
-            <div className="text-xs text-muted-foreground">
-              {transaction.account.name}
-            </div>
-            <div className="text-xs text-muted-foreground">
-              {formatDate(transaction.transaction_datetime)}
-            </div>
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <div className="truncate font-medium">{transaction.description}</div>
+            <div className="text-muted-foreground text-xs">{transaction.account.name}</div>
+            <div className="text-muted-foreground text-xs">{formatDate(transaction.transaction_datetime)}</div>
           </div>
         </div>
-        <div className="text-right shrink-0">
-          <div
-            className={cn(
-              "font-semibold",
-              isExpense && "text-red-600",
-              !isExpense && !isTransfer && "text-green-600"
-            )}
-          >
+        <div className="shrink-0 text-right">
+          <div className={cn("font-semibold", isExpense && "text-red-600", !isExpense && !isTransfer && "text-green-600")}>
             {isExpense && "-"}
             {!isExpense && !isTransfer && "+"}
             {amount.toFixed(2)} {transaction.account.currency}
           </div>
           {isTransfer && transaction.type === "transfer" && transaction.destination_account && (
-            <div className="text-xs text-muted-foreground">
-              → {transaction.destination_account.name}
-            </div>
+            <div className="text-muted-foreground text-xs">→ {transaction.destination_account.name}</div>
           )}
         </div>
       </div>
@@ -174,13 +139,7 @@ function TransactionItem({
   );
 }
 
-function TransactionDetails({
-  transaction,
-  onCategorized,
-}: {
-  transaction: TableRecordSchema;
-  onCategorized: () => void;
-}) {
+function TransactionDetails({ transaction, onCategorized }: { transaction: TableRecordSchema; onCategorized: () => void }) {
   const { data: categories } = useCategoriesQuery();
   const queryClient = useQueryClient();
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
@@ -201,11 +160,12 @@ function TransactionDetails({
     },
   });
 
-  const categoryOptions: SearchableSelectOption[] = categories?.map(cat => ({
-    value: cat.id,
-    label: cat.name,
-    icon: cat.icon,
-  })) || [];
+  const categoryOptions: SearchableSelectOption[] =
+    categories?.map((cat) => ({
+      value: cat.id,
+      label: cat.name,
+      icon: cat.icon,
+    })) || [];
 
   const handleAssignCategory = () => {
     if (selectedCategoryId) {
@@ -224,20 +184,14 @@ function TransactionDetails({
     <div className="space-y-6">
       <div className="space-y-4">
         <div>
-          <label className="text-sm font-medium text-muted-foreground">Description</label>
-          <p className="text-lg font-semibold mt-1">{transaction.description}</p>
+          <label className="text-muted-foreground text-sm font-medium">Description</label>
+          <p className="mt-1 text-lg font-semibold">{transaction.description}</p>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="text-sm font-medium text-muted-foreground">Amount</label>
-            <p
-              className={cn(
-                "text-xl font-bold mt-1",
-                isExpense && "text-red-600",
-                !isExpense && !isTransfer && "text-green-600"
-              )}
-            >
+            <label className="text-muted-foreground text-sm font-medium">Amount</label>
+            <p className={cn("mt-1 text-xl font-bold", isExpense && "text-red-600", !isExpense && !isTransfer && "text-green-600")}>
               {isExpense && "-"}
               {!isExpense && !isTransfer && "+"}
               {amount.toFixed(2)} {transaction.account.currency}
@@ -245,20 +199,16 @@ function TransactionDetails({
           </div>
 
           <div>
-            <label className="text-sm font-medium text-muted-foreground">Date</label>
-            <p className="text-lg font-medium mt-1">
-              {formatDate(transaction.transaction_datetime)}
-            </p>
+            <label className="text-muted-foreground text-sm font-medium">Date</label>
+            <p className="mt-1 text-lg font-medium">{formatDate(transaction.transaction_datetime)}</p>
           </div>
         </div>
 
         <div>
-          <label className="text-sm font-medium text-muted-foreground">Account</label>
-          <div className="flex items-center gap-2 mt-1">
+          <label className="text-muted-foreground text-sm font-medium">Account</label>
+          <div className="mt-1 flex items-center gap-2">
             <Avatar className="h-6 w-6">
-              <AvatarFallback className="bg-[#595959] text-background text-xs">
-                {transaction.account.name.slice(0, 2).toUpperCase()}
-              </AvatarFallback>
+              <AvatarFallback className="text-background bg-[#595959] text-xs">{transaction.account.name.slice(0, 2).toUpperCase()}</AvatarFallback>
             </Avatar>
             <p className="text-base">{transaction.account.name}</p>
           </div>
@@ -266,10 +216,10 @@ function TransactionDetails({
 
         {isTransfer && transaction.type === "transfer" && transaction.destination_account && (
           <div>
-            <label className="text-sm font-medium text-muted-foreground">Destination Account</label>
-            <div className="flex items-center gap-2 mt-1">
+            <label className="text-muted-foreground text-sm font-medium">Destination Account</label>
+            <div className="mt-1 flex items-center gap-2">
               <Avatar className="h-6 w-6">
-                <AvatarFallback className="bg-[#595959] text-background text-xs">
+                <AvatarFallback className="text-background bg-[#595959] text-xs">
                   {transaction.destination_account.name.slice(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
@@ -279,7 +229,7 @@ function TransactionDetails({
         )}
 
         <div>
-          <label className="text-sm font-medium text-muted-foreground">Type</label>
+          <label className="text-muted-foreground text-sm font-medium">Type</label>
           <Badge variant="outline" className="mt-1">
             {transaction.type}
           </Badge>
@@ -287,7 +237,7 @@ function TransactionDetails({
       </div>
 
       {!isTransfer && (
-        <div className="space-y-3 pt-6 border-t">
+        <div className="space-y-3 border-t pt-6">
           <label className="text-sm font-medium">Assign Category</label>
           <SearchableSelect
             options={categoryOptions}
@@ -300,10 +250,10 @@ function TransactionDetails({
             onClick={handleAssignCategory}
             disabled={!selectedCategoryId || updateCategoryMutation.isPending}
             className={cn(
-              "w-full flex items-center justify-center gap-2 px-4 py-2 rounded-md font-medium",
+              "flex w-full items-center justify-center gap-2 rounded-md px-4 py-2 font-medium",
               "bg-primary text-primary-foreground",
               "hover:bg-primary/90",
-              "disabled:opacity-50 disabled:cursor-not-allowed",
+              "disabled:cursor-not-allowed disabled:opacity-50",
               "transition-colors"
             )}
           >

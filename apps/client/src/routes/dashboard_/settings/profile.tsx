@@ -156,7 +156,12 @@ function RouteComponent() {
             <Avatar className="h-20 w-20">
               <AvatarImage src={avatarPreview} />
               <AvatarFallback>
-                {form.getValues("name")?.split(" ").map(n => n[0]).join("").toUpperCase() || "U"}
+                {form
+                  .getValues("name")
+                  ?.split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .toUpperCase() || "U"}
               </AvatarFallback>
             </Avatar>
             <div>
@@ -164,7 +169,7 @@ function RouteComponent() {
               <Button variant="outline" className="mb-2" onClick={() => fileInputRef.current?.click()} disabled={isLocalOnlyMode}>
                 Change Avatar
               </Button>
-              <Muted >Maximum file size: 5MB</Muted>
+              <Muted>Maximum file size: 5MB</Muted>
             </div>
           </div>
 

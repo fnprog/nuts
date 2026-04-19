@@ -21,7 +21,7 @@ export const useRealEstateStore = create<RealEstateStore>()((set, get) => ({
     const propertyCollection = crdtService.getPluginData<Omit<Property, "mortgage" | "rental">>("real-estate", "properties");
     const mortgageCollection = crdtService.getPluginData<Property["mortgage"]>("real-estate", "mortgages");
     const rentalCollection = crdtService.getPluginData<Property["rental"]>("real-estate", "rentals");
-    
+
     const properties: Property[] = Object.values(propertyCollection).map((propertyData) => ({
       ...propertyData,
       mortgage: mortgageCollection[propertyData.id],

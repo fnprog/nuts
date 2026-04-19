@@ -33,7 +33,7 @@ export interface SecureTokenStorage {
 export function createAuthservice() {
   const STORAGE_KEY = "nuts-offline-auth";
   const SECURE_TOKEN_KEY = "nuts-secure-tokens";
-  const DEVICE_ID_KEY = "nuts-device-id"
+  const DEVICE_ID_KEY = "nuts-device-id";
   const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000;
   const ACCESS_TOKEN_DURATION = 15 * 60 * 1000;
 
@@ -49,7 +49,7 @@ export function createAuthservice() {
     return newId;
   };
 
-  let deviceId = getOrCreateDeviceId();
+  const deviceId = getOrCreateDeviceId();
 
   const initialize = async (): Promise<Result<void, ServiceError>> => {
     try {
@@ -81,13 +81,7 @@ export function createAuthservice() {
 
       return ok(undefined);
     } catch (error) {
-      return err(
-        ServiceError.internal(
-          "auth-init",
-          error instanceof Error ? error.message : "Failed to initialize auth service",
-          error
-        )
-      );
+      return err(ServiceError.internal("auth-init", error instanceof Error ? error.message : "Failed to initialize auth service", error));
     }
   };
 

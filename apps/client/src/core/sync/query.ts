@@ -198,10 +198,15 @@ class KyselyQueryService {
     }
   }
 
-  async queryTransactions(params: GetTransactionsParams): Promise<Result<{
-    data: any[];
-    pagination: { total: number; totalPages: number };
-  }, ServiceError>> {
+  async queryTransactions(params: GetTransactionsParams): Promise<
+    Result<
+      {
+        data: any[];
+        pagination: { total: number; totalPages: number };
+      },
+      ServiceError
+    >
+  > {
     const initResult = await this.ensureInitialized();
     if (initResult.isErr()) return err(initResult.error);
 
@@ -306,25 +311,27 @@ class KyselyQueryService {
 
     const accounts = await db.db.selectFrom("accounts").selectAll().where("deleted_at", "is", null).orderBy("name", "asc").execute();
 
-    return ok(accounts.map((acc: any) => ({
-      id: acc.id,
-      name: acc.name,
-      type: acc.type,
-      balance: acc.balance,
-      currency: acc.currency,
-      subtype: acc.subtype,
-      meta: acc.meta ? JSON.parse(acc.meta) : null,
-      is_external: Boolean(acc.is_external),
-      provider_account_id: acc.provider_account_id,
-      provider_name: acc.provider_name,
-      sync_status: acc.sync_status,
-      last_synced_at: acc.last_synced_at,
-      connection_id: acc.connection_id,
-      created_by: acc.created_by,
-      updated_by: acc.updated_by,
-      created_at: acc.created_at,
-      updated_at: acc.updated_at,
-    })));
+    return ok(
+      accounts.map((acc: any) => ({
+        id: acc.id,
+        name: acc.name,
+        type: acc.type,
+        balance: acc.balance,
+        currency: acc.currency,
+        subtype: acc.subtype,
+        meta: acc.meta ? JSON.parse(acc.meta) : null,
+        is_external: Boolean(acc.is_external),
+        provider_account_id: acc.provider_account_id,
+        provider_name: acc.provider_name,
+        sync_status: acc.sync_status,
+        last_synced_at: acc.last_synced_at,
+        connection_id: acc.connection_id,
+        created_by: acc.created_by,
+        updated_by: acc.updated_by,
+        created_at: acc.created_at,
+        updated_at: acc.updated_at,
+      }))
+    );
   }
 
   async getCategories(): Promise<Result<any[], ServiceError>> {
@@ -333,18 +340,20 @@ class KyselyQueryService {
 
     const categories = await db.db.selectFrom("categories").selectAll().where("deleted_at", "is", null).orderBy("name", "asc").execute();
 
-    return ok(categories.map((cat: any) => ({
-      id: cat.id,
-      name: cat.name,
-      parent_id: cat.parent_id,
-      is_default: Boolean(cat.is_default),
-      color: cat.color,
-      icon: cat.icon,
-      created_by: cat.created_by,
-      updated_by: cat.updated_by,
-      created_at: cat.created_at,
-      updated_at: cat.updated_at,
-    })));
+    return ok(
+      categories.map((cat: any) => ({
+        id: cat.id,
+        name: cat.name,
+        parent_id: cat.parent_id,
+        is_default: Boolean(cat.is_default),
+        color: cat.color,
+        icon: cat.icon,
+        created_by: cat.created_by,
+        updated_by: cat.updated_by,
+        created_at: cat.created_at,
+        updated_at: cat.updated_at,
+      }))
+    );
   }
 
   async getRules(): Promise<Result<any[], ServiceError>> {
@@ -353,18 +362,20 @@ class KyselyQueryService {
 
     const rules = await db.db.selectFrom("rules").selectAll().where("deleted_at", "is", null).orderBy("priority", "desc").orderBy("name", "asc").execute();
 
-    return ok(rules.map((rule: any) => ({
-      id: rule.id,
-      name: rule.name,
-      is_active: Boolean(rule.is_active),
-      priority: rule.priority,
-      conditions: JSON.parse(rule.conditions),
-      actions: JSON.parse(rule.actions),
-      created_by: rule.created_by,
-      updated_by: rule.updated_by,
-      created_at: rule.created_at,
-      updated_at: rule.updated_at,
-    })));
+    return ok(
+      rules.map((rule: any) => ({
+        id: rule.id,
+        name: rule.name,
+        is_active: Boolean(rule.is_active),
+        priority: rule.priority,
+        conditions: JSON.parse(rule.conditions),
+        actions: JSON.parse(rule.actions),
+        created_by: rule.created_by,
+        updated_by: rule.updated_by,
+        created_at: rule.created_at,
+        updated_at: rule.updated_at,
+      }))
+    );
   }
 
   async executeRaw(sql: string, params: any[] = []): Promise<Result<any[], ServiceError>> {
@@ -372,12 +383,17 @@ class KyselyQueryService {
     return ok(result.results || []);
   }
 
-  async getStats(): Promise<Result<{
-    transactions: number;
-    accounts: number;
-    categories: number;
-    rules: number;
-  }, ServiceError>> {
+  async getStats(): Promise<
+    Result<
+      {
+        transactions: number;
+        accounts: number;
+        categories: number;
+        rules: number;
+      },
+      ServiceError
+    >
+  > {
     const initResult = await this.ensureInitialized();
     if (initResult.isErr()) return err(initResult.error);
 

@@ -183,6 +183,7 @@ RecurringProcessorService
 ## Deduplication
 
 The processor checks if an instance has already been processed by:
+
 1. Querying notifications by `related_recurring_id`
 2. Filtering by `due_date` in the notification data
 3. Skipping if a notification already exists for that date

@@ -17,10 +17,10 @@ export function PendingTransactionsDashboard({ className }: PendingTransactionsD
   const { data: recurringTransactions } = useTransactions({ page: 1, is_recurring: true, limit: 100 });
 
   const stats = useMemo(() => {
-    const allRecurring = recurringTransactions?.data?.flatMap(group => group.transactions) || [];
+    const allRecurring = recurringTransactions?.data?.flatMap((group) => group.transactions) || [];
 
-    const pending = allRecurring.filter(t => getTransactionStatus(t).isPending);
-    const autoPosted = allRecurring.filter(t => getTransactionStatus(t).isAutoPosted);
+    const pending = allRecurring.filter((t) => getTransactionStatus(t).isPending);
+    const autoPosted = allRecurring.filter((t) => getTransactionStatus(t).isAutoPosted);
     const totalRecurring = allRecurring.length;
 
     const pendingAmount = pending.reduce((sum, t) => sum + Math.abs(t.amount), 0);
@@ -34,23 +34,21 @@ export function PendingTransactionsDashboard({ className }: PendingTransactionsD
   }, [recurringTransactions]);
 
   const pendingList = useMemo(() => {
-    return pendingTransactions?.data?.flatMap(group => group.transactions) || [];
+    return pendingTransactions?.data?.flatMap((group) => group.transactions) || [];
   }, [pendingTransactions]);
 
   return (
     <div className={`space-y-6 ${className}`}>
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Recurring</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <Calendar className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalRecurring}</div>
-            <p className="text-xs text-muted-foreground">
-              Active recurring transactions
-            </p>
+            <p className="text-muted-foreground text-xs">Active recurring transactions</p>
           </CardContent>
         </Card>
 
@@ -61,9 +59,7 @@ export function PendingTransactionsDashboard({ className }: PendingTransactionsD
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">{stats.pendingCount}</div>
-            <p className="text-xs text-muted-foreground">
-              Require manual review
-            </p>
+            <p className="text-muted-foreground text-xs">Require manual review</p>
           </CardContent>
         </Card>
 
@@ -74,22 +70,18 @@ export function PendingTransactionsDashboard({ className }: PendingTransactionsD
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{stats.autoPostedCount}</div>
-            <p className="text-xs text-muted-foreground">
-              Automatically created
-            </p>
+            <p className="text-muted-foreground text-xs">Automatically created</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pending Value</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <DollarSign className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(stats.pendingAmount)}</div>
-            <p className="text-xs text-muted-foreground">
-              Total pending amount
-            </p>
+            <p className="text-muted-foreground text-xs">Total pending amount</p>
           </CardContent>
         </Card>
       </div>
@@ -106,28 +98,19 @@ export function PendingTransactionsDashboard({ className }: PendingTransactionsD
               {pendingList.slice(0, 5).map((transaction) => {
                 // const status = getTransactionStatus(transaction);
                 return (
-                  <div
-                    key={transaction.id}
-                    className="flex items-center justify-between p-3 border rounded-lg bg-orange-50 border-orange-200"
-                  >
+                  <div key={transaction.id} className="flex items-center justify-between rounded-lg border border-orange-200 bg-orange-50 p-3">
                     <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 rounded-full bg-orange-500" />
+                      <div className="h-2 w-2 rounded-full bg-orange-500" />
                       <div>
-                        <p className="font-medium text-sm">{transaction.description}</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-sm font-medium">{transaction.description}</p>
+                        <p className="text-muted-foreground text-xs">
                           {transaction.account.name} • {formatDate(transaction.transaction_datetime)}
                         </p>
-                        {transaction.template_name && (
-                          <p className="text-xs text-blue-600">
-                            Template: {transaction.template_name}
-                          </p>
-                        )}
+                        {transaction.template_name && <p className="text-xs text-blue-600">Template: {transaction.template_name}</p>}
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
-                      <span className="font-medium">
-                        {formatCurrency(Math.abs(transaction.amount))}
-                      </span>
+                      <span className="font-medium">{formatCurrency(Math.abs(transaction.amount))}</span>
                       <div className="flex space-x-1">
                         <Button size="sm" variant="outline">
                           Edit
@@ -141,7 +124,7 @@ export function PendingTransactionsDashboard({ className }: PendingTransactionsD
                 );
               })}
               {pendingList.length > 5 && (
-                <div className="text-center pt-2">
+                <div className="pt-2 text-center">
                   <Button variant="outline" size="sm">
                     View all {pendingList.length} pending transactions
                   </Button>

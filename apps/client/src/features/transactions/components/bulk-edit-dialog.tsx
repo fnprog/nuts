@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
-import { arktypeResolver } from '@hookform/resolvers/arktype';
+import { arktypeResolver } from "@hookform/resolvers/arktype";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type } from "arktype";
 import { toast } from "sonner";
@@ -16,7 +16,6 @@ import { Account } from "@/features/accounts/services/account.types";
 import { useBrandImage } from "@/features/accounts/hooks/useBrand";
 import { config } from "@/lib/env";
 import { Info } from "lucide-react";
-
 
 import { transactionService } from "@/features/transactions/services/transaction.service";
 import { useCategoriesQuery } from "@/features/categories/services/category.queries";
@@ -185,7 +184,11 @@ export function BulkEditDialog({ isOpen, onClose, selectedTransactions }: BulkEd
                             <SelectValue placeholder="Select account (optional)" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>{accounts?.map((account) => <AccountOption key={account.id} account={account} />)}</SelectContent>
+                        <SelectContent>
+                          {accounts?.map((account) => (
+                            <AccountOption key={account.id} account={account} />
+                          ))}
+                        </SelectContent>
                       </Select>
                       <FormMessage />
                     </FormItem>

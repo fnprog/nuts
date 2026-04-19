@@ -1,15 +1,8 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/core/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogTrigger,
-} from "@/core/components/ui/dialog";
-import { getAvailableChartConfigs } from '@/features/dashboard/charts/loader';
-import type { DashboardChartModuleConfig } from '@/features/dashboard/charts/types';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/core/components/ui/dialog";
+import { getAvailableChartConfigs } from "@/features/dashboard/charts/loader";
+import type { DashboardChartModuleConfig } from "@/features/dashboard/charts/types";
 
 interface AddChartDialogProps {
   children: React.ReactNode;
@@ -46,37 +39,33 @@ export function AddChartDialog({ onAddChart, children }: AddChartDialogProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
-      <DialogContent className="grid grid-rows-[auto_1fr_auto] sm:min-h-[80vh]  md:max-w-[60%] overflow-hidden ">
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent className="grid grid-rows-[auto_1fr_auto] overflow-hidden sm:min-h-[80vh] md:max-w-[60%]">
         <DialogHeader>
           <DialogTitle>Add Chart to Dashboard</DialogTitle>
           <DialogDescription>Select a chart widget to add to your current view.</DialogDescription>
         </DialogHeader>
-        <div className="py-4 h-full min-h-0">
+        <div className="h-full min-h-0 py-4">
           {isLoading ? (
             <div className="p-4 text-center">Loading available charts...</div>
           ) : availableCharts.length > 0 ? (
-            <div className=" overflow-y-auto h-full min-h-0 ">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
+            <div className="h-full min-h-0 overflow-y-auto">
+              <div className="grid h-full grid-cols-1 gap-8 md:grid-cols-2">
                 {availableCharts.map((config) => (
                   <Button
                     key={config.id}
                     variant="ghost"
-                    className="w-full h-auto p-5 border border-border hover:border-primary/50 rounded-lg transition-colors"
+                    className="border-border hover:border-primary/50 h-auto w-full rounded-lg border p-5 transition-colors"
                     onClick={() => handleSelectChart(config)}
                   >
-                    <div className="flex flex-col items-start gap-4 w-full">
-                      <div className="w-full h-36 bg-muted rounded-md flex items-center justify-center">
+                    <div className="flex w-full flex-col items-start gap-4">
+                      <div className="bg-muted flex h-36 w-full items-center justify-center rounded-md">
                         <div className="text-muted-foreground text-sm">Chart Preview</div>
                       </div>
-                      <div className="text-left w-full">
-                        <div className="font-medium text-base mb-2">{config.title}</div>
+                      <div className="w-full text-left">
+                        <div className="mb-2 text-base font-medium">{config.title}</div>
                         {config.description && (
-                          <p className="text-sm text-muted-foreground leading-relaxed whitespace-normal wrap-break-word">
-                            {config.description}
-                          </p>
+                          <p className="text-muted-foreground text-sm leading-relaxed wrap-break-word whitespace-normal">{config.description}</p>
                         )}
                       </div>
                     </div>

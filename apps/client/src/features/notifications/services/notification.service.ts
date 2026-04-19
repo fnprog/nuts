@@ -135,9 +135,7 @@ export const notificationService = {
         const now = new Date().toISOString();
         const notifications = crdtService.getNotifications();
 
-        const expiredNotifications = Object.values(notifications).filter(
-          (n: any) => n.expires_at && new Date(n.expires_at) < new Date(now)
-        );
+        const expiredNotifications = Object.values(notifications).filter((n: any) => n.expires_at && new Date(n.expires_at) < new Date(now));
 
         for (const notification of expiredNotifications) {
           await crdtService.deleteNotification((notification as any).id);

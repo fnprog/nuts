@@ -26,5 +26,3 @@ export const formatCurrency = (amount: number, locale = "en-US", currency = "USD
     currency: currency,
   }).format(amount);
 };
-
-

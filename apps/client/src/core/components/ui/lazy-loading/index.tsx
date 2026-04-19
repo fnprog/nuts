@@ -1,6 +1,6 @@
-import React, { lazy, Suspense, ComponentType } from 'react';
-import { ErrorBoundary } from '../error-boundary';
-import { InlineLoader } from '../loading';
+import React, { lazy, Suspense, ComponentType } from "react";
+import { ErrorBoundary } from "../error-boundary";
+import { InlineLoader } from "../loading";
 
 /**
  * Higher-order component for lazy loading with error boundaries and loading states
@@ -16,20 +16,17 @@ export function withLazyLoading<P extends object>(
   const WrappedComponent = React.forwardRef<any, P>((props, ref) => {
     const LoadingFallback = fallback || (() => <InlineLoader text="Loading component..." />);
 
-    const ErrorFallback = errorFallback || (({ error, resetErrorBoundary }) => (
-      <div className="p-4 text-center border border-destructive/20 rounded-lg bg-destructive/5">
-        <h3 className="font-medium text-destructive mb-2">Component failed to load</h3>
-        <p className="text-sm text-muted-foreground mb-3">
-          {error.message || 'An error occurred while loading this component'}
-        </p>
-        <button
-          onClick={resetErrorBoundary}
-          className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors"
-        >
-          Try again
-        </button>
-      </div>
-    ));
+    const ErrorFallback =
+      errorFallback ||
+      (({ error, resetErrorBoundary }) => (
+        <div className="border-destructive/20 bg-destructive/5 rounded-lg border p-4 text-center">
+          <h3 className="text-destructive mb-2 font-medium">Component failed to load</h3>
+          <p className="text-muted-foreground mb-3 text-sm">{error.message || "An error occurred while loading this component"}</p>
+          <button onClick={resetErrorBoundary} className="bg-primary text-primary-foreground hover:bg-primary/90 rounded px-3 py-1 text-sm transition-colors">
+            Try again
+          </button>
+        </div>
+      ));
 
     return (
       <ErrorBoundary fallback={ErrorFallback}>
@@ -48,10 +45,7 @@ export function withLazyLoading<P extends object>(
 /**
  * Generic lazy loading wrapper for any component
  */
-export const createLazyComponent = <P extends object>(
-  importFn: () => Promise<{ default: ComponentType<P> }>,
-  loadingFallback?: React.ComponentType
-) => {
+export const createLazyComponent = <P extends object>(importFn: () => Promise<{ default: ComponentType<P> }>, loadingFallback?: React.ComponentType) => {
   return withLazyLoading(importFn, loadingFallback);
 };
 
@@ -66,13 +60,7 @@ interface IntersectionLazyLoadProps {
   className?: string;
 }
 
-export function IntersectionLazyLoad({
-  children,
-  fallback,
-  rootMargin = '50px',
-  threshold = 0.1,
-  className
-}: IntersectionLazyLoadProps) {
+export function IntersectionLazyLoad({ children, fallback, rootMargin = "50px", threshold = 0.1, className }: IntersectionLazyLoadProps) {
   const [isIntersecting, setIsIntersecting] = React.useState(false);
   const ref = React.useRef<HTMLDivElement>(null);
 
@@ -88,7 +76,7 @@ export function IntersectionLazyLoad({
       },
       {
         rootMargin,
-        threshold
+        threshold,
       }
     );
 
@@ -101,15 +89,13 @@ export function IntersectionLazyLoad({
 
   return (
     <div ref={ref} className={className}>
-      {isIntersecting ? (
-        children
-      ) : (
-        fallback || (
-          <div className="h-32 bg-muted animate-pulse rounded-md flex items-center justify-center">
-            <InlineLoader text="Loading..." />
-          </div>
-        )
-      )}
+      {isIntersecting
+        ? children
+        : fallback || (
+            <div className="bg-muted flex h-32 animate-pulse items-center justify-center rounded-md">
+              <InlineLoader text="Loading..." />
+            </div>
+          )}
     </div>
   );
 }
@@ -117,28 +103,21 @@ export function IntersectionLazyLoad({
 /**
  * Code splitting utilities for route-level chunks
  */
-export const createLazyRoute = <T extends Record<string, unknown>>(
-  importFn: () => Promise<{ default: ComponentType<T> }>
-) => {
+export const createLazyRoute = <T extends Record<string, unknown>>(importFn: () => Promise<{ default: ComponentType<T> }>) => {
   return lazy(importFn);
 };
 
 /**
  * Preload a lazy component
  */
-export const preloadComponent = <P extends object>(
-  importFn: () => Promise<{ default: ComponentType<P> }>
-) => {
+export const preloadComponent = <P extends object>(importFn: () => Promise<{ default: ComponentType<P> }>) => {
   return importFn();
 };
 
 /**
  * Create a lazy component with preloading on hover
  */
-export function createHoverPreloadComponent<P extends object>(
-  importFn: () => Promise<{ default: ComponentType<P> }>,
-  fallback?: React.ComponentType
-) {
+export function createHoverPreloadComponent<P extends object>(importFn: () => Promise<{ default: ComponentType<P> }>, fallback?: React.ComponentType) {
   let preloadPromise: Promise<{ default: ComponentType<P> }> | null = null;
 
   const LazyComponent = withLazyLoading(importFn, fallback);

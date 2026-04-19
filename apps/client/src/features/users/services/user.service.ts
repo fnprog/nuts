@@ -106,11 +106,10 @@ function createUserService() {
   const updateMe = (info: Partial<userApi.UserInfo>): ResultAsync<userApi.UserInfo, ServiceError> => {
     const { isAnonymous } = useAuthStore.getState();
 
-
     if (isAnonymous) {
       const anonymousUser = anonymousUserService.updateAnonymousUser({
         avatar: info.avatar_url,
-        name: info.name
+        name: info.name,
       });
 
       if (anonymousUser) {
@@ -129,8 +128,6 @@ function createUserService() {
         return ResultAsync.fromSafePromise(Promise.resolve(userInfo));
       }
     }
-
-
 
     const cachedUser = getCachedUser();
 

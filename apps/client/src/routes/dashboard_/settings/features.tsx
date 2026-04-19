@@ -273,7 +273,7 @@ function MarketplaceContent() {
               <CardDescription>{plugin.description}</CardDescription>
             </CardHeader>
             <CardContent>
-              <Muted >By {plugin.author}</Muted>
+              <Muted>By {plugin.author}</Muted>
             </CardContent>
             <CardFooter>
               <Button

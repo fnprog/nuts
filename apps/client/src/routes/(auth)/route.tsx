@@ -1,9 +1,9 @@
-import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { Noise } from "@/core/components/ui/noise";
 import { Nuts } from "@/core/components/icons/Logo";
 
-export const Route = createFileRoute('/(auth)')({
+export const Route = createFileRoute("/(auth)")({
   component: RouteComponent,
   beforeLoad: ({ context }) => {
     if (context.auth.isAuthenticated || context.auth.isAnonymous) {
@@ -13,7 +13,7 @@ export const Route = createFileRoute('/(auth)')({
   shouldReload({ context }) {
     return !context.auth.isAuthenticated;
   },
-})
+});
 
 function RouteComponent() {
   return (
@@ -22,12 +22,12 @@ function RouteComponent() {
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
           <div className="flex items-center gap-2">
             <Nuts className="h-8 w-8" fill="var(--color-gray-800)" />
-            <span className="text-2xl text-gray-800 font-bold">Nuts</span>
+            <span className="text-2xl font-bold text-gray-800">Nuts</span>
           </div>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3, duration: 0.8 }} className="max-w-md ">
-          <h2 className="text-5xl font-bold leading-tight text-white">Your personal finance & wealth workspace</h2>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3, duration: 0.8 }} className="max-w-md">
+          <h2 className="text-5xl leading-tight font-bold text-white">Your personal finance & wealth workspace</h2>
         </motion.div>
 
         <Noise />

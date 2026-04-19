@@ -16,10 +16,8 @@ export const isOnboardingRequired = (user: UserInfo | null): boolean => {
     return true;
   }
 
-
   const complete = useOnboardingStore.getState().isCompleted;
-  return !complete
-
+  return !complete;
 };
 
 export const shouldSkipNameStep = (user: UserInfo | null): boolean => {

@@ -2,18 +2,19 @@ import ReactDOM from "react-dom/client";
 import { StrictMode } from "react";
 import { App } from "./app";
 
-import "./core/i18n/config.ts"
+import "./core/i18n/config.ts";
 import "./index.css";
 
 // Register service worker for better performance
-if ('serviceWorker' in navigator && import.meta.env.PROD) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
+if ("serviceWorker" in navigator && import.meta.env.PROD) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("/sw.js")
       .then((registration) => {
-        console.log('SW registered: ', registration);
+        console.log("SW registered: ", registration);
       })
       .catch((registrationError) => {
-        console.log('SW registration failed: ', registrationError);
+        console.log("SW registration failed: ", registrationError);
       });
   });
 }

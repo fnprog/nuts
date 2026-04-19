@@ -38,7 +38,6 @@ const getLangs = () => {
   );
 };
 
-
 export const preferencesService = {
   getPreferences,
   updatePreferences,

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, memo } from "react";
 import { useForm } from "react-hook-form";
-import { arktypeResolver } from '@hookform/resolvers/arktype';
+import { arktypeResolver } from "@hookform/resolvers/arktype";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { logger } from "@/lib/logger";
 import { transactionService } from "@/features/transactions/services/transaction.service";
@@ -17,22 +17,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsList, TabsTrigger } from "@/core/components/ui/tabs";
 import { X, ArrowDownLeft, ArrowUpRight, Loader2, Info, Lock, Wand2 } from "lucide-react";
 import { RecordUpdateSchema, recordUpdateSchema } from "../services/transaction.types";
-import { Form, FormField, FormItem, FormControl, FormMessage, FormLabel } from "@/core/components/ui/form"
-import { DatetimePicker } from "@/core/components/ui/datetime"
-import { SearchableSelect, SearchableSelectOption } from "@/core/components/ui/search-select"
-import { Root } from "@radix-ui/react-visually-hidden"
-import { useBrandImage } from "@/features/accounts/hooks/useBrand"
-import { config } from "@/lib/env"
-import { Account } from "@/features/accounts/services/account.types"
-import { toast } from "sonner"
-import { RecurringSelect } from "./recurring-select"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/core/components/ui/tooltip"
-import { CreateEditRuleDialog } from "./create-edit-rule-dialog"
+import { Form, FormField, FormItem, FormControl, FormMessage, FormLabel } from "@/core/components/ui/form";
+import { DatetimePicker } from "@/core/components/ui/datetime";
+import { SearchableSelect, SearchableSelectOption } from "@/core/components/ui/search-select";
+import { Root } from "@radix-ui/react-visually-hidden";
+import { useBrandImage } from "@/features/accounts/hooks/useBrand";
+import { config } from "@/lib/env";
+import { Account } from "@/features/accounts/services/account.types";
+import { toast } from "sonner";
+import { RecurringSelect } from "./recurring-select";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/core/components/ui/tooltip";
+import { CreateEditRuleDialog } from "./create-edit-rule-dialog";
 
 interface EditTransactionSheetProps {
   isOpen: boolean;
@@ -396,7 +391,11 @@ export default function EditTransactionSheet({ isOpen, onClose, transactionId }:
                             <SelectValue placeholder="Select an account" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>{accounts?.map((account) => <AccountOption key={account.id} account={account} />)}</SelectContent>
+                        <SelectContent>
+                          {accounts?.map((account) => (
+                            <AccountOption key={account.id} account={account} />
+                          ))}
+                        </SelectContent>
                       </Select>
                       <FormMessage />
                     </FormItem>
@@ -437,9 +436,7 @@ export default function EditTransactionSheet({ isOpen, onClose, transactionId }:
               {/* Recurring Transaction Option - Only show for non-synced transactions */}
               {!isSyncedTransaction && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">
-                    Recurrence
-                  </label>
+                  <label className="text-sm font-medium">Recurrence</label>
                   <RecurringSelect
                     value={recurringType}
                     onChange={setRecurringType}
@@ -450,29 +447,27 @@ export default function EditTransactionSheet({ isOpen, onClose, transactionId }:
                   />
                 </div>
               )}
-            </TooltipProvider >
-          </form >
-        </Form >
+            </TooltipProvider>
+          </form>
+        </Form>
 
         {/* Create Rule Dialog */}
-        {
-          transaction && (
-            <CreateEditRuleDialog
-              open={showCreateRuleDialog}
-              onOpenChange={setShowCreateRuleDialog}
-              rule={null}
-              prefillData={{
-                description: transaction.description,
-                amount: transaction.amount,
-                account_id: transaction.account_id?.toString(),
-                category_id: transaction.category_id || undefined,
-              }}
-            />
-          )
-        }
-      </SheetContent >
-    </Sheet >
-  )
+        {transaction && (
+          <CreateEditRuleDialog
+            open={showCreateRuleDialog}
+            onOpenChange={setShowCreateRuleDialog}
+            rule={null}
+            prefillData={{
+              description: transaction.description,
+              amount: transaction.amount,
+              account_id: transaction.account_id?.toString(),
+              category_id: transaction.category_id || undefined,
+            }}
+          />
+        )}
+      </SheetContent>
+    </Sheet>
+  );
 }
 
 const AccountOption = memo(({ account }: { account: Account }) => {

@@ -19,19 +19,10 @@ export interface MonthlyIncomeExpense {
   expense: number;
 }
 
-const CHART_COLORS = [
-  "var(--chart-1)",
-  "var(--chart-2)",
-  "var(--chart-3)",
-  "var(--chart-4)",
-  "var(--chart-5)",
-  "var(--chart-6)",
-];
+const CHART_COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)", "var(--chart-6)"];
 
 export function createAnalyticsService() {
-  const getMonthlySpendingByCategory = async (
-    monthsBack: number = 6
-  ): Promise<Result<MonthlySpendingByCategory[], ServiceError>> => {
+  const getMonthlySpendingByCategory = async (monthsBack: number = 6): Promise<Result<MonthlySpendingByCategory[], ServiceError>> => {
     const endDate = endOfMonth(new Date());
     const startDate = startOfMonth(subMonths(endDate, monthsBack - 1));
 
@@ -74,9 +65,7 @@ export function createAnalyticsService() {
     return ok(result);
   };
 
-  const getCategoryBreakdown = async (
-    monthsBack: number = 1
-  ): Promise<Result<CategoryTotal[], ServiceError>> => {
+  const getCategoryBreakdown = async (monthsBack: number = 1): Promise<Result<CategoryTotal[], ServiceError>> => {
     const endDate = endOfMonth(new Date());
     const startDate = startOfMonth(subMonths(endDate, monthsBack - 1));
 
@@ -114,9 +103,7 @@ export function createAnalyticsService() {
     return ok(result);
   };
 
-  const getMonthlyIncomeExpense = async (
-    monthsBack: number = 6
-  ): Promise<Result<MonthlyIncomeExpense[], ServiceError>> => {
+  const getMonthlyIncomeExpense = async (monthsBack: number = 6): Promise<Result<MonthlyIncomeExpense[], ServiceError>> => {
     const endDate = endOfMonth(new Date());
     const startDate = startOfMonth(subMonths(endDate, monthsBack - 1));
 

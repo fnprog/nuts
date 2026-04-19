@@ -180,11 +180,7 @@ export const statusColors = {
 } as const;
 
 // Frequency description helpers
-export const getFrequencyDescription = (
-  frequency: string,
-  interval: number,
-  frequencyData?: FrequencyData
-): string => {
+export const getFrequencyDescription = (frequency: string, interval: number, frequencyData?: FrequencyData): string => {
   switch (frequency) {
     case "daily":
       return interval === 1 ? "Daily" : `Every ${interval} days`;

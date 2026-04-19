@@ -24,14 +24,7 @@ import { parseApiError } from "@/lib/error";
 
 import { H1, Muted } from "@/core/components/ui/typography";
 
-import {
-  Field,
-  FieldGroup,
-  FieldError,
-  FieldLabel,
-  FieldDescription,
-  FieldSet,
-} from "@/core/components/ui/field"
+import { Field, FieldGroup, FieldError, FieldLabel, FieldDescription, FieldSet } from "@/core/components/ui/field";
 
 const searchSchema = type({
   "redirect?": "string",
@@ -149,23 +142,13 @@ function RouteComponent() {
             <FieldSet>
               <FieldGroup>
                 <Field>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full gap-3"
-                    asChild
-                  >
+                  <Button type="button" variant="outline" className="w-full gap-3" asChild>
                     <a href={`${config.VITE_API_BASE_URL}/auth/oauth/apple`}>
                       <Apple className="size-5" fill="#000" />
                       <span>Login with Apple</span>
                     </a>
                   </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full  gap-3 "
-                    asChild
-                  >
+                  <Button type="button" variant="outline" className="w-full gap-3" asChild>
                     <a href={`${config.VITE_API_BASE_URL}/auth/oauth/google`}>
                       <Google className="size-5" />
                       <span>Login with Google</span>
@@ -174,52 +157,38 @@ function RouteComponent() {
                 </Field>
               </FieldGroup>
 
-              <div className="relative ">
+              <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <Separator className="w-full" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <Muted className="bg-white px-4 ">or</Muted>
+                  <Muted className="bg-white px-4">or</Muted>
                 </div>
               </div>
 
               <FieldGroup className="gap-3">
-
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} >
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
                   <Field>
-                    <FieldLabel className="sr-only hidden" htmlFor="username">Username</FieldLabel>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="Email"
-                      disabled={isMigrating || isSubmitting}
-                      {...form.register("email")}
-                    />
+                    <FieldLabel className="sr-only hidden" htmlFor="username">
+                      Username
+                    </FieldLabel>
+                    <Input id="email" type="email" placeholder="Email" disabled={isMigrating || isSubmitting} {...form.register("email")} />
                     {form.formState.errors.email && <FieldError>{form.formState.errors.email.message}</FieldError>}
                   </Field>
                 </motion.div>
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} >
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
                   <Field>
-                    <FieldLabel className="sr-only hidden" htmlFor="password">Password</FieldLabel>
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="Password"
-                      disabled={isMigrating || isSubmitting}
-                      {...form.register("password")}
-                    />
+                    <FieldLabel className="sr-only hidden" htmlFor="password">
+                      Password
+                    </FieldLabel>
+                    <Input id="password" type="password" placeholder="Password" disabled={isMigrating || isSubmitting} {...form.register("password")} />
                     {form.formState.errors.password && <FieldError>{form.formState.errors.password.message}</FieldError>}
                   </Field>
                 </motion.div>
 
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
                   <Field>
-                    <Button
-                      type="submit"
-                      variant="mono"
-                      className="w-full"
-                      disabled={isSubmitting || isMigrating}
-                    >
+                    <Button type="submit" variant="mono" className="w-full" disabled={isSubmitting || isMigrating}>
                       {isMigrating ? "Migrating data..." : isSubmitting ? "Creating account..." : "Create account"}
                     </Button>
                   </Field>
@@ -227,7 +196,7 @@ function RouteComponent() {
 
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="pt-4 text-center">
                   <Field>
-                    <FieldDescription >
+                    <FieldDescription>
                       {"Already have an account? "}
                       <Link to="/login" className="font-medium text-black hover:underline">
                         Login
@@ -237,7 +206,7 @@ function RouteComponent() {
                 </motion.div>
               </FieldGroup>
             </FieldSet>
-          </FieldGroup >
+          </FieldGroup>
         </form>
       </main>
     </motion.div>

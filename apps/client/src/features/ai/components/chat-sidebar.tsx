@@ -1,12 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { X, MessageSquare, Sparkles, Send } from "lucide-react";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarHeader,
-  SidebarFooter,
-  SidebarProvider,
-} from "@/core/components/ui/sidebar";
+import { Sidebar, SidebarContent, SidebarHeader, SidebarFooter, SidebarProvider } from "@/core/components/ui/sidebar";
 import { Button } from "@/core/components/ui/button";
 import { ScrollArea } from "@/core/components/ui/scroll-area";
 import { Textarea } from "@/core/components/ui/textarea";
@@ -46,11 +40,9 @@ function ChatInput({ onSend, disabled }: { onSend: (message: string) => void; di
         disabled={disabled}
       />
       <div className="flex items-center justify-between">
-        <p className="text-muted-foreground text-xs">
-          Press {navigator.platform.includes("Mac") ? "⌘" : "Ctrl"} + Enter to send
-        </p>
+        <p className="text-muted-foreground text-xs">Press {navigator.platform.includes("Mac") ? "⌘" : "Ctrl"} + Enter to send</p>
         <Button type="submit" size="sm" disabled={!input.trim() || disabled}>
-          <Send className="h-4 w-4 mr-2" />
+          <Send className="mr-2 h-4 w-4" />
           Send
         </Button>
       </div>
@@ -99,7 +91,8 @@ function ChatSidebarContent({ onClose }: { onClose: () => void }) {
       const welcomeMessage: Message = {
         id: "welcome",
         role: "assistant",
-        content: "Hello! 👋 I'm your financial assistant. I can help you with:\n\n- **Analyzing** your spending patterns\n- **Categorizing** transactions\n- **Planning** budgets and recommendations\n- **Providing** financial insights and trends\n- **Answering** questions about your finances\n\nHow can I assist you today?",
+        content:
+          "Hello! 👋 I'm your financial assistant. I can help you with:\n\n- **Analyzing** your spending patterns\n- **Categorizing** transactions\n- **Planning** budgets and recommendations\n- **Providing** financial insights and trends\n- **Answering** questions about your finances\n\nHow can I assist you today?",
         timestamp: new Date(),
       };
       setMessages([welcomeMessage]);
@@ -111,21 +104,15 @@ function ChatSidebarContent({ onClose }: { onClose: () => void }) {
       <SidebarHeader className="border-b">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-              <Sparkles className="h-4 w-4 text-primary" />
+            <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg">
+              <Sparkles className="text-primary h-4 w-4" />
             </div>
             <div>
-              <h2 className="font-semibold text-sm">AI Assistant</h2>
+              <h2 className="text-sm font-semibold">AI Assistant</h2>
               <p className="text-muted-foreground text-xs">Your financial copilot</p>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            className="h-8 w-8"
-            aria-label="Close chat sidebar"
-          >
+          <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8" aria-label="Close chat sidebar">
             <X className="h-4 w-4" />
           </Button>
         </div>
@@ -165,11 +152,7 @@ export function ChatSidebar({ open, onOpenChange }: ChatSidebarProps) {
           side="right"
           variant="floating"
           collapsible="offcanvas"
-          className={cn(
-            "border-l",
-            "data-[state=collapsed]:translate-x-full",
-            "transition-transform duration-300 ease-in-out"
-          )}
+          className={cn("border-l", "data-[state=collapsed]:translate-x-full", "transition-transform duration-300 ease-in-out")}
         >
           <ChatSidebarContent onClose={() => onOpenChange(false)} />
         </Sidebar>
@@ -180,13 +163,7 @@ export function ChatSidebar({ open, onOpenChange }: ChatSidebarProps) {
 
 export function ChatSidebarTrigger({ onClick }: { onClick: () => void }) {
   return (
-    <Button
-      variant="outline"
-      size="icon"
-      onClick={onClick}
-      className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-lg"
-      aria-label="Open AI chat"
-    >
+    <Button variant="outline" size="icon" onClick={onClick} className="fixed right-6 bottom-6 z-50 h-14 w-14 rounded-full shadow-lg" aria-label="Open AI chat">
       <MessageSquare className="h-6 w-6" />
     </Button>
   );

@@ -45,23 +45,19 @@ export const useOnboardingStore = create<OnboardingState>()(
 
         setName: (name) => set({ name }),
 
-        setLanguage: (language) => set({ language }, false, 'onboarding/setLanguage'),
+        setLanguage: (language) => set({ language }, false, "onboarding/setLanguage"),
 
-        setCurrency: (currency) => set({ currency }, false, 'onboarding/setCurrency'),
+        setCurrency: (currency) => set({ currency }, false, "onboarding/setCurrency"),
 
         setBetterFinance: (wantsBetterFinance) => set({ wantsBetterFinance }),
 
-        setGoals: (selectedGoals) =>
-          set({ selectedGoals }, false, 'onboarding/setGoals'),
+        setGoals: (selectedGoals) => set({ selectedGoals }, false, "onboarding/setGoals"),
 
-        setComplexFinance: (feelsComplexFinance) =>
-          set({ feelsComplexFinance }, false, 'onboarding/setComplexFinance'),
+        setComplexFinance: (feelsComplexFinance) => set({ feelsComplexFinance }, false, "onboarding/setComplexFinance"),
 
-        completeOnboarding: () =>
-          set({ isCompleted: true }, false, 'onboarding/complete'),
+        completeOnboarding: () => set({ isCompleted: true }, false, "onboarding/complete"),
 
-        resetOnboarding: () =>
-          set({ ...initialState }, false, 'onboarding/reset'),
+        resetOnboarding: () => set({ ...initialState }, false, "onboarding/reset"),
       }),
       {
         name: "onboarding-storage",

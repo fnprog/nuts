@@ -30,22 +30,22 @@ import { useMono } from "../hooks/useMono";
 import { config } from "@/lib/env";
 import { accountService } from "../services/account";
 
-export function AddAccountModal({ 
-  children, 
-  onClose, 
-  onAddAccount, 
-  open: controlledOpen, 
-  onOpenChange 
-}: { 
-  children: React.ReactNode; 
-  onClose?: () => void; 
+export function AddAccountModal({
+  children,
+  onClose,
+  onAddAccount,
+  open: controlledOpen,
+  onOpenChange,
+}: {
+  children: React.ReactNode;
+  onClose?: () => void;
   onAddAccount: AccountSubmit;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }) {
   const [activeTab, setActiveTab] = useState("manual");
   const [internalOpen, setInternalOpen] = useState(false);
-  
+
   const modalOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setModalOpen = onOpenChange !== undefined ? onOpenChange : setInternalOpen;
   const [balanceInputPaddingLeft, setBalanceInputPaddingLeft] = useState<string | number>("2.5rem"); // Default to pl-10 (2.5rem)
@@ -70,9 +70,9 @@ export function AddAccountModal({
   const authStore = useAuthStore();
   const monoCustomer = authStore.user
     ? {
-      name: authStore.user.name || undefined,
-      email: authStore.user.email,
-    }
+        name: authStore.user.name || undefined,
+        email: authStore.user.email,
+      }
     : undefined;
 
   const { openMono, context, isMonoReady } = useMono({

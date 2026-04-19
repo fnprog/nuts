@@ -1,45 +1,13 @@
-
-import {
-  Check,
-  Globe,
-  Lightbulb,
-  Mic,
-  MoreHorizontal,
-  Paperclip,
-  Plus,
-  Send,
-  X,
-} from "lucide-react";
+import { Check, Globe, Lightbulb, Mic, MoreHorizontal, Paperclip, Plus, Send, X } from "lucide-react";
 import { useCallback, useState } from "react";
 import { Button } from "@/core/components/ui/button";
 import { Card, CardContent } from "@/core/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/core/components/ui/dropdown-menu";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/core/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/core/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/core/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/core/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/components/ui/select";
 import { Textarea } from "@/core/components/ui/textarea";
 import { Toggle } from "@/core/components/ui/toggle";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/core/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/core/components/ui/tooltip";
 
 const mockUsers = [
   {
@@ -100,7 +68,7 @@ interface ContextBadgeProps {
 function ContextBadge({ label, icon, avatar, onRemove }: ContextBadgeProps) {
   return (
     <span
-      className="inline-flex items-center gap-1 rounded-xl border bg-secondary p-0.5 font-medium text-muted-foreground text-xs"
+      className="bg-secondary text-muted-foreground inline-flex items-center gap-1 rounded-xl border p-0.5 text-xs font-medium"
       style={{ whiteSpace: "nowrap", flex: "0 0 auto" }}
     >
       {icon && (
@@ -124,26 +92,18 @@ function ContextBadge({ label, icon, avatar, onRemove }: ContextBadgeProps) {
       )}
       {avatar && (
         <span className="relative inline-block h-4 w-4">
-          <Image
-            alt={label}
-            className="rounded-full"
-            fill
-            priority
-            sizes="16px"
-            src={avatar}
-            style={{ objectFit: "cover" }}
-          />
+          <Image alt={label} className="rounded-full" fill priority sizes="16px" src={avatar} style={{ objectFit: "cover" }} />
         </span>
       )}
       {label}
       <button
         aria-label={`Remove ${label}`}
-        className="rounded-full p-0.5 hover:bg-muted-foreground/10 focus:outline-none focus:ring-1 focus:ring-muted-foreground"
+        className="hover:bg-muted-foreground/10 focus:ring-muted-foreground rounded-full p-0.5 focus:ring-1 focus:outline-none"
         onClick={onRemove}
         tabIndex={0}
         type="button"
       >
-        <X className="h-3 w-3 text-muted-foreground/60" />
+        <X className="text-muted-foreground/60 h-3 w-3" />
       </button>
     </span>
   );
@@ -158,20 +118,13 @@ interface ContextPopoverProps {
   onPageToggle: (pageId: string) => void;
 }
 
-function ContextPopover({
-  open,
-  onOpenChange,
-  selectedUsers,
-  selectedPages,
-  onUserToggle,
-  onPageToggle,
-}: ContextPopoverProps) {
+function ContextPopover({ open, onOpenChange, selectedUsers, selectedPages, onUserToggle, onPageToggle }: ContextPopoverProps) {
   return (
     <Popover onOpenChange={onOpenChange} open={open}>
       <PopoverTrigger asChild>
         <button
           aria-label="Add context"
-          className="inline-flex items-center gap-1 rounded-xl border bg-secondary px-2 py-0.5 font-medium text-muted-foreground text-xs transition"
+          className="bg-secondary text-muted-foreground inline-flex items-center gap-1 rounded-xl border px-2 py-0.5 text-xs font-medium transition"
           style={{
             whiteSpace: "nowrap",
             flex: "0 0 auto",
@@ -181,26 +134,23 @@ function ContextPopover({
           }}
           type="button"
         >
-          <Plus className="h-3 w-3 text-muted-foreground" />
+          <Plus className="text-muted-foreground h-3 w-3" />
           <span>Add context</span>
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="z-30 w-max p-2">
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-1">
-            <div className="px-1 font-semibold text-muted-foreground text-xs uppercase tracking-wide">
-              Pages
-            </div>
+            <div className="text-muted-foreground px-1 text-xs font-semibold tracking-wide uppercase">Pages</div>
             <div className="flex flex-col gap-1">
               {mockPages.map((page) => {
                 const isSelected = selectedPages.includes(page.id);
                 return (
                   <button
                     aria-pressed={isSelected}
-                    className={`inline-flex items-center justify-start gap-1 rounded-xl border px-2 py-0.5 font-medium text-xs transition ${isSelected
-                      ? "bg-secondary text-muted-foreground"
-                      : "border-transparent bg-background text-foreground"
-                      }`}
+                    className={`inline-flex items-center justify-start gap-1 rounded-xl border px-2 py-0.5 text-xs font-medium transition ${
+                      isSelected ? "bg-secondary text-muted-foreground" : "bg-background text-foreground border-transparent"
+                    }`}
                     key={page.id}
                     onClick={() => onPageToggle(page.id)}
                     style={{ fontWeight: 400, whiteSpace: "nowrap" }}
@@ -213,32 +163,24 @@ function ContextPopover({
             </div>
           </div>
           <div className="flex flex-col gap-1">
-            <div className="px-1 font-semibold text-muted-foreground text-xs uppercase tracking-wide">
-              Users
-            </div>
+            <div className="text-muted-foreground px-1 text-xs font-semibold tracking-wide uppercase">Users</div>
             <div className="flex flex-col gap-1">
               {mockUsers.map((user) => {
                 const isSelected = selectedUsers.includes(user.id);
                 return (
                   <button
                     aria-pressed={isSelected}
-                    className={`inline-flex items-center justify-start gap-1 rounded-xl border p-0.5 font-medium text-xs transition ${isSelected
-                      ? "bg-secondary text-muted-foreground"
-                      : "border-transparent bg-background text-foreground hover:bg-accent hover:text-accent-foreground"
-                      }`}
+                    className={`inline-flex items-center justify-start gap-1 rounded-xl border p-0.5 text-xs font-medium transition ${
+                      isSelected
+                        ? "bg-secondary text-muted-foreground"
+                        : "bg-background text-foreground hover:bg-accent hover:text-accent-foreground border-transparent"
+                    }`}
                     key={user.id}
                     onClick={() => onUserToggle(user.id)}
                     style={{ fontWeight: 400, whiteSpace: "nowrap" }}
                     type="button"
                   >
-                    <Image
-                      alt={user.name}
-                      className="h-4 w-4 rounded-full"
-                      height={16}
-                      src={user.avatar}
-                      style={{ display: "inline-block" }}
-                      width={16}
-                    />
+                    <Image alt={user.name} className="h-4 w-4 rounded-full" height={16} src={user.avatar} style={{ display: "inline-block" }} width={16} />
                     {user.name}
                   </button>
                 );
@@ -260,17 +202,9 @@ interface ContextSelectorProps {
   onRemovePage: (pageId: string) => void;
 }
 
-function ContextSelector({
-  selectedUsers,
-  selectedPages,
-  onUserToggle,
-  onPageToggle,
-  onRemoveUser,
-  onRemovePage,
-}: ContextSelectorProps) {
+function ContextSelector({ selectedUsers, selectedPages, onUserToggle, onPageToggle, onRemoveUser, onRemovePage }: ContextSelectorProps) {
   const [popoverOpen, setPopoverOpen] = useState(false);
-  const hasSelectedContext =
-    selectedPages.length > 0 || selectedUsers.length > 0;
+  const hasSelectedContext = selectedPages.length > 0 || selectedUsers.length > 0;
 
   return (
     <div className="flex w-full flex-col gap-2">
@@ -304,26 +238,12 @@ function ContextSelector({
           {selectedPages.map((id) => {
             const page = mockPages.find((p) => p.id === id);
             if (!page) return null;
-            return (
-              <ContextBadge
-                icon={page.icon}
-                key={`page-${id}`}
-                label={page.name}
-                onRemove={() => onRemovePage(id)}
-              />
-            );
+            return <ContextBadge icon={page.icon} key={`page-${id}`} label={page.name} onRemove={() => onRemovePage(id)} />;
           })}
           {selectedUsers.map((id) => {
             const user = mockUsers.find((u) => u.id === id);
             if (!user) return null;
-            return (
-              <ContextBadge
-                avatar={user.avatar}
-                key={`user-${id}`}
-                label={user.name}
-                onRemove={() => onRemoveUser(id)}
-              />
-            );
+            return <ContextBadge avatar={user.avatar} key={`user-${id}`} label={user.name} onRemove={() => onRemoveUser(id)} />;
           })}
         </div>
       </div>
@@ -341,26 +261,12 @@ function ContextSelector({
           {selectedPages.map((id) => {
             const page = mockPages.find((p) => p.id === id);
             if (!page) return null;
-            return (
-              <ContextBadge
-                icon={page.icon}
-                key={`page-${id}`}
-                label={page.name}
-                onRemove={() => onRemovePage(id)}
-              />
-            );
+            return <ContextBadge icon={page.icon} key={`page-${id}`} label={page.name} onRemove={() => onRemovePage(id)} />;
           })}
           {selectedUsers.map((id) => {
             const user = mockUsers.find((u) => u.id === id);
             if (!user) return null;
-            return (
-              <ContextBadge
-                avatar={user.avatar}
-                key={`user-${id}`}
-                label={user.name}
-                onRemove={() => onRemoveUser(id)}
-              />
-            );
+            return <ContextBadge avatar={user.avatar} key={`user-${id}`} label={user.name} onRemove={() => onRemoveUser(id)} />;
           })}
         </div>
       )}
@@ -419,23 +325,13 @@ interface LeftActionButtonsProps {
   onThinkingToggle: (enabled: boolean) => void;
 }
 
-function LeftActionButtons({
-  webSearchEnabled,
-  thinkingEnabled,
-  onWebSearchToggle,
-  onThinkingToggle,
-}: LeftActionButtonsProps) {
+function LeftActionButtons({ webSearchEnabled, thinkingEnabled, onWebSearchToggle, onThinkingToggle }: LeftActionButtonsProps) {
   return (
     <>
       <div className="hidden items-center justify-center gap-1 sm:flex">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button
-              aria-label="Attach file"
-              size="icon"
-              type="button"
-              variant="ghost"
-            >
+            <Button aria-label="Attach file" size="icon" type="button" variant="ghost">
               <Paperclip />
             </Button>
           </TooltipTrigger>
@@ -454,9 +350,7 @@ function LeftActionButtons({
               <Lightbulb />
             </Toggle>
           </TooltipTrigger>
-          <TooltipContent side="top">
-            {thinkingEnabled ? "Disable Thinking" : "Enable Thinking"}
-          </TooltipContent>
+          <TooltipContent side="top">{thinkingEnabled ? "Disable Thinking" : "Enable Thinking"}</TooltipContent>
         </Tooltip>
 
         <Tooltip>
@@ -473,10 +367,9 @@ function LeftActionButtons({
                 <Globe />
               </span>
               <span
-                className={`absolute left-8 whitespace-nowrap font-medium text-sm transition-all duration-200 ${webSearchEnabled
-                  ? "visible left-9 ml-2 opacity-100"
-                  : "invisible left-4 opacity-0"
-                  }`}
+                className={`absolute left-8 text-sm font-medium whitespace-nowrap transition-all duration-200 ${
+                  webSearchEnabled ? "visible left-9 ml-2 opacity-100" : "invisible left-4 opacity-0"
+                }`}
                 style={{
                   width: webSearchEnabled ? "auto" : 0,
                   pointerEvents: webSearchEnabled ? "auto" : "none",
@@ -486,26 +379,18 @@ function LeftActionButtons({
               </span>
             </Toggle>
           </TooltipTrigger>
-          <TooltipContent side="top">
-            {webSearchEnabled ? "Disable web search" : "Enable web search"}
-          </TooltipContent>
+          <TooltipContent side="top">{webSearchEnabled ? "Disable web search" : "Enable web search"}</TooltipContent>
         </Tooltip>
       </div>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button
-            aria-label="More options"
-            className="sm:hidden"
-            size="icon"
-            type="button"
-            variant="ghost"
-          >
+          <Button aria-label="More options" className="sm:hidden" size="icon" type="button" variant="ghost">
             <MoreHorizontal />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
-          <DropdownMenuItem onClick={() => { }}>
+          <DropdownMenuItem onClick={() => {}}>
             <Paperclip className="size-4" />
             <span>Attach file</span>
           </DropdownMenuItem>
@@ -515,9 +400,7 @@ function LeftActionButtons({
             <span>Thinking</span>
             {thinkingEnabled && <Check className="ml-auto size-4" />}
           </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => onWebSearchToggle(!webSearchEnabled)}
-          >
+          <DropdownMenuItem onClick={() => onWebSearchToggle(!webSearchEnabled)}>
             <Globe className="size-4" />
             <span>Web search</span>
             {webSearchEnabled && <Check className="ml-auto size-4" />}
@@ -538,17 +421,11 @@ function RightActionButtons({ input }: RightActionButtonsProps) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Button
-          aria-label={hasInput ? "Send message" : "Start voice input"}
-          size="icon"
-          type={hasInput ? "submit" : "button"}
-        >
+        <Button aria-label={hasInput ? "Send message" : "Start voice input"} size="icon" type={hasInput ? "submit" : "button"}>
           {hasInput ? <Send /> : <Mic />}
         </Button>
       </TooltipTrigger>
-      <TooltipContent side="top">
-        {hasInput ? "Send message" : "Start voice input"}
-      </TooltipContent>
+      <TooltipContent side="top">{hasInput ? "Send message" : "Start voice input"}</TooltipContent>
     </Tooltip>
   );
 }
@@ -564,22 +441,14 @@ export default function AIPromptInput() {
   const [selectedPages, setSelectedPages] = useState<string[]>([]);
 
   const handleUserToggle = (userId: string) => {
-    setSelectedUsers((prev) =>
-      prev.includes(userId)
-        ? prev.filter((id) => id !== userId)
-        : [...prev, userId]
-    );
+    setSelectedUsers((prev) => (prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]));
     if (!contextOptions.includes("users")) {
       setContextOptions((prev) => [...prev, "users"]);
     }
   };
 
   const handlePageToggle = (pageId: string) => {
-    setSelectedPages((prev) =>
-      prev.includes(pageId)
-        ? prev.filter((id) => id !== pageId)
-        : [...prev, pageId]
-    );
+    setSelectedPages((prev) => (prev.includes(pageId) ? prev.filter((id) => id !== pageId) : [...prev, pageId]));
     if (!contextOptions.includes("pages")) {
       setContextOptions((prev) => [...prev, "pages"]);
     }
@@ -609,16 +478,7 @@ export default function AIPromptInput() {
       });
       setInput("");
     },
-    [
-      input,
-      model,
-      agentMode,
-      contextOptions,
-      webSearchEnabled,
-      thinkingEnabled,
-      selectedUsers,
-      selectedPages,
-    ]
+    [input, model, agentMode, contextOptions, webSearchEnabled, thinkingEnabled, selectedUsers, selectedPages]
   );
 
   return (
@@ -626,11 +486,7 @@ export default function AIPromptInput() {
       <div className="flex w-full flex-col items-center gap-2">
         <Card className="w-full p-0 shadow-xs">
           <CardContent className="p-0">
-            <form
-              aria-label="AI chat input"
-              className="flex flex-col gap-3"
-              onSubmit={handleSubmit}
-            >
+            <form aria-label="AI chat input" className="flex flex-col gap-3" onSubmit={handleSubmit}>
               <div className="flex w-full items-start justify-between p-4 pb-0">
                 <ContextSelector
                   onPageToggle={handlePageToggle}
@@ -664,10 +520,7 @@ export default function AIPromptInput() {
                     webSearchEnabled={webSearchEnabled}
                   />
                   <div className="hidden sm:block">
-                    <AgentModeSelect
-                      onValueChange={setAgentMode}
-                      value={agentMode}
-                    />
+                    <AgentModeSelect onValueChange={setAgentMode} value={agentMode} />
                   </div>
                 </div>
                 <RightActionButtons input={input} />

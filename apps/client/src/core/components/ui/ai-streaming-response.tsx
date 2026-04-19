@@ -1,4 +1,3 @@
-
 import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import AIMessage from "./ai-message";
@@ -26,11 +25,7 @@ function useTokens(content: string): string[] {
   return tokens;
 }
 
-function useStreaming(
-  tokens: string[],
-  autoStart: boolean,
-  onComplete?: () => void
-) {
+function useStreaming(tokens: string[], autoStart: boolean, onComplete?: () => void) {
   const [displayedTokens, setDisplayedTokens] = useState<string[]>([]);
   const [isPaused, setIsPaused] = useState(!autoStart);
   const [isComplete, setIsComplete] = useState(false);
@@ -78,26 +73,16 @@ function useStreaming(
 
       let delay = STREAMING_CONFIG.TOKEN_DELAY;
 
-      if (
-        trimmedToken.endsWith(".") ||
-        trimmedToken.endsWith("!") ||
-        trimmedToken.endsWith("?")
-      ) {
+      if (trimmedToken.endsWith(".") || trimmedToken.endsWith("!") || trimmedToken.endsWith("?")) {
         delay += STREAMING_CONFIG.PAUSE_AFTER_PERIOD;
-      } else if (
-        trimmedToken.endsWith(",") ||
-        trimmedToken.endsWith(";") ||
-        trimmedToken.endsWith(":")
-      ) {
+      } else if (trimmedToken.endsWith(",") || trimmedToken.endsWith(";") || trimmedToken.endsWith(":")) {
         delay += STREAMING_CONFIG.PAUSE_AFTER_COMMA;
       } else if (token.includes("\n\n")) {
         delay += STREAMING_CONFIG.PAUSE_AFTER_PARAGRAPH;
       }
 
       if (typeof window !== "undefined") {
-        const prefersReducedMotion = window.matchMedia(
-          "(prefers-reduced-motion: reduce)"
-        ).matches;
+        const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
         if (prefersReducedMotion) {
           const remainingTokens = tokens.slice(currentIndexRef.current);
@@ -143,33 +128,14 @@ function useStreaming(
   };
 }
 
-export default function AIStreamingResponse({
-  content,
-  onComplete,
-  autoStart = true,
-  className,
-}: AIStreamingResponseProps) {
+export default function AIStreamingResponse({ content, onComplete, autoStart = true, className }: AIStreamingResponseProps) {
   const tokens = useTokens(content);
-  const { displayedText, isPaused, isComplete } = useStreaming(
-    tokens,
-    autoStart,
-    onComplete
-  );
+  const { displayedText, isPaused, isComplete } = useStreaming(tokens, autoStart, onComplete);
 
   return (
     <div className={cn("relative", className)}>
-      <AIMessage
-        className="shadow-none"
-        content={displayedText}
-        isStreaming={false}
-        skipCodeHighlighting={!isComplete}
-      />
-      {!(isComplete || isPaused) && (
-        <span
-          aria-hidden="true"
-          className="inline-block h-4 w-0.5 bg-foreground motion-safe:animate-pulse"
-        />
-      )}
+      <AIMessage className="shadow-none" content={displayedText} isStreaming={false} skipCodeHighlighting={!isComplete} />
+      {!(isComplete || isPaused) && <span aria-hidden="true" className="bg-foreground inline-block h-4 w-0.5 motion-safe:animate-pulse" />}
     </div>
   );
 }

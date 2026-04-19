@@ -138,13 +138,7 @@ function createPreferencesService() {
 
       return ok(undefined);
     } catch (error) {
-      return err(
-        ServiceError.internal(
-          "preferences-init",
-          error instanceof Error ? error.message : "Failed to initialize preferences service",
-          error
-        )
-      );
+      return err(ServiceError.internal("preferences-init", error instanceof Error ? error.message : "Failed to initialize preferences service", error));
     }
   };
 

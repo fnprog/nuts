@@ -154,7 +154,7 @@ export class DatabaseClient {
       const currencies = CURRENCIES.map(({ code, name }) => ({
         code,
         name,
-      }))
+      }));
 
       if (count === 0) {
         for (const currency of currencies) {

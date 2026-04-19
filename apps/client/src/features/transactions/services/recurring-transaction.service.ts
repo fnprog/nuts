@@ -18,7 +18,7 @@ export const recurringTransactionService = {
   async create(data: RecurringTransactionCreate): Promise<Result<RecurringTransaction, ServiceError>> {
     const id = crypto.randomUUID();
     const now = new Date().toISOString();
-    
+
     const recurringTransaction: RecurringTransaction = {
       id,
       user_id: "",
@@ -73,9 +73,7 @@ export const recurringTransactionService = {
       }
 
       if (filters?.end_date) {
-        filtered = filtered.filter((rt) => 
-          !rt.end_date || new Date(rt.end_date) <= filters.end_date!
-        );
+        filtered = filtered.filter((rt) => !rt.end_date || new Date(rt.end_date) <= filters.end_date!);
       }
 
       return ok(filtered.filter((rt) => !rt.deleted_at));
@@ -108,7 +106,7 @@ export const recurringTransactionService = {
     const result = await this.getById(id);
     if (result.isErr()) return err(result.error);
     if (!result.value) return err(ServiceError.notFound("recurring-transaction", id));
-    
+
     return ok(result.value);
   },
 
@@ -124,7 +122,7 @@ export const recurringTransactionService = {
     try {
       const recurringTransactions = crdtService.getRecurringTransactions();
       const all = Object.values(recurringTransactions).filter((rt: any) => !rt.deleted_at);
-      
+
       const active = all.filter((rt: any) => !rt.is_paused);
       const paused = all.filter((rt: any) => rt.is_paused);
       const due = active.filter((rt: any) => {
@@ -147,19 +145,12 @@ export const recurringTransactionService = {
   async getInstances(request: RecurringInstancesRequest): Promise<Result<RecurringInstancesResponse, ServiceError>> {
     try {
       const recurringTransactions = crdtService.getRecurringTransactions();
-      const activeRecurring = Object.values(recurringTransactions).filter(
-        (rt: any) => !rt.deleted_at && !rt.is_paused
-      ) as RecurringTransaction[];
+      const activeRecurring = Object.values(recurringTransactions).filter((rt: any) => !rt.deleted_at && !rt.is_paused) as RecurringTransaction[];
 
       const allInstances: RecurringInstance[] = [];
 
       for (const recurring of activeRecurring) {
-        const instances = generateRecurringInstances(
-          recurring,
-          request.start_date,
-          request.end_date,
-          50
-        );
+        const instances = generateRecurringInstances(recurring, request.start_date, request.end_date, 50);
 
         allInstances.push(...instances);
       }

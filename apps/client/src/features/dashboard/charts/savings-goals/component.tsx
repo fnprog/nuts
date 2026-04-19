@@ -3,13 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import type { DashboardChartComponentProps } from "../types";
 import { config } from "./index";
 
-import {
-  ChartCard,
-  ChartCardHeader,
-  ChartCardTitle,
-  ChartCardContent,
-  ChartCardMenu
-} from '@/features/dashboard/components/chart-card';
+import { ChartCard, ChartCardHeader, ChartCardTitle, ChartCardContent, ChartCardMenu } from "@/features/dashboard/components/chart-card";
 
 import { Chart } from "@/features/dashboard/components/chart-card/chart-renderer";
 import { ChartConfig, ChartTooltip, ChartTooltipContent } from "@/core/components/ui/chart";
@@ -57,22 +51,24 @@ function SavingsGoalsChartComponent({ id, size, isLocked, hasAccounts }: Dashboa
       <ChartCardMenu>
         <div>
           <ChartCardHeader>
-            <div className='flex-1'>
-              <ChartCardTitle className='text-muted-foreground'>{config.title}</ChartCardTitle>
-              <h2 className="text-2xl font-bold mt-1">${totalCurrent.toLocaleString()}</h2>
+            <div className="flex-1">
+              <ChartCardTitle className="text-muted-foreground">{config.title}</ChartCardTitle>
+              <h2 className="mt-1 text-2xl font-bold">${totalCurrent.toLocaleString()}</h2>
             </div>
           </ChartCardHeader>
           <ChartCardContent className="mt-2">
             {chartData ? (
               <Chart size={size} config={chartConfig}>
                 <BarChart data={chartData} layout="vertical" margin={{ top: 0, right: 0, left: 100, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="4 4" horizontal={true} vertical={false} stroke=" color-mix(in oklab, var(--muted-foreground) 50%, transparent)" />
+                  <CartesianGrid
+                    strokeDasharray="4 4"
+                    horizontal={true}
+                    vertical={false}
+                    stroke=" color-mix(in oklab, var(--muted-foreground) 50%, transparent)"
+                  />
                   <XAxis type="number" hide />
                   <YAxis type="category" dataKey="name" width={100} axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#9ca3af" }} />
-                  <ChartTooltip
-                    cursor={{ fill: "rgba(0, 0, 0, 0.05)" }}
-                    content={<ChartTooltipContent />}
-                  />
+                  <ChartTooltip cursor={{ fill: "rgba(0, 0, 0, 0.05)" }} content={<ChartTooltipContent />} />
                   <Bar dataKey="target" name="Target" fill="var(--muted)" radius={[0, 4, 4, 0]} barSize={16} animationDuration={300} />
                   <Bar dataKey="current" name="Current" radius={[0, 4, 4, 0]} barSize={16} animationDuration={300}>
                     {chartData.map((entry, index) => (

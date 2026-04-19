@@ -20,7 +20,7 @@ import { Upload, FileSpreadsheet, AlertCircle, CheckCircle, ArrowRight, ArrowLef
 import { RecordCreateSchema } from "@/features/transactions/services/transaction.types";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
-import { arktypeResolver } from '@hookform/resolvers/arktype';
+import { arktypeResolver } from "@hookform/resolvers/arktype";
 import { type } from "arktype";
 import { transactionService } from "@/features/transactions/services/transaction.service";
 import { categoryService } from "@/features/categories/services/category.service";
@@ -333,12 +333,13 @@ export function ImportTransactionsDialog({ children }: React.PropsWithChildren) 
             {["upload", "mapping", "preview", "importing"].map((s, index) => (
               <div key={s} className="flex items-center">
                 <div
-                  className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${step === s
-                    ? "bg-primary text-primary-foreground"
-                    : ["upload", "mapping", "preview"].indexOf(step) > index
-                      ? "bg-green-500 text-white"
-                      : "bg-muted text-muted-foreground"
-                    } `}
+                  className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${
+                    step === s
+                      ? "bg-primary text-primary-foreground"
+                      : ["upload", "mapping", "preview"].indexOf(step) > index
+                        ? "bg-green-500 text-white"
+                        : "bg-muted text-muted-foreground"
+                  } `}
                 >
                   {index + 1}
                 </div>

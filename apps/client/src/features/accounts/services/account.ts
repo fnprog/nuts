@@ -87,7 +87,7 @@ export function createAccountService() {
         .orderBy("transactions.transaction_datetime", "asc")
         .execute();
 
-      let startBalance = 0;
+      const startBalance = 0;
       let currentBalance = 0;
       const dailyBalances = new Map<string, number>();
 

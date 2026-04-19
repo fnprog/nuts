@@ -35,8 +35,6 @@ import {
   RiQuestionLine,
   RiQuestionFill,
   RiBellLine,
-  RiFolderLine,
-  RiFolderFill,
   RiWifiLine,
   RiWifiOffLine,
   RiRefreshLine,
@@ -78,14 +76,7 @@ import { useLogout } from "@/features/auth/services/auth.mutations";
 import { getAllAccounts } from "@/features/accounts/services/account.queries";
 import { ErrorBoundary, ComponentErrorFallback } from "@/core/components/ui/error-boundary";
 import { useAuthStore } from "@/features/auth/stores/auth.store";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/core/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/core/components/ui/dialog";
 import { useUnreadNotifications } from "@/features/notifications/services/notification.queries";
 import { Badge } from "@/core/components/ui/badge";
 
@@ -129,18 +120,6 @@ const navMain: navStuff[] = [
     icon: RiWalletLine,
     activeIcon: RiWalletFill,
   },
-  {
-    title: "navigation.files",
-    url: "/dashboard/files",
-    icon: RiFolderLine,
-    activeIcon: RiFolderFill,
-  },
-  // {
-  //   title: "navigation.analytics",
-  //   url: "/dashboard/analytics",
-  //   icon: RiBarChartBoxLine,
-  //   activeIcon: RiBarChartBoxFill,
-  // }
 ];
 
 export const Route = createFileRoute("/dashboard")({
@@ -165,8 +144,7 @@ export const Route = createFileRoute("/dashboard")({
       }
     }
 
-
-    const accounts = await queryClient.fetchQuery(getAllAccounts())
+    const accounts = await queryClient.fetchQuery(getAllAccounts());
 
     return {
       hasAccounts: accounts.length > 0,
@@ -185,11 +163,11 @@ function DashboardWrapper() {
     "g+d",
     () => {
       navigate({ to: "/dashboard/home" });
-      const announcement = document.createElement('div');
-      announcement.setAttribute('aria-live', 'polite');
-      announcement.setAttribute('aria-atomic', 'true');
-      announcement.className = 'sr-only';
-      announcement.textContent = 'Navigated to Dashboard';
+      const announcement = document.createElement("div");
+      announcement.setAttribute("aria-live", "polite");
+      announcement.setAttribute("aria-atomic", "true");
+      announcement.className = "sr-only";
+      announcement.textContent = "Navigated to Dashboard";
       document.body.appendChild(announcement);
       setTimeout(() => document.body.removeChild(announcement), 1000);
     },
@@ -200,10 +178,10 @@ function DashboardWrapper() {
     "g+c",
     () => {
       navigate({ to: "/dashboard/accounts" });
-      const announcement = document.createElement('div');
-      announcement.setAttribute('aria-live', 'polite');
-      announcement.className = 'sr-only';
-      announcement.textContent = 'Navigated to Accounts';
+      const announcement = document.createElement("div");
+      announcement.setAttribute("aria-live", "polite");
+      announcement.className = "sr-only";
+      announcement.textContent = "Navigated to Accounts";
       document.body.appendChild(announcement);
       setTimeout(() => document.body.removeChild(announcement), 1000);
     },
@@ -214,10 +192,10 @@ function DashboardWrapper() {
     "g+t",
     () => {
       navigate({ to: "/dashboard/records" });
-      const announcement = document.createElement('div');
-      announcement.setAttribute('aria-live', 'polite');
-      announcement.className = 'sr-only';
-      announcement.textContent = 'Navigated to Transactions';
+      const announcement = document.createElement("div");
+      announcement.setAttribute("aria-live", "polite");
+      announcement.className = "sr-only";
+      announcement.textContent = "Navigated to Transactions";
       document.body.appendChild(announcement);
       setTimeout(() => document.body.removeChild(announcement), 1000);
     },
@@ -236,29 +214,41 @@ function DashboardWrapper() {
     "g+s",
     () => {
       navigate({ to: "/dashboard/settings/profile" });
-      const announcement = document.createElement('div');
-      announcement.setAttribute('aria-live', 'polite');
-      announcement.className = 'sr-only';
-      announcement.textContent = 'Navigated to Settings';
+      const announcement = document.createElement("div");
+      announcement.setAttribute("aria-live", "polite");
+      announcement.className = "sr-only";
+      announcement.textContent = "Navigated to Settings";
       document.body.appendChild(announcement);
       setTimeout(() => document.body.removeChild(announcement), 1000);
     },
     { description: "Navigate to Settings (g+s)" }
   );
 
-  useHotkeys('escape', () => {
-    const mainContent = document.getElementById('main-content');
-    mainContent?.focus();
-  }, { description: "Focus main content (Escape)" });
+  useHotkeys(
+    "escape",
+    () => {
+      const mainContent = document.getElementById("main-content");
+      mainContent?.focus();
+    },
+    { description: "Focus main content (Escape)" }
+  );
 
-  useHotkeys('?', () => {
-    setIsHelpModalOpen(true);
-  }, { description: "Show keyboard shortcuts (?)" });
+  useHotkeys(
+    "?",
+    () => {
+      setIsHelpModalOpen(true);
+    },
+    { description: "Show keyboard shortcuts (?)" }
+  );
 
-  useHotkeys('ctrl+b, meta+b', (e) => {
-    e.preventDefault();
-    setIsChatSidebarOpen(prev => !prev);
-  }, { description: "Toggle AI Chat (Ctrl+B)" });
+  useHotkeys(
+    "ctrl+b, meta+b",
+    (e) => {
+      e.preventDefault();
+      setIsChatSidebarOpen((prev) => !prev);
+    },
+    { description: "Toggle AI Chat (Ctrl+B)" }
+  );
 
   return (
     <SidebarProvider open={isPluginNavOpen}>
@@ -274,31 +264,17 @@ function DashboardWrapper() {
         </ul>
       </div>
 
-      <Sidebar
-        collapsible="icon"
-        className="overflow-hidden [*>]:data-[sidebar=sidebar]:flex-row"
-        role="navigation"
-        aria-label="Main navigation"
-      >
-        <Sidebar
-          collapsible="none"
-          className="w-[calc(var(--sidebar-width-icon)+1px)]! border-r"
-        >
+      <Sidebar collapsible="icon" className="overflow-hidden [*>]:data-[sidebar=sidebar]:flex-row" role="navigation" aria-label="Main navigation">
+        <Sidebar collapsible="none" className="w-[calc(var(--sidebar-width-icon)+1px)]! border-r">
           <SideBarHeader />
           <SidebarContent className="-mt-2">
             <SideBarMainLinks />
-            <SideBarPluginsLinks
-              isPluginNavOpen={isPluginNavOpen}
-              setIsPluginNavOpen={setIsPluginNavOpen}
-            />
+            <SideBarPluginsLinks isPluginNavOpen={isPluginNavOpen} setIsPluginNavOpen={setIsPluginNavOpen} />
           </SidebarContent>
           <SidebarFooter>
             <SideBarSyncStatusButton />
             <SideBarNotificationsButton />
-            <SideBarHelpButton
-              isHelpModalOpen={isHelpModalOpen}
-              setIsHelpModalOpen={setIsHelpModalOpen}
-            />
+            <SideBarHelpButton isHelpModalOpen={isHelpModalOpen} setIsHelpModalOpen={setIsHelpModalOpen} />
             <ErrorBoundary fallback={ComponentErrorFallback}>
               <Suspense fallback={<Spinner />}>
                 <SideBarFooterMenu />
@@ -310,27 +286,17 @@ function DashboardWrapper() {
         <SecondarySidebar isOpen={isPluginNavOpen} />
       </Sidebar>
 
-      <SidebarInset className="overflow-hidden px-4 md:px-6 py-2 md:py-4">
+      <SidebarInset className="overflow-hidden px-4 py-2 md:px-6 md:py-4">
         <ErrorBoundary>
-          <main
-            id="main-content"
-            tabIndex={-1}
-            className="focus:outline-none"
-            role="main"
-            aria-label="Main content"
-          >
+          <main id="main-content" tabIndex={-1} className="focus:outline-none" role="main" aria-label="Main content">
             <Outlet />
           </main>
         </ErrorBoundary>
       </SidebarInset>
-      <ChatSidebar
-        open={isChatSidebarOpen}
-        onOpenChange={setIsChatSidebarOpen}
-      />
+      <ChatSidebar open={isChatSidebarOpen} onOpenChange={setIsChatSidebarOpen} />
     </SidebarProvider>
   );
 }
-
 
 const SideBarFooterMenu = memo(() => {
   const navigate = useNavigate();
@@ -353,10 +319,10 @@ const SideBarFooterMenu = memo(() => {
 
   if (isAnonymous || !user) {
     return (
-      <SidebarMenuItem className="items-center flex justify-center">
+      <SidebarMenuItem className="flex items-center justify-center">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton size="lg" className="size-full! p-0! justify-center items-center">
+            <SidebarMenuButton size="lg" className="size-full! items-center justify-center p-0!">
               <Avatar className="">
                 <AvatarFallback>G</AvatarFallback>
               </Avatar>
@@ -419,7 +385,11 @@ const SideBarFooterMenu = memo(() => {
               <Avatar className="transition-[width,height] duration-200 ease-in-out in-data-[state=expanded]:size-6">
                 <AvatarImage src={user.avatar_url} alt={user.name} />
                 <AvatarFallback>
-                  {user.name?.split(" ").map(n => n[0]).join("").toUpperCase() || "U"}
+                  {user.name
+                    ?.split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .toUpperCase() || "U"}
                 </AvatarFallback>
               </Avatar>
               <div className="ms-1 grid flex-1 items-center text-left text-sm leading-tight">
@@ -474,9 +444,9 @@ const SideBarFooterMenu = memo(() => {
 
 const SideBarHeader = memo(() => {
   return (
-    <SidebarHeader className="mb-4 h-fit justify-center mt-4">
-      <div className="flex w-full items-center rounded-lg px-2 justify-center">
-        <LogoWTXT frontFill="var(--color-background)" fill="color-mix(in oklab, var(--color-muted-foreground) 100%, transparent)" className=" size-8" />
+    <SidebarHeader className="mt-4 mb-4 h-fit justify-center">
+      <div className="flex w-full items-center justify-center rounded-lg px-2">
+        <LogoWTXT frontFill="var(--color-background)" fill="color-mix(in oklab, var(--color-muted-foreground) 100%, transparent)" className="size-8" />
       </div>
     </SidebarHeader>
   );
@@ -494,33 +464,22 @@ const SideBarMainLinks = memo(() => {
               <SidebarMenuButton
                 asChild
                 tooltip={t(item.title)}
-                className="duration-200 will-change-transform active:scale-95 active:translate-y-0.5 group/menu-button font-medium gap-3 h-9 rounded-md text-[#757575] hover:text-secondary-900/45 hover:bg-neutral-200/40 [&>svg]:size-full focus:outline-none   " >
-                <Link
-                  to={item.url}
-                  tabIndex={0}
-                  role="menuitem"
-                  aria-label={`Navigate to ${t(item.title)}`}
-                >{({ isActive }: { isActive: boolean }) => (
-                  <>
-                    {isActive ? (
-                      <item.activeIcon
-                        size={16}
-                        aria-hidden="true"
-                        className="text-secondary-900/80 dark:text-secondary-50"
-                      />
-                    ) : (
-                      <item.icon
-                        size={16}
-                        aria-hidden="true"
-                        className="text-muted-foreground/60"
-                      />
-                    )}
+                className="group/menu-button hover:text-secondary-900/45 h-9 gap-3 rounded-md font-medium text-[#757575] duration-200 will-change-transform hover:bg-neutral-200/40 focus:outline-none active:translate-y-0.5 active:scale-95 [&>svg]:size-full"
+              >
+                <Link to={item.url} tabIndex={0} role="menuitem" aria-label={`Navigate to ${t(item.title)}`}>
+                  {({ isActive }: { isActive: boolean }) => (
+                    <>
+                      {isActive ? (
+                        <item.activeIcon size={16} aria-hidden="true" className="text-secondary-900/80 dark:text-secondary-50" />
+                      ) : (
+                        <item.icon size={16} aria-hidden="true" className="text-muted-foreground/60" />
+                      )}
 
-                    {/* <span className={isActive ? `text-sidebar-accent-foreground` : ""}> */}
-                    {/*   {t(item.title)} */}
-                    {/* </span> */}
-                  </>
-                )}
+                      {/* <span className={isActive ? `text-sidebar-accent-foreground` : ""}> */}
+                      {/*   {t(item.title)} */}
+                      {/* </span> */}
+                    </>
+                  )}
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -531,7 +490,7 @@ const SideBarMainLinks = memo(() => {
   );
 });
 
-const SideBarPluginsLinks = memo(({ isPluginNavOpen, setIsPluginNavOpen }: { isPluginNavOpen: boolean, setIsPluginNavOpen: (open: boolean) => void }) => {
+const SideBarPluginsLinks = memo(({ isPluginNavOpen, setIsPluginNavOpen }: { isPluginNavOpen: boolean; setIsPluginNavOpen: (open: boolean) => void }) => {
   const plugins = usePluginStore(useShallow((state) => state.pluginConfigs.filter((config) => config.enabled)));
 
   if (plugins.length === 0) {
@@ -551,22 +510,14 @@ const SideBarPluginsLinks = memo(({ isPluginNavOpen, setIsPluginNavOpen }: { isP
               onClick={togglePluginNav}
               tooltip="Plugins"
               className={cn(
-                "duration-200 will-change-transform active:scale-95 active:translate-y-0.5 group/menu-button font-medium gap-3 h-9 rounded-md text-[#757575] hover:text-secondary-900/45 hover:bg-neutral-200/40 [&>svg]:size-full focus:outline-none",
+                "group/menu-button hover:text-secondary-900/45 h-9 gap-3 rounded-md font-medium text-[#757575] duration-200 will-change-transform hover:bg-neutral-200/40 focus:outline-none active:translate-y-0.5 active:scale-95 [&>svg]:size-full",
                 isPluginNavOpen && "bg-sidebar-accent shadow-sm"
               )}
             >
               {isPluginNavOpen ? (
-                <RiPuzzleFill
-                  size={16}
-                  aria-hidden="true"
-                  className="text-secondary-900/80 dark:text-secondary-50"
-                />
+                <RiPuzzleFill size={16} aria-hidden="true" className="text-secondary-900/80 dark:text-secondary-50" />
               ) : (
-                <RiPuzzleLine
-                  size={16}
-                  aria-hidden="true"
-                  className="text-muted-foreground/60"
-                />
+                <RiPuzzleLine size={16} aria-hidden="true" className="text-muted-foreground/60" />
               )}
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -594,7 +545,7 @@ const SideBarSyncStatusButton = memo(() => {
       case "synced":
         return <RiCheckLine size={16} aria-hidden="true" className="text-green-500" />;
       case "syncing":
-        return <RiRefreshLine size={16} aria-hidden="true" className="text-blue-500 animate-spin" />;
+        return <RiRefreshLine size={16} aria-hidden="true" className="animate-spin text-blue-500" />;
       case "error":
         return <RiErrorWarningLine size={16} aria-hidden="true" className="text-red-500" />;
       case "conflict":
@@ -607,11 +558,16 @@ const SideBarSyncStatusButton = memo(() => {
   const getStatusText = () => {
     if (!syncState.isOnline) return "Offline";
     switch (syncState.status) {
-      case "synced": return "Synced";
-      case "syncing": return "Syncing...";
-      case "error": return "Sync Error";
-      case "conflict": return "Conflicts";
-      default: return "Unknown";
+      case "synced":
+        return "Synced";
+      case "syncing":
+        return "Syncing...";
+      case "error":
+        return "Sync Error";
+      case "conflict":
+        return "Conflicts";
+      default:
+        return "Unknown";
     }
   };
 
@@ -628,12 +584,12 @@ const SideBarSyncStatusButton = memo(() => {
     <SidebarGroup>
       <SidebarGroupContent className="px-0">
         <SidebarMenu className="items-center gap-3">
-          <SidebarMenuItem className="w-full relative">
+          <SidebarMenuItem className="relative w-full">
             <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
               <PopoverTrigger asChild>
                 <SidebarMenuButton
                   tooltip="Sync Status"
-                  className="duration-200 will-change-transform active:scale-95 active:translate-y-0.5 group/menu-button font-medium gap-3 h-9 rounded-md text-[#757575] hover:text-secondary-900/45 hover:bg-neutral-200/40 [&>svg]:size-full focus:outline-none"
+                  className="group/menu-button hover:text-secondary-900/45 h-9 gap-3 rounded-md font-medium text-[#757575] duration-200 will-change-transform hover:bg-neutral-200/40 focus:outline-none active:translate-y-0.5 active:scale-95 [&>svg]:size-full"
                 >
                   {getStatusIcon()}
                 </SidebarMenuButton>
@@ -641,14 +597,10 @@ const SideBarSyncStatusButton = memo(() => {
               <PopoverContent side="right" align="end" className="w-80 p-4">
                 <div className="space-y-4">
                   <div>
-                    <h4 className="font-semibold text-sm mb-2">Sync Status</h4>
+                    <h4 className="mb-2 text-sm font-semibold">Sync Status</h4>
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
-                        {syncState.isOnline ? (
-                          <RiWifiLine size={16} className="text-green-500" />
-                        ) : (
-                          <RiWifiOffLine size={16} className="text-gray-500" />
-                        )}
+                        {syncState.isOnline ? <RiWifiLine size={16} className="text-green-500" /> : <RiWifiOffLine size={16} className="text-gray-500" />}
                         <span className="text-sm">{syncState.isOnline ? "Online" : "Offline"}</span>
                       </div>
 
@@ -664,20 +616,12 @@ const SideBarSyncStatusButton = memo(() => {
                         </div>
                       )}
 
-                      {syncState.lastSyncAt && (
-                        <div className="text-xs text-muted-foreground">
-                          Last sync: {syncState.lastSyncAt.toLocaleString()}
-                        </div>
-                      )}
+                      {syncState.lastSyncAt && <div className="text-muted-foreground text-xs">Last sync: {syncState.lastSyncAt.toLocaleString()}</div>}
 
-                      {syncState.error && (
-                        <div className="rounded bg-red-50 dark:bg-red-950 p-2 text-xs text-red-600 dark:text-red-400">
-                          {syncState.error}
-                        </div>
-                      )}
+                      {syncState.error && <div className="rounded bg-red-50 p-2 text-xs text-red-600 dark:bg-red-950 dark:text-red-400">{syncState.error}</div>}
 
                       {conflicts.length > 0 && (
-                        <div className="rounded bg-yellow-50 dark:bg-yellow-950 p-2 text-xs text-yellow-600 dark:text-yellow-400">
+                        <div className="rounded bg-yellow-50 p-2 text-xs text-yellow-600 dark:bg-yellow-950 dark:text-yellow-400">
                           {conflicts.length} sync conflicts need resolution
                         </div>
                       )}
@@ -685,12 +629,7 @@ const SideBarSyncStatusButton = memo(() => {
                   </div>
 
                   <div className="border-t pt-3">
-                    <Button
-                      size="sm"
-                      onClick={handleManualSync}
-                      disabled={!syncState.isOnline || syncState.status === "syncing"}
-                      className="w-full"
-                    >
+                    <Button size="sm" onClick={handleManualSync} disabled={!syncState.isOnline || syncState.status === "syncing"} className="w-full">
                       {syncState.status === "syncing" ? (
                         <>
                           <RiRefreshLine className="mr-2 h-4 w-4 animate-spin" />
@@ -710,7 +649,7 @@ const SideBarSyncStatusButton = memo(() => {
             {syncState.pendingOperations > 0 && (
               <Badge
                 variant="secondary"
-                className="absolute -top-1 -right-1 h-5 min-w-[20px] px-1 text-[10px] font-semibold flex items-center justify-center rounded-full"
+                className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-semibold"
               >
                 {syncState.pendingOperations > 10 ? "10+" : syncState.pendingOperations}
               </Badge>
@@ -732,25 +671,21 @@ const SideBarNotificationsButton = memo(() => {
   };
 
   return (
-    <SidebarGroup >
+    <SidebarGroup>
       <SidebarGroupContent className="px-0">
         <SidebarMenu className="items-center gap-3">
-          <SidebarMenuItem className="w-full relative">
+          <SidebarMenuItem className="relative w-full">
             <SidebarMenuButton
               onClick={handleClick}
               tooltip="Notifications"
-              className="duration-200 will-change-transform active:scale-95 active:translate-y-0.5 group/menu-button font-medium gap-3 h-9 rounded-md text-[#757575] hover:text-secondary-900/45 hover:bg-neutral-200/40 [&>svg]:size-full focus:outline-none"
+              className="group/menu-button hover:text-secondary-900/45 h-9 gap-3 rounded-md font-medium text-[#757575] duration-200 will-change-transform hover:bg-neutral-200/40 focus:outline-none active:translate-y-0.5 active:scale-95 [&>svg]:size-full"
             >
-              <RiBellLine
-                size={16}
-                aria-hidden="true"
-                className="text-muted-foreground/60"
-              />
+              <RiBellLine size={16} aria-hidden="true" className="text-muted-foreground/60" />
             </SidebarMenuButton>
             {unreadCount > 0 && (
               <Badge
                 variant="destructive"
-                className="absolute -top-1 -right-1 h-5 min-w-[20px] px-1 text-[10px] font-semibold flex items-center justify-center rounded-full"
+                className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-semibold"
               >
                 {unreadCount > 10 ? "10+" : unreadCount}
               </Badge>
@@ -762,8 +697,7 @@ const SideBarNotificationsButton = memo(() => {
   );
 });
 
-const SideBarHelpButton = memo(({ isHelpModalOpen, setIsHelpModalOpen }: { isHelpModalOpen: boolean, setIsHelpModalOpen: (open: boolean) => void }) => {
-
+const SideBarHelpButton = memo(({ isHelpModalOpen, setIsHelpModalOpen }: { isHelpModalOpen: boolean; setIsHelpModalOpen: (open: boolean) => void }) => {
   const shortcuts = [
     { keys: "g + d", description: "Navigate to Dashboard" },
     { keys: "g + c", description: "Navigate to Accounts" },
@@ -776,7 +710,7 @@ const SideBarHelpButton = memo(({ isHelpModalOpen, setIsHelpModalOpen }: { isHel
   ];
 
   return (
-    <SidebarGroup >
+    <SidebarGroup>
       <SidebarGroupContent className="px-0">
         <SidebarMenu className="items-center gap-3">
           <SidebarMenuItem className="w-full">
@@ -785,22 +719,14 @@ const SideBarHelpButton = memo(({ isHelpModalOpen, setIsHelpModalOpen }: { isHel
                 <SidebarMenuButton
                   tooltip="Help & Shortcuts"
                   className={cn(
-                    "duration-200 will-change-transform active:scale-95 active:translate-y-0.5 group/menu-button font-medium gap-3 h-9 rounded-md text-[#757575] hover:text-secondary-900/45 hover:bg-neutral-200/40 [&>svg]:size-full focus:outline-none",
+                    "group/menu-button hover:text-secondary-900/45 h-9 gap-3 rounded-md font-medium text-[#757575] duration-200 will-change-transform hover:bg-neutral-200/40 focus:outline-none active:translate-y-0.5 active:scale-95 [&>svg]:size-full",
                     isHelpModalOpen && "bg-sidebar-accent shadow-sm"
                   )}
                 >
                   {isHelpModalOpen ? (
-                    <RiQuestionFill
-                      size={16}
-                      aria-hidden="true"
-                      className="text-secondary-900/80 dark:text-secondary-50"
-                    />
+                    <RiQuestionFill size={16} aria-hidden="true" className="text-secondary-900/80 dark:text-secondary-50" />
                   ) : (
-                    <RiQuestionLine
-                      size={16}
-                      aria-hidden="true"
-                      className="text-muted-foreground/60"
-                    />
+                    <RiQuestionLine size={16} aria-hidden="true" className="text-muted-foreground/60" />
                   )}
                 </SidebarMenuButton>
               </DialogTrigger>
@@ -809,11 +735,11 @@ const SideBarHelpButton = memo(({ isHelpModalOpen, setIsHelpModalOpen }: { isHel
                   <DialogTitle>Keyboard Shortcuts</DialogTitle>
                   <DialogDescription>Quick navigation shortcuts to help you move around faster</DialogDescription>
                 </DialogHeader>
-                <div className="space-y-2 mt-4">
+                <div className="mt-4 space-y-2">
                   {shortcuts.map((shortcut, index) => (
-                    <div key={index} className="flex items-center justify-between py-2 border-b last:border-b-0">
-                      <span className="text-sm text-muted-foreground">{shortcut.description}</span>
-                      <kbd className="px-2 py-1 text-xs font-semibold bg-muted rounded">{shortcut.keys}</kbd>
+                    <div key={index} className="flex items-center justify-between border-b py-2 last:border-b-0">
+                      <span className="text-muted-foreground text-sm">{shortcut.description}</span>
+                      <kbd className="bg-muted rounded px-2 py-1 text-xs font-semibold">{shortcut.keys}</kbd>
                     </div>
                   ))}
                 </div>
@@ -834,12 +760,10 @@ const SecondarySidebar = memo(({ isOpen }: { isOpen: boolean }) => {
   }
 
   return (
-    <Sidebar collapsible="none" className="hidden flex-1 md:flex border-r">
+    <Sidebar collapsible="none" className="hidden flex-1 border-r md:flex">
       <SidebarHeader className="gap-3.5 border-b p-4">
         <div className="flex w-full items-center justify-between">
-          <div className="text-foreground text-base font-medium">
-            Plugins
-          </div>
+          <div className="text-foreground text-base font-medium">Plugins</div>
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -864,7 +788,7 @@ const SecondarySidebar = memo(({ isOpen }: { isOpen: boolean }) => {
                       <span>{route.label}</span>
                     </Link>
                     {route?.subroutes && route.subroutes.length > 0 && (
-                      <div className="flex flex-col bg-muted/20">
+                      <div className="bg-muted/20 flex flex-col">
                         {route.subroutes.map((subroute) => (
                           <Link
                             key={subroute.label}

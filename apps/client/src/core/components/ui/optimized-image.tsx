@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { cn } from '@/lib/utils';
+import React, { useState, useCallback } from "react";
+import { cn } from "@/lib/utils";
 
 interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   src: string;
@@ -30,11 +30,11 @@ export function OptimizedImage({
   onError,
   ...props
 }: OptimizedImageProps) {
-  const [imageState, setImageState] = useState<'loading' | 'loaded' | 'error'>('loading');
+  const [imageState, setImageState] = useState<"loading" | "loaded" | "error">("loading");
   const [currentSrc, setCurrentSrc] = useState(src);
 
   const handleLoad = useCallback(() => {
-    setImageState('loaded');
+    setImageState("loaded");
     onLoad?.();
   }, [onLoad]);
 
@@ -43,7 +43,7 @@ export function OptimizedImage({
       setCurrentSrc(fallbackSrc);
       return;
     }
-    setImageState('error');
+    setImageState("error");
     onError?.();
   }, [fallbackSrc, currentSrc, onError]);
 
@@ -54,24 +54,15 @@ export function OptimizedImage({
     return originalSrc;
   }, []);
 
-  if (imageState === 'error') {
+  if (imageState === "error") {
     return (
       <div
-        className={cn(
-          'flex items-center justify-center bg-muted text-muted-foreground',
-          className
-        )}
+        className={cn("bg-muted text-muted-foreground flex items-center justify-center", className)}
         style={{ width, height }}
         role="img"
         aria-label={`Failed to load image: ${alt}`}
       >
-        <svg
-          className="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
+        <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -84,27 +75,18 @@ export function OptimizedImage({
   }
 
   return (
-    <div className={cn('relative overflow-hidden', className)}>
-      {imageState === 'loading' && (
-        <div
-          className="absolute inset-0 bg-muted animate-pulse"
-          aria-label="Loading image"
-        />
-      )}
+    <div className={cn("relative overflow-hidden", className)}>
+      {imageState === "loading" && <div className="bg-muted absolute inset-0 animate-pulse" aria-label="Loading image" />}
       <img
         src={getOptimizedSrc(currentSrc)}
         alt={alt}
         width={width}
         height={height}
-        loading={lazy ? 'lazy' : 'eager'}
+        loading={lazy ? "lazy" : "eager"}
         decoding="async"
         onLoad={handleLoad}
         onError={handleError}
-        className={cn(
-          'transition-opacity duration-200',
-          imageState === 'loaded' ? 'opacity-100' : 'opacity-0',
-          className
-        )}
+        className={cn("transition-opacity duration-200", imageState === "loaded" ? "opacity-100" : "opacity-0", className)}
         {...props}
       />
     </div>
@@ -117,40 +99,30 @@ export function OptimizedImage({
 interface AvatarImageProps {
   src?: string;
   alt: string;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: "sm" | "md" | "lg" | "xl";
   fallback?: string;
   className?: string;
 }
 
-export function AvatarImage({
-  src,
-  alt,
-  size = 'md',
-  fallback,
-  className
-}: AvatarImageProps) {
+export function AvatarImage({ src, alt, size = "md", fallback, className }: AvatarImageProps) {
   const sizeClasses = {
-    sm: 'w-8 h-8',
-    md: 'w-10 h-10',
-    lg: 'w-16 h-16',
-    xl: 'w-24 h-24'
+    sm: "w-8 h-8",
+    md: "w-10 h-10",
+    lg: "w-16 h-16",
+    xl: "w-24 h-24",
   };
 
   const initials = alt
-    .split(' ')
-    .map(name => name[0])
-    .join('')
+    .split(" ")
+    .map((name) => name[0])
+    .join("")
     .substring(0, 2)
     .toUpperCase();
 
   if (!src) {
     return (
       <div
-        className={cn(
-          'flex items-center justify-center rounded-full bg-muted text-muted-foreground font-medium',
-          sizeClasses[size],
-          className
-        )}
+        className={cn("bg-muted text-muted-foreground flex items-center justify-center rounded-full font-medium", sizeClasses[size], className)}
         aria-label={alt}
       >
         {initials}
@@ -163,9 +135,9 @@ export function AvatarImage({
       src={src}
       alt={alt}
       fallbackSrc={fallback}
-      className={cn('rounded-full object-cover', sizeClasses[size], className)}
-      width={size === 'sm' ? 32 : size === 'md' ? 40 : size === 'lg' ? 64 : 96}
-      height={size === 'sm' ? 32 : size === 'md' ? 40 : size === 'lg' ? 64 : 96}
+      className={cn("rounded-full object-cover", sizeClasses[size], className)}
+      width={size === "sm" ? 32 : size === "md" ? 40 : size === "lg" ? 64 : 96}
+      height={size === "sm" ? 32 : size === "md" ? 40 : size === "lg" ? 64 : 96}
     />
   );
 }
@@ -176,51 +148,26 @@ export function AvatarImage({
 interface PropertyImageProps {
   src?: string;
   alt: string;
-  aspectRatio?: 'square' | 'video' | 'wide';
+  aspectRatio?: "square" | "video" | "wide";
   className?: string;
 }
 
-export function PropertyImage({
-  src,
-  alt,
-  aspectRatio = 'video',
-  className
-}: PropertyImageProps) {
+export function PropertyImage({ src, alt, aspectRatio = "video", className }: PropertyImageProps) {
   const aspectClasses = {
-    square: 'aspect-square',
-    video: 'aspect-video',
-    wide: 'aspect-[21/9]'
+    square: "aspect-square",
+    video: "aspect-video",
+    wide: "aspect-[21/9]",
   };
 
   const placeholder = (
     <div
-      className={cn(
-        'flex items-center justify-center bg-muted text-muted-foreground',
-        aspectClasses[aspectRatio],
-        className
-      )}
+      className={cn("bg-muted text-muted-foreground flex items-center justify-center", aspectClasses[aspectRatio], className)}
       role="img"
       aria-label={`Property placeholder for ${alt}`}
     >
-      <svg
-        className="w-12 h-12"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-        aria-hidden="true"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={1}
-          d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2z"
-        />
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={1}
-          d="M8 21l4-4 4 4"
-        />
+      <svg className="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 21l4-4 4 4" />
       </svg>
     </div>
   );
@@ -229,12 +176,5 @@ export function PropertyImage({
     return placeholder;
   }
 
-  return (
-    <OptimizedImage
-      src={src}
-      alt={alt}
-      className={cn('object-cover', aspectClasses[aspectRatio], className)}
-      fallbackSrc="/nuts_empty.png"
-    />
-  );
+  return <OptimizedImage src={src} alt={alt} className={cn("object-cover", aspectClasses[aspectRatio], className)} fallbackSrc="/nuts_empty.png" />;
 }

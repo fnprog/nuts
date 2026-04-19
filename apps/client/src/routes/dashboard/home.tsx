@@ -16,7 +16,6 @@ import { EmptyStateGuide } from "@/core/components/ui/emtpy-state-guide";
 import { ErrorBoundary } from "@/core/components/ui/error-boundary";
 import { H2, Small, Muted } from "@/core/components/ui/typography";
 
-
 export const Route = createFileRoute("/dashboard/home")({
   component: RouteComponent,
 });
@@ -60,7 +59,9 @@ function RouteComponent() {
         </div>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear">
           <div className="flex w-full items-center justify-between gap-2">
-            <H2>{t("greet")} {name}</H2>
+            <H2>
+              {t("greet")} {name}
+            </H2>
             <AddChartDialog onAddChart={handleAddChart}>
               <Button variant="default" size="sm" className="hidden md:inline-flex">
                 <PlusCircle className="mr-2 size-4" />
@@ -69,11 +70,11 @@ function RouteComponent() {
             </AddChartDialog>
           </div>
         </header>
-        <div className="flex flex-1 h-full">
-          <div className="h-full w-full ">
+        <div className="flex h-full flex-1">
+          <div className="h-full w-full">
             {chartOrder.length === 0 ? (
-              <div className="col-span-2 text-center py-12 flex flex-col justify-center items-center text-muted-foreground">
-                <img src="/nuts_empty.png" className="md:w-60 w-50 grayscale" />
+              <div className="text-muted-foreground col-span-2 flex flex-col items-center justify-center py-12 text-center">
+                <img src="/nuts_empty.png" className="w-50 grayscale md:w-60" />
                 <Muted>Your dashboard is empty. Add some charts using the button above!</Muted>
               </div>
             ) : (
@@ -91,26 +92,17 @@ function RouteComponent() {
                   if (!ChartToRender) return <ChartLoadingSkeleton key={chartId} size={layout.size} />;
 
                   return (
-                    <ErrorBoundary
-                      key={chartId}
-                      fallback={(props) => <ChartErrorFallback chartId={chartId} error={props.error} />}
-                    >
+                    <ErrorBoundary key={chartId} fallback={(props) => <ChartErrorFallback chartId={chartId} error={props.error} />}>
                       <Suspense fallback={<ChartLoadingSkeleton size={layout.size} />}>
-                        <ChartToRender
-                          id={layout.id}
-                          size={layout.size}
-                          isLocked={layout.isLocked}
-                          hasAccounts={hasAccounts}
-                        />
+                        <ChartToRender id={layout.id} size={layout.size} isLocked={layout.isLocked} hasAccounts={hasAccounts} />
                       </Suspense>
                     </ErrorBoundary>
                   );
-
                 })}
               </DashboardGrid>
             )}
-          </div >
-        </div >
+          </div>
+        </div>
 
         <div className="fixed right-6 bottom-6 z-50 sm:hidden">
           <AddChartDialog onAddChart={handleAddChart}>
@@ -119,7 +111,7 @@ function RouteComponent() {
             </Button>
           </AddChartDialog>
         </div>
-      </div >
+      </div>
     </>
   );
 }

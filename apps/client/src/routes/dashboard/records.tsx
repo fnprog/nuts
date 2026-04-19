@@ -95,15 +95,15 @@ function RouteComponent() {
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuItem onClick={() => setCurrentView("list")}>
-          <List className="h-4 w-4 mr-2" />
+          <List className="mr-2 h-4 w-4" />
           List
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setCurrentView("calendar")}>
-          <Calendar className="h-4 w-4 mr-2" />
+          <Calendar className="mr-2 h-4 w-4" />
           Calendar
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setCurrentView("analytics")}>
-          <BarChart3 className="h-4 w-4 mr-2" />
+          <BarChart3 className="mr-2 h-4 w-4" />
           Analytics
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -116,29 +116,18 @@ function RouteComponent() {
         return (
           <ErrorBoundary>
             <Suspense fallback={<TableLoader />}>
-              <RecordsTable
-                initialPage={page}
-                onPageChange={updatePage}
-                hasAccounts={hasAccounts}
-              />
+              <RecordsTable initialPage={page} onPageChange={updatePage} hasAccounts={hasAccounts} />
             </Suspense>
           </ErrorBoundary>
         );
       case "calendar":
         return (
           <ErrorBoundary>
-            <CalendarView
-              initialPage={page}
-              hasAccounts={hasAccounts}
-            />
+            <CalendarView initialPage={page} hasAccounts={hasAccounts} />
           </ErrorBoundary>
         );
       case "analytics":
-        return (
-          <div className="flex items-center justify-center h-64 text-muted-foreground">
-            Analytics view coming soon...
-          </div>
-        );
+        return <div className="text-muted-foreground flex h-64 items-center justify-center">Analytics view coming soon...</div>;
       default:
         return null;
     }
@@ -183,15 +172,13 @@ function RouteComponent() {
                 <span>Neural Input</span>
               </Button>
             </NeuralRecordsDialog>
-          </div >
-        </div >
-      </header >
+          </div>
+        </div>
+      </header>
 
       <div className="flex flex-1">
         <div className="h-full w-full space-y-8 py-2">
-          <div className="space-y-8">
-            {renderCurrentView()}
-          </div>
+          <div className="space-y-8">{renderCurrentView()}</div>
         </div>
       </div>
 

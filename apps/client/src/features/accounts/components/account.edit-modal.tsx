@@ -153,9 +153,7 @@ export default function EditAccountModal({
                         <>
                           <span ref={spanRef} className="sr-only" aria-hidden="true" />
                           <div className="relative">
-                            <span
-                              className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 flex -translate-y-1/2 items-center justify-center text-sm peer-disabled:opacity-50"
-                            >
+                            <span className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 flex -translate-y-1/2 items-center justify-center text-sm peer-disabled:opacity-50">
                               {getCurrencySymbol(account.currency)}
                             </span>
                             <Input

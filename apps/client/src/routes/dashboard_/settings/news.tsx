@@ -81,13 +81,11 @@ function RouteComponent() {
                 <div className="bg-primary absolute top-2 left-0 h-2 w-2 -translate-x-[3px] rounded-full" />
                 <div className="flex items-center gap-2">
                   <Small className="font-semibold">v{update.version}</Small>
-                  <Muted >{update.date}</Muted>
+                  <Muted>{update.date}</Muted>
                   <Badge variant={update.type === "feature" ? "default" : update.type === "improvement" ? "secondary" : "destructive"}>{update.type}</Badge>
                 </div>
                 <H3 className="mt-2 font-medium">{update.title}</H3>
-                <Muted className="mt-1">
-                  {update.description}
-                </Muted>
+                <Muted className="mt-1">{update.description}</Muted>
               </div>
             ))
           ) : (

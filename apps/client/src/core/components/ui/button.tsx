@@ -17,21 +17,15 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary:
-          "bg-primary text-primary-foreground hover:bg-primary/90",
-        default:
-          "bg-accent text-accent-foreground hover:bg-accent-hover shadow-sm active:scale-[0.97]",
-        tertiary:
-          "bg-default text-default-foreground hover:bg-default-hover active:scale-[0.97]",
+        primary: "bg-primary text-primary-foreground hover:bg-primary/90",
+        default: "bg-accent text-accent-foreground hover:bg-accent-hover shadow-sm active:scale-[0.97]",
+        tertiary: "bg-default text-default-foreground hover:bg-default-hover active:scale-[0.97]",
         destructive:
           "bg-destructive text-destructive-foreground border-[1.5px] cursor-pointer border-[rgba(136,14,79,0.4)] bg-gradient-to-b from-[#c2185b] to-[#ad1457] text-white font-semibold shadow-[0_2px_4px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.2)] active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] hover:bg-gradient-to-b hover:from-[#d81b60] hover:to-[#c2185b] active:bg-gradient-to-b active:from-[#ad1457] active:to-[#880e4f] overflow-hidden grain-effect ",
-        "danger-soft":
-          "bg-danger-soft text-danger-soft-foreground hover:bg-danger-soft-hover active:scale-[0.97]",
-        outline:
-          "border border-border bg-transparent text-default-foreground hover:bg-default-hover active:scale-[0.97]",
+        "danger-soft": "bg-danger-soft text-danger-soft-foreground hover:bg-danger-soft-hover active:scale-[0.97]",
+        outline: "border border-border bg-transparent text-default-foreground hover:bg-default-hover active:scale-[0.97]",
         secondary: "bg-default text-accent hover:bg-default-hover shadow-sm active:scale-[0.97]",
-        ghost:
-          "bg-transparent text-default-foreground hover:bg-default-hover active:scale-[0.97]",
+        ghost: "bg-transparent text-default-foreground hover:bg-default-hover active:scale-[0.97]",
         link: "text-accent underline-offset-4 hover:underline active:opacity-80",
         mono: "bg-black text-white hover:bg-black/90 shadow-sm active:scale-[0.97]",
       },

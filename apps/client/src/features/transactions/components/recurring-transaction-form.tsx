@@ -23,10 +23,7 @@ interface RecurringTransactionFormProps {
   defaultValues?: Partial<RecurringFormData>;
 }
 
-export function RecurringTransactionForm({ 
-  onSubmit, 
-  defaultValues 
-}: RecurringTransactionFormProps) {
+export function RecurringTransactionForm({ onSubmit, defaultValues }: RecurringTransactionFormProps) {
   const form = useForm<RecurringFormData>({
     resolver: arktypeResolver(recurringFormSchema),
     defaultValues: {
@@ -43,19 +40,29 @@ export function RecurringTransactionForm({
   const getFrequencyDescription = (frequency: string, interval: number) => {
     if (interval === 1) {
       switch (frequency) {
-        case "daily": return "Daily";
-        case "weekly": return "Weekly";
-        case "monthly": return "Monthly";
-        case "yearly": return "Yearly";
-        default: return "";
+        case "daily":
+          return "Daily";
+        case "weekly":
+          return "Weekly";
+        case "monthly":
+          return "Monthly";
+        case "yearly":
+          return "Yearly";
+        default:
+          return "";
       }
     } else {
       switch (frequency) {
-        case "daily": return `Every ${interval} days`;
-        case "weekly": return `Every ${interval} weeks`;
-        case "monthly": return `Every ${interval} months`;
-        case "yearly": return `Every ${interval} years`;
-        default: return "";
+        case "daily":
+          return `Every ${interval} days`;
+        case "weekly":
+          return `Every ${interval} weeks`;
+        case "monthly":
+          return `Every ${interval} months`;
+        case "yearly":
+          return `Every ${interval} years`;
+        default:
+          return "";
       }
     }
   };
@@ -99,13 +106,7 @@ export function RecurringTransactionForm({
               <FormItem>
                 <FormLabel>Every</FormLabel>
                 <FormControl>
-                  <Input 
-                    type="number" 
-                    min={1} 
-                    max={365} 
-                    {...field} 
-                    onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
-                  />
+                  <Input type="number" min={1} max={365} {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 1)} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -150,14 +151,7 @@ export function RecurringTransactionForm({
               <FormItem>
                 <FormLabel>Day of Month</FormLabel>
                 <FormControl>
-                  <Input 
-                    type="number" 
-                    min={1} 
-                    max={31} 
-                    placeholder="1-31"
-                    {...field} 
-                    onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
-                  />
+                  <Input type="number" min={1} max={31} placeholder="1-31" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 1)} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -172,21 +166,16 @@ export function RecurringTransactionForm({
             render={({ field }) => (
               <FormItem className="flex items-center space-x-2">
                 <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
+                  <Switch checked={field.value} onCheckedChange={field.onChange} />
                 </FormControl>
-                <FormLabel className="text-sm font-normal">
-                  Auto-post transactions
-                </FormLabel>
+                <FormLabel className="text-sm font-normal">Auto-post transactions</FormLabel>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
 
-        <div className="text-sm text-muted-foreground">
+        <div className="text-muted-foreground text-sm">
           <strong>Pattern:</strong> {getFrequencyDescription(frequency, interval)}
         </div>
       </form>

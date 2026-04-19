@@ -88,15 +88,8 @@ export const useDashboardStore = create<DashboardState>()(
 
         try {
           const availableConfigs = await getAvailableChartConfigs();
-          
-          const defaultChartIds = [
-            "expense-income",
-            "category-breakdown",
-            "net-worth",
-            "spending-overview",
-            "cashflow-forecast",
-            "savings-goals",
-          ];
+
+          const defaultChartIds = ["expense-income", "category-breakdown", "net-worth", "spending-overview", "cashflow-forecast", "savings-goals"];
 
           const chartLayout: DashboardChartLayout[] = [];
           const chartOrder: string[] = [];

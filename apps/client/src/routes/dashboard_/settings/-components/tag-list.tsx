@@ -24,7 +24,6 @@ export function TagList() {
     icon: string;
   } | null>(null);
 
-
   const tagList = useMemo(() => {
     return Object.values(tags).sort((a, b) => a.name.localeCompare(b.name));
   }, [tags]);
@@ -43,7 +42,7 @@ export function TagList() {
         refreshTags();
         setEditingTag(null);
       } catch (error) {
-        logger.error(error)
+        logger.error(error);
       }
     }
   };
@@ -52,7 +51,7 @@ export function TagList() {
     try {
       await deleteTagMutation.mutateAsync(tagId);
     } catch (error) {
-      logger.error(error)
+      logger.error(error);
     }
   };
 
@@ -87,11 +86,7 @@ export function TagList() {
                         <Pencil className="mr-2 h-4 w-4" />
                         Edit
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="text-red-600"
-                        onClick={() => handleDelete(tag.id)}
-                        disabled={deleteTagMutation.isPending}
-                      >
+                      <DropdownMenuItem className="text-red-600" onClick={() => handleDelete(tag.id)} disabled={deleteTagMutation.isPending}>
                         <Trash className="mr-2 h-4 w-4" />
                         Delete
                       </DropdownMenuItem>
@@ -126,16 +121,9 @@ export function TagList() {
             </div>
             <div className="space-y-2">
               <Label>Icon</Label>
-              <IconPicker
-                value={editingTag?.icon ?? ""}
-                onChange={(icon) => setEditingTag(editingTag ? { ...editingTag, icon } : null)}
-              />
+              <IconPicker value={editingTag?.icon ?? ""} onChange={(icon) => setEditingTag(editingTag ? { ...editingTag, icon } : null)} />
             </div>
-            <Button
-              onClick={handleUpdate}
-              className="w-full"
-              disabled={!editingTag?.name || !editingTag?.icon || updateTagMutation.isPending}
-            >
+            <Button onClick={handleUpdate} className="w-full" disabled={!editingTag?.name || !editingTag?.icon || updateTagMutation.isPending}>
               {updateTagMutation.isPending ? "Updating..." : "Update Tag"}
             </Button>
           </div>

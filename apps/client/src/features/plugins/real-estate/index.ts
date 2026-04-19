@@ -153,7 +153,7 @@ export default {
   migrations,
   onInstall: async (context) => {
     console.log("🏠 Real Estate Plugin: Installing...");
-    
+
     const properties = [
       {
         id: "1",

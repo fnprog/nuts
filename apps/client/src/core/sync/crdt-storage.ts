@@ -4,16 +4,12 @@ import { ServiceError } from "@/lib/service-error";
 import { logger } from "@/lib/logger";
 
 export class CRDTStorageService {
-
   async loadDocument(userId: string): Promise<Result<Uint8Array | null, ServiceError>> {
     return ResultAsync.fromPromise(
       (async () => {
         await db.initialize();
 
-        const result = await db.execute(
-          "SELECT document_binary FROM crdt_documents WHERE user_id = ?",
-          [userId]
-        );
+        const result = await db.execute("SELECT document_binary FROM crdt_documents WHERE user_id = ?", [userId]);
 
         if (!result.results || result.results.length === 0) {
           return null;
@@ -46,21 +42,17 @@ export class CRDTStorageService {
         const timestamp = new Date().toISOString();
         const binaryArray = Array.from(documentBinary);
 
-        const existing = await db.execute(
-          "SELECT id FROM crdt_documents WHERE user_id = ?",
-          [userId]
-        );
+        const existing = await db.execute("SELECT id FROM crdt_documents WHERE user_id = ?", [userId]);
 
         if (existing.results && existing.results.length > 0) {
-          await db.execute(
-            "UPDATE crdt_documents SET document_binary = ?, updated_at = ? WHERE user_id = ?",
-            [binaryArray, timestamp, userId]
-          );
+          await db.execute("UPDATE crdt_documents SET document_binary = ?, updated_at = ? WHERE user_id = ?", [binaryArray, timestamp, userId]);
         } else {
-          await db.execute(
-            "INSERT INTO crdt_documents (user_id, document_binary, created_at, updated_at) VALUES (?, ?, ?, ?)",
-            [userId, binaryArray, timestamp, timestamp]
-          );
+          await db.execute("INSERT INTO crdt_documents (user_id, document_binary, created_at, updated_at) VALUES (?, ?, ?, ?)", [
+            userId,
+            binaryArray,
+            timestamp,
+            timestamp,
+          ]);
         }
 
         logger.info(`CRDT document saved to database for user: ${userId}`);
@@ -77,10 +69,7 @@ export class CRDTStorageService {
       (async () => {
         await db.initialize();
 
-        await db.execute(
-          "DELETE FROM crdt_documents WHERE user_id = ?",
-          [userId]
-        );
+        await db.execute("DELETE FROM crdt_documents WHERE user_id = ?", [userId]);
 
         logger.info(`CRDT document deleted from database for user: ${userId}`);
       })(),

@@ -1,6 +1,4 @@
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Toaster } from "@/core/components/ui/sonner";
 import { ThemeProvider } from "@/features/preferences/contexts/theme.provider";
 import type { QueryClient } from "@tanstack/react-query";
@@ -28,12 +26,12 @@ function RootComponent() {
   return (
     <ErrorBoundary fallback={RouteErrorFallback}>
       {/* Skip links for accessibility */}
-      <div className="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 bg-primary text-primary-foreground p-2 z-50">
+      <div className="bg-primary text-primary-foreground sr-only z-50 p-2 focus:not-sr-only focus:absolute focus:top-0 focus:left-0">
         <a
           href="#main-content"
           className="underline"
           onClick={() => {
-            const mainContent = document.getElementById('main-content');
+            const mainContent = document.getElementById("main-content");
             mainContent?.focus();
           }}
         >
@@ -59,14 +57,6 @@ function RootComponent() {
           }}
         />
       </ThemeProvider>
-
-      {/* Development tools - only show in development */}
-      {import.meta.env.DEV && (
-        <>
-          {/* <ReactQueryDevtools buttonPosition="bottom-left" /> */}
-          {/* <TanStackRouterDevtools position="bottom-right" /> */}
-        </>
-      )}
     </ErrorBoundary>
   );
 }

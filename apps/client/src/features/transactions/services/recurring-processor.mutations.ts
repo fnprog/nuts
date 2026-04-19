@@ -14,13 +14,10 @@ export function useProcessRecurringTransactions() {
 
   return useMutation({
     mutationFn: async (params: ProcessRecurringTransactionsParams) => {
-      const result = await recurringProcessorService.processRecurringTransactions(
-        params.recurringTransactions,
-        {
-          lookAheadDays: params.lookAheadDays,
-          userId: params.userId,
-        }
-      );
+      const result = await recurringProcessorService.processRecurringTransactions(params.recurringTransactions, {
+        lookAheadDays: params.lookAheadDays,
+        userId: params.userId,
+      });
 
       if (result.isErr()) {
         throw result.error;
@@ -39,15 +36,7 @@ export function useCreateTransactionFromRecurring() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      recurring,
-      dueDate,
-      userId,
-    }: {
-      recurring: RecurringTransaction;
-      dueDate: Date;
-      userId: string;
-    }) => {
+    mutationFn: async ({ recurring, dueDate, userId }: { recurring: RecurringTransaction; dueDate: Date; userId: string }) => {
       const result = await recurringProcessorService.createTransactionFromRecurring(recurring, dueDate, userId);
 
       if (result.isErr()) {
@@ -67,15 +56,7 @@ export function useCreateDueNotification() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      recurring,
-      dueDate,
-      userId,
-    }: {
-      recurring: RecurringTransaction;
-      dueDate: Date;
-      userId: string;
-    }) => {
+    mutationFn: async ({ recurring, dueDate, userId }: { recurring: RecurringTransaction; dueDate: Date; userId: string }) => {
       const result = await recurringProcessorService.createDueNotification(recurring, dueDate, userId);
 
       if (result.isErr()) {

@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from "react";
 import { Card } from "@/core/components/ui/card";
 import { Spinner } from "@/core/components/ui/spinner";
@@ -20,8 +19,7 @@ const DIMENSIONS = {
 
 const SHIMMER_CONFIG = {
   DURATION: "5s",
-  GRADIENT:
-    "linear-gradient(110deg, #404040 35%, #fff 50%, #404040 75%, #404040)",
+  GRADIENT: "linear-gradient(110deg, #404040 35%, #fff 50%, #404040 75%, #404040)",
   BACKGROUND_SIZE: "200% 100%",
 } as const;
 
@@ -181,13 +179,8 @@ function ThinkingHeader({ timer }: ThinkingHeaderProps) {
   return (
     <div className="flex items-center gap-2">
       <Spinner aria-hidden="true" />
-      <span className="relative inline-block animate-pulse text-sm">
-        HextaAI is thinking...
-      </span>
-      <span
-        aria-label={`${timer} seconds elapsed`}
-        className="text-muted-foreground text-sm"
-      >
+      <span className="relative inline-block animate-pulse text-sm">HextaAI is thinking...</span>
+      <span aria-label={`${timer} seconds elapsed`} className="text-muted-foreground text-sm">
         {timer}s
       </span>
     </div>
@@ -200,9 +193,7 @@ interface FadeOverlayProps {
 
 function FadeOverlay({ position }: FadeOverlayProps) {
   const isTop = position === "top";
-  const gradientClass = isTop
-    ? "bg-gradient-to-b from-background from-30% to-transparent"
-    : "bg-gradient-to-t from-background from-30% to-transparent";
+  const gradientClass = isTop ? "bg-gradient-to-b from-background from-30% to-transparent" : "bg-gradient-to-t from-background from-30% to-transparent";
 
   return (
     <div
@@ -226,12 +217,12 @@ function ThinkingContent({ contentRef, content }: ThinkingContentProps) {
     <div
       aria-label="AI thinking process"
       aria-live="polite"
-      className="h-full overflow-hidden p-4 text-secondary-foreground"
+      className="text-secondary-foreground h-full overflow-hidden p-4"
       ref={contentRef}
       role="log"
       style={{ scrollBehavior: "auto" }}
     >
-      <p className="whitespace-pre-wrap text-sm leading-relaxed">{content}</p>
+      <p className="text-sm leading-relaxed whitespace-pre-wrap">{content}</p>
     </div>
   );
 }
@@ -243,10 +234,7 @@ interface ContentCardProps {
 
 function ContentCard({ contentRef, content }: ContentCardProps) {
   return (
-    <Card
-      className="relative overflow-hidden rounded-xl p-2 shadow-xs"
-      style={{ height: DIMENSIONS.CARD_HEIGHT }}
-    >
+    <Card className="relative overflow-hidden rounded-xl p-2 shadow-xs" style={{ height: DIMENSIONS.CARD_HEIGHT }}>
       <FadeOverlay position="top" />
       <FadeOverlay position="bottom" />
       <ThinkingContent content={content} contentRef={contentRef} />

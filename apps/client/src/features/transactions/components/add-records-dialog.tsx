@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { useState, useCallback } from "react";
 import { useQueries } from "@tanstack/react-query";
-import { arktypeResolver } from '@hookform/resolvers/arktype';
+import { arktypeResolver } from "@hookform/resolvers/arktype";
 import { DatetimePicker } from "@/core/components/ui/datetime";
 import { toast } from "sonner";
 
@@ -14,15 +14,20 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/core/components/ui/t
 import { Input } from "@/core/components/ui/input";
 import { RecordsSubmit, RecordCreateSchema, recordCreateSchema } from "@/features/transactions/services/transaction.types";
 import { ArrowUpRight, ArrowDownLeft, ArrowLeftRight } from "lucide-react";
-import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogTrigger } from "@/core/components/ui/dialog-sheet";
-import { useMutation } from "@tanstack/react-query"
-import { useQueryClient } from "@tanstack/react-query"
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogTrigger,
+} from "@/core/components/ui/dialog-sheet";
+import { useMutation } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { RecurringSelect } from "./recurring-select";
 
 import { transactionService } from "@/features/transactions/services/transaction.service";
 import { categoryService } from "@/features/categories/services/category.service";
 import { getAllAccounts } from "@/features/accounts/services/account.queries";
-
 
 export function RecordsDialog({ children }: React.PropsWithChildren) {
   const [isOpen, setIsOpen] = useState(false);
@@ -117,15 +122,18 @@ export function RecordsForm({ onSubmit }: { onSubmit: RecordsSubmit }) {
       const submitValues = {
         ...values,
         is_recurring: recurringType !== "one-time",
-        recurring_config: recurringType !== "one-time" ? {
-          frequency: getFrequencyFromRecurringType(recurringType),
-          frequency_interval: getIntervalFromRecurringType(),
-          frequency_data: getFrequencyDataFromRecurringType(recurringType, recurringConfig),
-          start_date: values.transaction_datetime,
-          auto_post: true, // Default to auto-posting
-          template_name: `${values.description} (recurring)`,
-          ...(recurringConfig || {}) // Only spread recurringConfig if it exists
-        } : undefined,
+        recurring_config:
+          recurringType !== "one-time"
+            ? {
+                frequency: getFrequencyFromRecurringType(recurringType),
+                frequency_interval: getIntervalFromRecurringType(),
+                frequency_data: getFrequencyDataFromRecurringType(recurringType, recurringConfig),
+                start_date: values.transaction_datetime,
+                auto_post: true, // Default to auto-posting
+                template_name: `${values.description} (recurring)`,
+                ...(recurringConfig || {}), // Only spread recurringConfig if it exists
+              }
+            : undefined,
       };
 
       onSubmit(submitValues);
@@ -156,8 +164,13 @@ export function RecordsForm({ onSubmit }: { onSubmit: RecordsSubmit }) {
 
     // Convert predefined types to frequency data
     const dayMap: { [key: string]: number } = {
-      "monday": 1, "tuesday": 2, "wednesday": 3, "thursday": 4,
-      "friday": 5, "saturday": 6, "sunday": 0
+      monday: 1,
+      tuesday: 2,
+      wednesday: 3,
+      thursday: 4,
+      friday: 5,
+      saturday: 6,
+      sunday: 0,
     };
 
     if (type.startsWith("weekly-")) {
@@ -202,34 +215,34 @@ export function RecordsForm({ onSubmit }: { onSubmit: RecordsSubmit }) {
       form.reset(
         value === "transfer"
           ? {
-            type: "transfer",
-            amount: 0,
-            transaction_datetime: new Date(),
-            description: "",
-            category_id: transfertCatID,
-            account_id: "",
-            destination_account_id: "",
-            details: {
-              payment_medium: "",
-              location: "",
-              note: "",
-              payment_status: "completed",
-            },
-          }
+              type: "transfer",
+              amount: 0,
+              transaction_datetime: new Date(),
+              description: "",
+              category_id: transfertCatID,
+              account_id: "",
+              destination_account_id: "",
+              details: {
+                payment_medium: "",
+                location: "",
+                note: "",
+                payment_status: "completed",
+              },
+            }
           : {
-            type: value as "expense" | "income",
-            amount: 0,
-            transaction_datetime: new Date(),
-            description: "",
-            category_id: undefined,
-            account_id: "",
-            details: {
-              payment_medium: "",
-              location: "",
-              note: "",
-              payment_status: "completed",
-            },
-          }
+              type: value as "expense" | "income",
+              amount: 0,
+              transaction_datetime: new Date(),
+              description: "",
+              category_id: undefined,
+              account_id: "",
+              details: {
+                payment_medium: "",
+                location: "",
+                note: "",
+                payment_status: "completed",
+              },
+            }
       );
     },
     [form, transfertCatID]
@@ -349,9 +362,7 @@ export function RecordsForm({ onSubmit }: { onSubmit: RecordsSubmit }) {
 
             {/* Recurring Transaction Option */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">
-                Recurrence
-              </label>
+              <label className="text-sm font-medium">Recurrence</label>
               <RecurringSelect
                 value={recurringType}
                 onChange={setRecurringType}
@@ -467,9 +478,7 @@ export function RecordsForm({ onSubmit }: { onSubmit: RecordsSubmit }) {
 
             {/* Recurring Transaction Option */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">
-                Recurrence
-              </label>
+              <label className="text-sm font-medium">Recurrence</label>
               <RecurringSelect
                 value={recurringType}
                 onChange={setRecurringType}
@@ -587,9 +596,7 @@ export function RecordsForm({ onSubmit }: { onSubmit: RecordsSubmit }) {
 
             {/* Recurring Transaction Option */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">
-                Recurrence
-              </label>
+              <label className="text-sm font-medium">Recurrence</label>
               <RecurringSelect
                 value={recurringType}
                 onChange={setRecurringType}

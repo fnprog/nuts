@@ -3,13 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import type { DashboardChartComponentProps } from "../types";
 import { config } from "./index";
 
-import {
-  ChartCard,
-  ChartCardHeader,
-  ChartCardTitle,
-  ChartCardContent,
-  ChartCardMenu
-} from '@/features/dashboard/components/chart-card';
+import { ChartCard, ChartCardHeader, ChartCardTitle, ChartCardContent, ChartCardMenu } from "@/features/dashboard/components/chart-card";
 
 import { Chart } from "@/features/dashboard/components/chart-card/chart-renderer";
 import { ChartConfig, ChartTooltip, ChartTooltipContent } from "@/core/components/ui/chart";
@@ -68,9 +62,9 @@ function NetWorthChartComponent({ id, size, isLocked, hasAccounts }: DashboardCh
       <ChartCardMenu>
         <div>
           <ChartCardHeader>
-            <div className='flex-1'>
-              <ChartCardTitle className='text-muted-foreground'>{config.title}</ChartCardTitle>
-              <h2 className="text-2xl font-bold mt-1">${latestNetWorth.toLocaleString()}</h2>
+            <div className="flex-1">
+              <ChartCardTitle className="text-muted-foreground">{config.title}</ChartCardTitle>
+              <h2 className="mt-1 text-2xl font-bold">${latestNetWorth.toLocaleString()}</h2>
             </div>
           </ChartCardHeader>
           <ChartCardContent className="mt-2">
@@ -80,12 +74,18 @@ function NetWorthChartComponent({ id, size, isLocked, hasAccounts }: DashboardCh
                   <CartesianGrid strokeDasharray="4 4" vertical={false} stroke=" color-mix(in oklab, var(--muted-foreground) 50%, transparent)" />
                   <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#9ca3af" }} dy={10} />
                   <YAxis hide />
-                  <ChartTooltip
-                    cursor={{ fill: "rgba(0, 0, 0, 0.05)" }}
-                    content={<ChartTooltipContent />}
-                  />
+                  <ChartTooltip cursor={{ fill: "rgba(0, 0, 0, 0.05)" }} content={<ChartTooltipContent />} />
                   <Legend verticalAlign="bottom" height={36} iconType="circle" iconSize={8} wrapperStyle={{ fontSize: "14px", paddingTop: "8px" }} />
-                  <Area type="monotone" dataKey="netWorth" name="Net Worth" stroke="var(--chart-3)" fill="var(--chart-3)" fillOpacity={0.2} strokeWidth={2} animationDuration={300} />
+                  <Area
+                    type="monotone"
+                    dataKey="netWorth"
+                    name="Net Worth"
+                    stroke="var(--chart-3)"
+                    fill="var(--chart-3)"
+                    fillOpacity={0.2}
+                    strokeWidth={2}
+                    animationDuration={300}
+                  />
                 </AreaChart>
               </Chart>
             ) : (

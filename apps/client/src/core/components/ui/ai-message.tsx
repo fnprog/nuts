@@ -4,13 +4,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 // import { type BundledLanguage, codeToHtml } from "shiki";
 import { Button } from "@/core/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/core/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/core/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
 const STREAMING_CONFIG = {
@@ -30,9 +24,7 @@ interface AIMessageProps {
 }
 
 function useStreamingText(fullText: string, isStreaming: boolean): string {
-  const [displayedText, setDisplayedText] = useState(() =>
-    isStreaming ? "" : fullText
-  );
+  const [displayedText, setDisplayedText] = useState(() => (isStreaming ? "" : fullText));
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -50,9 +42,7 @@ function useStreamingText(fullText: string, isStreaming: boolean): string {
     }
 
     if (typeof window !== "undefined") {
-      const prefersReducedMotion = window.matchMedia(
-        "(prefers-reduced-motion: reduce)"
-      ).matches;
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
       if (prefersReducedMotion) {
         initialTimeoutId = setTimeout(() => {
@@ -76,10 +66,7 @@ function useStreamingText(fullText: string, isStreaming: boolean): string {
         return;
       }
 
-      const nextIndex = Math.min(
-        currentIndex + STREAMING_CONFIG.BATCH_SIZE,
-        fullText.length
-      );
+      const nextIndex = Math.min(currentIndex + STREAMING_CONFIG.BATCH_SIZE, fullText.length);
       setDisplayedText(fullText.slice(0, nextIndex));
       currentIndex = nextIndex;
 
@@ -108,22 +95,12 @@ interface MessageActionsProps {
   copied: boolean;
 }
 
-function MessageActions({
-  onCopy,
-  onRegenerate,
-  onEdit,
-  copied,
-}: MessageActionsProps) {
+function MessageActions({ onCopy, onRegenerate, onEdit, copied }: MessageActionsProps) {
   const hasActions = onRegenerate || onEdit;
 
   if (!hasActions) {
     return (
-      <Button
-        aria-label="Copy message"
-        className="opacity-0 transition-opacity duration-150 group-hover:opacity-100"
-        onClick={onCopy}
-        variant="ghost"
-      >
+      <Button aria-label="Copy message" className="opacity-0 transition-opacity duration-150 group-hover:opacity-100" onClick={onCopy} variant="ghost">
         {copied ? (
           <>
             <Copy className="size-4" />
@@ -142,12 +119,7 @@ function MessageActions({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          aria-label="Message actions"
-          className="opacity-0 transition-opacity duration-150 group-hover:opacity-100"
-          size="icon"
-          variant="ghost"
-        >
+        <Button aria-label="Message actions" className="opacity-0 transition-opacity duration-150 group-hover:opacity-100" size="icon" variant="ghost">
           <MoreVertical className="size-4" />
         </Button>
       </DropdownMenuTrigger>
@@ -186,12 +158,7 @@ interface HighlightedCodeBlockProps {
   skipHighlighting?: boolean;
 }
 
-function HighlightedCodeBlock({
-  code,
-  language,
-  filename,
-  skipHighlighting = false,
-}: HighlightedCodeBlockProps) {
+function HighlightedCodeBlock({ code, language, filename, skipHighlighting = false }: HighlightedCodeBlockProps) {
   const { theme: websiteTheme } = useTheme();
   const [highlightedCode, setHighlightedCode] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -236,18 +203,14 @@ function HighlightedCodeBlock({
 
   if (skipHighlighting) {
     return (
-      <div className="rounded-lg border border-border bg-background">
+      <div className="border-border bg-background rounded-lg border">
         {filename && (
-          <div className="flex items-center border-border border-b bg-background px-4 py-2">
-            <span className="font-mono text-muted-foreground text-sm">
-              {filename}
-            </span>
+          <div className="border-border bg-background flex items-center border-b px-4 py-2">
+            <span className="text-muted-foreground font-mono text-sm">{filename}</span>
           </div>
         )}
         <pre className="overflow-x-auto p-4">
-          <code className="wrap-break-word whitespace-pre-wrap font-mono text-sm">
-            {code}
-          </code>
+          <code className="font-mono text-sm wrap-break-word whitespace-pre-wrap">{code}</code>
         </pre>
       </div>
     );
@@ -255,18 +218,16 @@ function HighlightedCodeBlock({
 
   if (loading) {
     return (
-      <div className="rounded-lg border border-border bg-background">
+      <div className="border-border bg-background rounded-lg border">
         {filename && (
-          <div className="flex items-center border-border border-b bg-background px-4 py-2">
-            <span className="font-mono text-muted-foreground text-sm">
-              {filename}
-            </span>
+          <div className="border-border bg-background flex items-center border-b px-4 py-2">
+            <span className="text-muted-foreground font-mono text-sm">{filename}</span>
           </div>
         )}
         <div className="p-4">
           <div className="flex animate-pulse flex-col gap-2">
-            <div className="h-4 rounded bg-muted" />
-            <div className="h-4 w-3/4 rounded bg-muted" />
+            <div className="bg-muted h-4 rounded" />
+            <div className="bg-muted h-4 w-3/4 rounded" />
           </div>
         </div>
       </div>
@@ -275,12 +236,10 @@ function HighlightedCodeBlock({
 
   if (!highlightedCode) {
     return (
-      <div className="rounded-lg border border-border bg-background">
+      <div className="border-border bg-background rounded-lg border">
         {filename && (
-          <div className="flex items-center border-border border-b bg-background px-4 py-2">
-            <span className="font-mono text-muted-foreground text-sm">
-              {filename}
-            </span>
+          <div className="border-border bg-background flex items-center border-b px-4 py-2">
+            <span className="text-muted-foreground font-mono text-sm">{filename}</span>
           </div>
         )}
         <pre className="overflow-x-auto p-4">
@@ -302,10 +261,7 @@ function HighlightedCodeBlock({
     return styleObject;
   }
 
-  function domNodeToReact(
-    node: ChildNode,
-    key?: string | number
-  ): React.ReactNode {
+  function domNodeToReact(node: ChildNode, key?: string | number): React.ReactNode {
     if (node.nodeType === Node.TEXT_NODE) {
       return node.textContent;
     }
@@ -320,9 +276,7 @@ function HighlightedCodeBlock({
     const props: Record<string, any> = { key };
 
     if (el.className) {
-      props.className = isCodeBlock
-        ? `${el.className} whitespace-pre-wrap wrap-break-word`.trim()
-        : el.className.trim();
+      props.className = isCodeBlock ? `${el.className} whitespace-pre-wrap wrap-break-word`.trim() : el.className.trim();
     } else if (isCodeBlock) {
       props.className = "whitespace-pre-wrap wrap-break-word";
     }
@@ -338,9 +292,7 @@ function HighlightedCodeBlock({
       }
     }
 
-    const children = Array.from(el.childNodes).map((child, i) =>
-      domNodeToReact(child, i)
-    );
+    const children = Array.from(el.childNodes).map((child, i) => domNodeToReact(child, i));
 
     return React.createElement(tagName, props, ...children);
   }
@@ -351,12 +303,10 @@ function HighlightedCodeBlock({
 
   if (!pre) {
     return (
-      <div className="rounded-lg border border-border bg-background">
+      <div className="border-border bg-background rounded-lg border">
         {filename && (
-          <div className="flex items-center border-border border-b bg-background px-4 py-2">
-            <span className="font-mono text-muted-foreground text-sm">
-              {filename}
-            </span>
+          <div className="border-border bg-background flex items-center border-b px-4 py-2">
+            <span className="text-muted-foreground font-mono text-sm">{filename}</span>
           </div>
         )}
         <pre className="overflow-x-auto p-4">
@@ -367,12 +317,10 @@ function HighlightedCodeBlock({
   }
 
   return (
-    <div className="rounded-lg border border-border bg-background">
+    <div className="border-border bg-background rounded-lg border">
       {filename && (
-        <div className="flex items-center border-border border-b bg-background px-4 py-2">
-          <span className="font-mono text-muted-foreground text-sm">
-            {filename}
-          </span>
+        <div className="border-border bg-background flex items-center border-b px-4 py-2">
+          <span className="text-muted-foreground font-mono text-sm">{filename}</span>
         </div>
       )}
       <div className="overflow-x-auto">{domNodeToReact(pre)}</div>
@@ -385,10 +333,7 @@ interface MarkdownContentProps {
   skipCodeHighlighting?: boolean;
 }
 
-function MarkdownContent({
-  content,
-  skipCodeHighlighting = false,
-}: MarkdownContentProps) {
+function MarkdownContent({ content, skipCodeHighlighting = false }: MarkdownContentProps) {
   return (
     <div className="prose prose-sm dark:prose-invert max-w-none">
       <ReactMarkdown
@@ -399,35 +344,18 @@ function MarkdownContent({
             const codeString = String(children).replace(/\n$/, "");
 
             if (language) {
-              return (
-                <HighlightedCodeBlock
-                  code={codeString}
-                  language={language}
-                  skipHighlighting={skipCodeHighlighting}
-                />
-              );
+              return <HighlightedCodeBlock code={codeString} language={language} skipHighlighting={skipCodeHighlighting} />;
             }
 
             return (
-              <code
-                className={cn(
-                  "relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm",
-                  className
-                )}
-                {...props}
-              >
+              <code className={cn("bg-muted relative rounded px-[0.3rem] py-[0.2rem] font-mono text-sm", className)} {...props}>
                 {children}
               </code>
             );
           },
           a({ href, children, ...props }) {
             return (
-              <a
-                href={href}
-                rel="noopener noreferrer"
-                target="_blank"
-                {...props}
-              >
+              <a href={href} rel="noopener noreferrer" target="_blank" {...props}>
                 {children}
               </a>
             );
@@ -441,14 +369,7 @@ function MarkdownContent({
   );
 }
 
-export default function AIMessage({
-  content,
-  isStreaming = false,
-  onRegenerate,
-  onEdit,
-  className,
-  skipCodeHighlighting = false,
-}: AIMessageProps) {
+export default function AIMessage({ content, isStreaming = false, onRegenerate, onEdit, className, skipCodeHighlighting = false }: AIMessageProps) {
   const [copied, setCopied] = useState(false);
   const displayedContent = useStreamingText(content, isStreaming);
 
@@ -457,31 +378,18 @@ export default function AIMessage({
       await navigator.clipboard.writeText(content);
       setCopied(true);
       setTimeout(() => setCopied(false), COPY_FEEDBACK_DURATION);
-    } catch { }
+    } catch {}
   };
 
   return (
     <div className={cn("group relative shadow-xs", className)}>
       <div className="absolute top-0 right-0 z-10">
-        <MessageActions
-          copied={copied}
-          onCopy={handleCopy}
-          onEdit={onEdit}
-          onRegenerate={onRegenerate}
-        />
+        <MessageActions copied={copied} onCopy={handleCopy} onEdit={onEdit} onRegenerate={onRegenerate} />
       </div>
 
       <div>
-        <MarkdownContent
-          content={displayedContent}
-          skipCodeHighlighting={skipCodeHighlighting}
-        />
-        {isStreaming && (
-          <span
-            aria-hidden="true"
-            className="inline-block h-4 w-0.5 bg-foreground motion-safe:animate-pulse"
-          />
-        )}
+        <MarkdownContent content={displayedContent} skipCodeHighlighting={skipCodeHighlighting} />
+        {isStreaming && <span aria-hidden="true" className="bg-foreground inline-block h-4 w-0.5 motion-safe:animate-pulse" />}
       </div>
     </div>
   );

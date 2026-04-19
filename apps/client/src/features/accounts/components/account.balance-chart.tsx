@@ -26,9 +26,7 @@ export function AccountBalanceChart({ hasAccounts }: { hasAccounts?: boolean }) 
   if (hasAccounts && (!data || data.length === 0)) {
     return (
       <div className="flex h-[180px] items-center justify-center text-center">
-        <p className="text-sm text-muted-foreground">
-          No transactions yet. Start adding transactions to see them reflect here.
-        </p>
+        <p className="text-muted-foreground text-sm">No transactions yet. Start adding transactions to see them reflect here.</p>
       </div>
     );
   }

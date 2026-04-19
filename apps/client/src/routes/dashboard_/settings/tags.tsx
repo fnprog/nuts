@@ -37,7 +37,7 @@ function RouteComponent() {
         setNewTag({ name: "", icon: "" });
         setIsOpen(false);
       } catch (error) {
-        logger.error(error)
+        logger.error(error);
       }
     }
   };
@@ -60,25 +60,13 @@ function RouteComponent() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  value={newTag.name}
-                  onChange={(e) => setNewTag({ ...newTag, name: e.target.value })}
-                  required
-                />
+                <Input id="name" value={newTag.name} onChange={(e) => setNewTag({ ...newTag, name: e.target.value })} required />
               </div>
               <div className="space-y-2">
                 <Label>Icon</Label>
-                <IconPicker
-                  value={newTag.icon}
-                  onChange={(icon) => setNewTag({ ...newTag, icon })}
-                />
+                <IconPicker value={newTag.icon} onChange={(icon) => setNewTag({ ...newTag, icon })} />
               </div>
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={!newTag.name || !newTag.icon || createTagMutation.isPending}
-              >
+              <Button type="submit" className="w-full" disabled={!newTag.name || !newTag.icon || createTagMutation.isPending}>
                 {createTagMutation.isPending ? "Creating..." : "Create Tag"}
               </Button>
             </form>

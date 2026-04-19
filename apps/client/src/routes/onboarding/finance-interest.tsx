@@ -6,9 +6,7 @@ import { Button } from "@/core/components/ui/button";
 import { H1, Muted } from "@/core/components/ui/typography";
 import { useOnboardingStore } from "@/features/onboarding/stores/onboarding.store";
 
-import {
-  Field
-} from "@/core/components/ui/field"
+import { Field } from "@/core/components/ui/field";
 
 export const Route = createFileRoute("/onboarding/finance-interest")({
   component: RouteComponent,
@@ -17,8 +15,6 @@ export const Route = createFileRoute("/onboarding/finance-interest")({
 function RouteComponent() {
   const navigate = useNavigate();
   const { setBetterFinance, setStep, completeOnboarding } = useOnboardingStore();
-
-
 
   const handleBack = async () => {
     setStep(0);
@@ -49,12 +45,12 @@ function RouteComponent() {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.3 }}
-      className="flex min-h-[calc(100vh-200px)] flex-col w-full  max-w-md"
+      className="flex min-h-[calc(100vh-200px)] w-full max-w-md flex-col"
     >
       <div className="flex-1 space-y-8">
         <div className="space-y-3 text-center">
-          <H1 className="font-semibold ">Do you want to better understand your personal finance?</H1>
-          <Muted className="text-base ">We can help you gain insights into your spending patterns, savings goals, and financial health.</Muted>
+          <H1 className="font-semibold">Do you want to better understand your personal finance?</H1>
+          <Muted className="text-base">We can help you gain insights into your spending patterns, savings goals, and financial health.</Muted>
         </div>
 
         <div className="space-y-4 pt-4">

@@ -218,12 +218,7 @@ export class RecurringInstanceGenerator {
 
 export const recurringInstanceGenerator = new RecurringInstanceGenerator();
 
-export function generateRecurringInstances(
-  recurring: RecurringTransaction,
-  startDate: Date,
-  endDate: Date,
-  maxInstances?: number
-): RecurringInstance[] {
+export function generateRecurringInstances(recurring: RecurringTransaction, startDate: Date, endDate: Date, maxInstances?: number): RecurringInstance[] {
   return recurringInstanceGenerator.generateInstances(recurring, {
     startDate,
     endDate,

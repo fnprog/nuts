@@ -63,7 +63,7 @@ function RouteComponent() {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.3 }}
-      className="flex min-h-[calc(100vh-200px)] flex-col w-full max-w-md"
+      className="flex min-h-[calc(100vh-200px)] w-full max-w-md flex-col"
     >
       <div className="flex-1 space-y-8">
         <div className="space-y-3 text-center">
@@ -86,10 +86,8 @@ function RouteComponent() {
               onClick={() => setSelectedLanguage(lang.code)}
               tabIndex={-1}
               className={cn(
-                "w-full p-4 rounded-lg border-2 transition-all text-left flex items-center gap-4",
-                selectedLanguage === lang.code
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:border-primary/50"
+                "flex w-full items-center gap-4 rounded-lg border-2 p-4 text-left transition-all",
+                selectedLanguage === lang.code ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
               )}
             >
               <span className="text-3xl">{lang.flag}</span>
@@ -98,11 +96,7 @@ function RouteComponent() {
           ))}
         </motion.div>
 
-        <Button
-          variant="primary"
-          onClick={handleContinue}
-          className="w-full"
-        >
+        <Button variant="primary" onClick={handleContinue} className="w-full">
           Continue
         </Button>
       </div>

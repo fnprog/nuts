@@ -70,11 +70,7 @@ export const recurringProcessorService = {
     return ok(result);
   },
 
-  async createTransactionFromRecurring(
-    recurring: RecurringTransaction,
-    dueDate: Date,
-    userId: string
-  ): Promise<Result<string, ServiceError>> {
+  async createTransactionFromRecurring(recurring: RecurringTransaction, dueDate: Date, userId: string): Promise<Result<string, ServiceError>> {
     const transactionResult = await transactionService.createTransaction({
       account_id: recurring.account_id,
       category_id: recurring.category_id,
@@ -127,11 +123,7 @@ export const recurringProcessorService = {
     return ok(transactionId || "");
   },
 
-  async createDueNotification(
-    recurring: RecurringTransaction,
-    dueDate: Date,
-    userId: string
-  ): Promise<Result<string, ServiceError>> {
+  async createDueNotification(recurring: RecurringTransaction, dueDate: Date, userId: string): Promise<Result<string, ServiceError>> {
     const notificationResult = await notificationService.create({
       user_id: userId,
       type: "recurring_transaction_due",

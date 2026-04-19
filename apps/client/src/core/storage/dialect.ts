@@ -18,7 +18,7 @@ export interface WaSqliteDialectConfig {
 }
 
 export class WaSqliteDialect implements Dialect {
-  constructor(private config: WaSqliteDialectConfig) { }
+  constructor(private config: WaSqliteDialectConfig) {}
 
   createAdapter() {
     return new SqliteAdapter();
@@ -38,9 +38,9 @@ export class WaSqliteDialect implements Dialect {
 }
 
 class WaSqliteDriver implements Driver {
-  constructor(private config: WaSqliteDialectConfig) { }
+  constructor(private config: WaSqliteDialectConfig) {}
 
-  async init(): Promise<void> { }
+  async init(): Promise<void> {}
 
   async acquireConnection(): Promise<DatabaseConnection> {
     return new WaSqliteConnection(this.config);
@@ -58,13 +58,13 @@ class WaSqliteDriver implements Driver {
     await connection.executeQuery(CompiledQuery.raw("ROLLBACK"));
   }
 
-  async releaseConnection(): Promise<void> { }
+  async releaseConnection(): Promise<void> {}
 
-  async destroy(): Promise<void> { }
+  async destroy(): Promise<void> {}
 }
 
 class WaSqliteConnection implements DatabaseConnection {
-  constructor(private config: WaSqliteDialectConfig) { }
+  constructor(private config: WaSqliteDialectConfig) {}
 
   async executeQuery(compiledQuery: any): Promise<any> {
     const { sql, parameters } = compiledQuery;

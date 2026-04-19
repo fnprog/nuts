@@ -39,7 +39,7 @@ const DUMMY_ACCOUNTS = [
     id: "dummy-1",
     name: "Chase Checking",
     type: "checking" as const,
-    balance: 12500.50,
+    balance: 12500.5,
     created_at: new Date("2024-01-15"),
     updated_at: new Date(),
     user_id: "dummy",
@@ -51,14 +51,14 @@ const DUMMY_ACCOUNTS = [
       { date: new Date("2024-03-01"), balance: 11000 },
       { date: new Date("2024-04-01"), balance: 11500 },
       { date: new Date("2024-05-01"), balance: 12000 },
-      { date: new Date("2024-06-01"), balance: 12500.50 },
+      { date: new Date("2024-06-01"), balance: 12500.5 },
     ],
   },
   {
     id: "dummy-2",
     name: "Savings Account",
     type: "savings" as const,
-    balance: 35000.00,
+    balance: 35000.0,
     created_at: new Date("2024-01-10"),
     updated_at: new Date(),
     user_id: "dummy",
@@ -77,7 +77,7 @@ const DUMMY_ACCOUNTS = [
     id: "dummy-3",
     name: "Credit Card",
     type: "credit" as const,
-    balance: 4849.50,
+    balance: 4849.5,
     created_at: new Date("2024-02-01"),
     updated_at: new Date(),
     user_id: "dummy",
@@ -88,7 +88,7 @@ const DUMMY_ACCOUNTS = [
       { date: new Date("2024-03-01"), balance: 5200 },
       { date: new Date("2024-04-01"), balance: 4900 },
       { date: new Date("2024-05-01"), balance: 5100 },
-      { date: new Date("2024-06-01"), balance: 4849.50 },
+      { date: new Date("2024-06-01"), balance: 4849.5 },
     ],
   },
 ];
@@ -143,12 +143,7 @@ function RouteComponent() {
     <>
       {!hasAccounts && (
         <EmptyStateGuide Icon={LayoutDashboard} title="Here you can view account details" description="Add an account with the button below to get started">
-          <AddAccountModal
-            onAddAccount={onCreate}
-            onClose={onCloseModal}
-            open={isModalOpen}
-            onOpenChange={setIsModalOpen}
-          >
+          <AddAccountModal onAddAccount={onCreate} onClose={onCloseModal} open={isModalOpen} onOpenChange={setIsModalOpen}>
             <Button className="mt-4 hidden md:inline-flex">Add Account</Button>
           </AddAccountModal>
         </EmptyStateGuide>
@@ -172,7 +167,7 @@ function RouteComponent() {
         </div>
       </header>
       <div className="flex flex-1">
-        <div className="h-full w-full space-y-8  py-2">
+        <div className="h-full w-full space-y-8 py-2">
           <ErrorBoundary>
             <NetWorthCard cashTotal={cashTotal} hasAccounts={hasAccounts} />
           </ErrorBoundary>
@@ -180,12 +175,7 @@ function RouteComponent() {
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2">
               <ErrorBoundary>
-                <DraggableAccountGroups
-                  initialAccounts={grouppedAccounts}
-                  period={"1 month change"}
-                  onEdit={onUpdate}
-                  onDelete={onDelete}
-                />
+                <DraggableAccountGroups initialAccounts={grouppedAccounts} period={"1 month change"} onEdit={onUpdate} onDelete={onDelete} />
               </ErrorBoundary>
             </div>
             <div className="lg:col-span-1">

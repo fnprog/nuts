@@ -67,12 +67,7 @@ function RouteComponent() {
             </motion.div>
 
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
-              <Button
-                type="submit"
-                variant="mono"
-                className="w-full rounded-lg py-6 text-base font-medium"
-                disabled={isLoading}
-              >
+              <Button type="submit" variant="mono" className="w-full rounded-lg py-6 text-base font-medium" disabled={isLoading}>
                 {isLoading ? "Sending link..." : "Send reset link"}
               </Button>
             </motion.div>

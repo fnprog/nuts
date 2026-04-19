@@ -134,11 +134,11 @@ export function createCategoryService() {
       created_at: category.created_at || new Date().toISOString(),
       updated_at: category.updated_at || new Date().toISOString(),
     };
-    
+
     if (category.parent_id) {
       crdtCategory.parent_id = category.parent_id;
     }
-    
+
     return crdtCategory;
   };
 

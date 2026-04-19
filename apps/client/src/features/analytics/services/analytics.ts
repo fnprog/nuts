@@ -143,11 +143,7 @@ export function createAnalyticsService() {
       const { startDate, endDate, groupBy } = getTimeRange(timeframe);
       const db = kyselyQueryService.getDb();
 
-      const accounts = await db
-        .selectFrom("accounts")
-        .selectAll()
-        .where("accounts.deleted_at", "is", null)
-        .execute();
+      const accounts = await db.selectFrom("accounts").selectAll().where("accounts.deleted_at", "is", null).execute();
 
       const transactions = await db
         .selectFrom("transactions")
@@ -339,11 +335,7 @@ export function createAnalyticsService() {
         }
       }
 
-      const accounts = await db
-        .selectFrom("accounts")
-        .select(["type", "balance"])
-        .where("accounts.deleted_at", "is", null)
-        .execute();
+      const accounts = await db.selectFrom("accounts").select(["type", "balance"]).where("accounts.deleted_at", "is", null).execute();
 
       let totalAssets = 0;
       let totalLiabilities = 0;

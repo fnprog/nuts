@@ -3,13 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import type { DashboardChartComponentProps } from "../types";
 import { config } from "./index";
 
-import {
-  ChartCard,
-  ChartCardHeader,
-  ChartCardTitle,
-  ChartCardContent,
-  ChartCardMenu
-} from '@/features/dashboard/components/chart-card';
+import { ChartCard, ChartCardHeader, ChartCardTitle, ChartCardContent, ChartCardMenu } from "@/features/dashboard/components/chart-card";
 
 import { Chart } from "@/features/dashboard/components/chart-card/chart-renderer";
 import { ChartConfig, ChartTooltip, ChartTooltipContent } from "@/core/components/ui/chart";
@@ -56,9 +50,9 @@ function CategoryBreakdownChartComponent({ id, size, isLocked, hasAccounts }: Da
       <ChartCardMenu>
         <div>
           <ChartCardHeader>
-            <div className='flex-1'>
-              <ChartCardTitle className='text-muted-foreground'>{config.title}</ChartCardTitle>
-              <h2 className="text-2xl font-bold mt-1">${total.toLocaleString()}</h2>
+            <div className="flex-1">
+              <ChartCardTitle className="text-muted-foreground">{config.title}</ChartCardTitle>
+              <h2 className="mt-1 text-2xl font-bold">${total.toLocaleString()}</h2>
             </div>
           </ChartCardHeader>
           <ChartCardContent className="mt-2">
@@ -80,9 +74,7 @@ function CategoryBreakdownChartComponent({ id, size, isLocked, hasAccounts }: Da
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <ChartTooltip
-                    content={<ChartTooltipContent />}
-                  />
+                  <ChartTooltip content={<ChartTooltipContent />} />
                   <Legend verticalAlign="bottom" height={36} iconType="circle" iconSize={8} wrapperStyle={{ fontSize: "14px", paddingTop: "8px" }} />
                 </PieChart>
               </Chart>

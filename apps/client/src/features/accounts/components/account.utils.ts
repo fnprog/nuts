@@ -31,7 +31,7 @@ export function findAccountByIdFromGroups(groups: GroupedAccount[], id: string):
 }
 
 export function timeAgo(isoDate: string | Date): string {
-  const date = typeof isoDate === 'string' ? parseISO(isoDate) : isoDate;
+  const date = typeof isoDate === "string" ? parseISO(isoDate) : isoDate;
   const raw = formatDistanceToNow(date, { addSuffix: true });
   return raw.replace(/^about /, "~ ");
 }

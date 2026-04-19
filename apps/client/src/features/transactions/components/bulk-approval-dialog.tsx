@@ -18,11 +18,7 @@ interface BulkApprovalDialogProps {
   pendingTransactions: TableRecordSchema[];
 }
 
-export function BulkApprovalDialog({
-  isOpen,
-  onClose,
-  pendingTransactions
-}: BulkApprovalDialogProps) {
+export function BulkApprovalDialog({ isOpen, onClose, pendingTransactions }: BulkApprovalDialogProps) {
   const [selectedTransactions, setSelectedTransactions] = useState<Set<string>>(new Set());
   const [approvalMode, setApprovalMode] = useState<"all" | "small" | "selected">("selected");
   const [smallAmountThreshold] = useState(50);
@@ -39,7 +35,7 @@ export function BulkApprovalDialog({
       });
     },
     onSuccess: (_, transactionIds) => {
-      toast.success(`${transactionIds.length} transaction${transactionIds.length > 1 ? 's' : ''} approved successfully!`);
+      toast.success(`${transactionIds.length} transaction${transactionIds.length > 1 ? "s" : ""} approved successfully!`);
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       onClose();
       setSelectedTransactions(new Set());
@@ -49,9 +45,9 @@ export function BulkApprovalDialog({
     },
   });
 
-  const pendingOnly = pendingTransactions.filter(t => getTransactionStatus(t).isPending);
+  const pendingOnly = pendingTransactions.filter((t) => getTransactionStatus(t).isPending);
 
-  const smallTransactions = pendingOnly.filter(t => Math.abs(t.amount) < smallAmountThreshold);
+  const smallTransactions = pendingOnly.filter((t) => Math.abs(t.amount) < smallAmountThreshold);
   // const largeTransactions = pendingOnly.filter(t => Math.abs(t.amount) >= smallAmountThreshold);
 
   const getTransactionsToApprove = () => {
@@ -61,7 +57,7 @@ export function BulkApprovalDialog({
       case "small":
         return smallTransactions;
       case "selected":
-        return pendingOnly.filter(t => selectedTransactions.has(t.id));
+        return pendingOnly.filter((t) => selectedTransactions.has(t.id));
       default:
         return [];
     }
@@ -74,14 +70,14 @@ export function BulkApprovalDialog({
       return;
     }
 
-    bulkApproveMutation.mutate(transactionsToApprove.map(t => t.id));
+    bulkApproveMutation.mutate(transactionsToApprove.map((t) => t.id));
   };
 
   const handleSelectAll = () => {
     if (selectedTransactions.size === pendingOnly.length) {
       setSelectedTransactions(new Set());
     } else {
-      setSelectedTransactions(new Set(pendingOnly.map(t => t.id)));
+      setSelectedTransactions(new Set(pendingOnly.map((t) => t.id)));
     }
   };
 
@@ -99,7 +95,7 @@ export function BulkApprovalDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-h-[80vh] max-w-4xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CheckCircle className="h-5 w-5 text-green-500" />
@@ -164,25 +160,13 @@ export function BulkApprovalDialog({
                 </label>
               </div>
               <div className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  id="approve-small"
-                  name="approvalMode"
-                  checked={approvalMode === "small"}
-                  onChange={() => setApprovalMode("small")}
-                />
+                <input type="radio" id="approve-small" name="approvalMode" checked={approvalMode === "small"} onChange={() => setApprovalMode("small")} />
                 <label htmlFor="approve-small" className="text-sm">
                   Approve all small amounts (&lt; ${smallAmountThreshold}) ({smallTransactions.length})
                 </label>
               </div>
               <div className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  id="approve-all"
-                  name="approvalMode"
-                  checked={approvalMode === "all"}
-                  onChange={() => setApprovalMode("all")}
-                />
+                <input type="radio" id="approve-all" name="approvalMode" checked={approvalMode === "all"} onChange={() => setApprovalMode("all")} />
                 <label htmlFor="approve-all" className="text-sm">
                   Approve all pending transactions ({pendingOnly.length})
                 </label>
@@ -194,34 +178,28 @@ export function BulkApprovalDialog({
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="font-medium">Pending Transactions</h3>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSelectAll}
-              >
+              <Button variant="outline" size="sm" onClick={handleSelectAll}>
                 {selectedTransactions.size === pendingOnly.length ? "Deselect All" : "Select All"}
               </Button>
             </div>
 
-            <div className="max-h-96 overflow-y-auto space-y-2">
+            <div className="max-h-96 space-y-2 overflow-y-auto">
               {pendingOnly.map((transaction) => {
                 // const status = getTransactionStatus(transaction);
                 const isSelected = selectedTransactions.has(transaction.id);
-                const willBeApproved = getTransactionsToApprove().some(t => t.id === transaction.id);
+                const willBeApproved = getTransactionsToApprove().some((t) => t.id === transaction.id);
 
                 return (
                   <div
                     key={transaction.id}
-                    className={`flex items-center space-x-3 p-3 border rounded-lg ${willBeApproved ? "bg-green-50 border-green-200" : "bg-orange-50 border-orange-200"
-                      }`}
+                    className={`flex items-center space-x-3 rounded-lg border p-3 ${
+                      willBeApproved ? "border-green-200 bg-green-50" : "border-orange-200 bg-orange-50"
+                    }`}
                   >
-                    <Checkbox
-                      checked={isSelected}
-                      onCheckedChange={() => toggleTransaction(transaction.id)}
-                    />
+                    <Checkbox checked={isSelected} onCheckedChange={() => toggleTransaction(transaction.id)} />
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <p className="font-medium text-sm">{transaction.description}</p>
+                        <p className="text-sm font-medium">{transaction.description}</p>
                         <Badge variant="destructive" className="text-xs">
                           Pending
                         </Badge>
@@ -231,14 +209,10 @@ export function BulkApprovalDialog({
                           </Badge>
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-muted-foreground text-xs">
                         {transaction.account.name} • {formatDate(transaction.transaction_datetime)}
                       </p>
-                      {transaction.template_name && (
-                        <p className="text-xs text-blue-600">
-                          Template: {transaction.template_name}
-                        </p>
-                      )}
+                      {transaction.template_name && <p className="text-xs text-blue-600">Template: {transaction.template_name}</p>}
                     </div>
                     <div className="text-right">
                       <p className="font-medium">{formatCurrency(Math.abs(transaction.amount))}</p>
@@ -251,16 +225,12 @@ export function BulkApprovalDialog({
 
           {/* Summary */}
           {getTransactionsToApprove().length > 0 && (
-            <Card className="bg-green-50 border-green-200">
+            <Card className="border-green-200 bg-green-50">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium text-green-800">
-                      Ready to approve {getTransactionsToApprove().length} transactions
-                    </p>
-                    <p className="text-sm text-green-600">
-                      Total value: {formatCurrency(totalAmount)}
-                    </p>
+                    <p className="font-medium text-green-800">Ready to approve {getTransactionsToApprove().length} transactions</p>
+                    <p className="text-sm text-green-600">Total value: {formatCurrency(totalAmount)}</p>
                   </div>
                   <CheckCircle className="h-8 w-8 text-green-500" />
                 </div>

@@ -3,13 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import type { DashboardChartComponentProps } from "../types";
 import { config } from "./index";
 
-import {
-  ChartCard,
-  ChartCardHeader,
-  ChartCardTitle,
-  ChartCardContent,
-  ChartCardMenu
-} from '@/features/dashboard/components/chart-card';
+import { ChartCard, ChartCardHeader, ChartCardTitle, ChartCardContent, ChartCardMenu } from "@/features/dashboard/components/chart-card";
 
 import { Chart } from "@/features/dashboard/components/chart-card/chart-renderer";
 import { ChartConfig, ChartTooltip, ChartTooltipContent } from "@/core/components/ui/chart";
@@ -50,7 +44,7 @@ const buildChartConfig = (data: any[]): ChartConfig => {
 
   const config: ChartConfig = {};
   const colors = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)", "var(--chart-6)"];
-  
+
   Array.from(categories).forEach((category, index) => {
     config[category] = {
       label: category,
@@ -64,9 +58,9 @@ const buildChartConfig = (data: any[]): ChartConfig => {
 function SpendingOverviewChartComponent({ id, size, isLocked, hasAccounts }: DashboardChartComponentProps) {
   const chartData = hasAccounts ? useSpendingData(true).data : DUMMY_DATA;
   const chartConfig = buildChartConfig(chartData);
-  
+
   const latestMonth = chartData[chartData.length - 1];
-  const total = latestMonth ? Object.values(latestMonth).reduce((sum, val) => typeof val === "number" ? sum + val : sum, 0) : 0;
+  const total = latestMonth ? Object.values(latestMonth).reduce((sum, val) => (typeof val === "number" ? sum + val : sum), 0) : 0;
 
   const categoryKeys = Object.keys(chartConfig);
 
@@ -75,9 +69,9 @@ function SpendingOverviewChartComponent({ id, size, isLocked, hasAccounts }: Das
       <ChartCardMenu>
         <div>
           <ChartCardHeader>
-            <div className='flex-1'>
-              <ChartCardTitle className='text-muted-foreground'>{config.title}</ChartCardTitle>
-              <h2 className="text-2xl font-bold mt-1">${total.toLocaleString()}</h2>
+            <div className="flex-1">
+              <ChartCardTitle className="text-muted-foreground">{config.title}</ChartCardTitle>
+              <h2 className="mt-1 text-2xl font-bold">${total.toLocaleString()}</h2>
             </div>
           </ChartCardHeader>
           <ChartCardContent className="mt-2">
@@ -87,21 +81,18 @@ function SpendingOverviewChartComponent({ id, size, isLocked, hasAccounts }: Das
                   <CartesianGrid strokeDasharray="4 4" vertical={false} stroke=" color-mix(in oklab, var(--muted-foreground) 50%, transparent)" />
                   <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#9ca3af" }} dy={10} />
                   <YAxis hide />
-                  <ChartTooltip
-                    cursor={{ fill: "rgba(0, 0, 0, 0.05)" }}
-                    content={<ChartTooltipContent />}
-                  />
+                  <ChartTooltip cursor={{ fill: "rgba(0, 0, 0, 0.05)" }} content={<ChartTooltipContent />} />
                   <Legend verticalAlign="bottom" height={36} iconType="circle" iconSize={8} wrapperStyle={{ fontSize: "14px", paddingTop: "8px" }} />
                   {categoryKeys.map((key, index) => (
-                    <Bar 
+                    <Bar
                       key={key}
-                      dataKey={key} 
-                      name={chartConfig[key].label} 
-                      fill={chartConfig[key].color} 
-                      radius={[4, 4, 0, 0]} 
-                      barSize={16} 
-                      animationDuration={300} 
-                      stackId="a" 
+                      dataKey={key}
+                      name={chartConfig[key].label}
+                      fill={chartConfig[key].color}
+                      radius={[4, 4, 0, 0]}
+                      barSize={16}
+                      animationDuration={300}
+                      stackId="a"
                     />
                   ))}
                 </BarChart>

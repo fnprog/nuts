@@ -12,14 +12,14 @@ import { categoryService } from "@/features/categories/services/category.service
 import { accountService } from "@/features/accounts/services/account";
 
 export interface TransactionFilterState {
-  account_id?: string
-  category_id?: string
-  type?: "income" | "expense" | "transfer"
-  start_date?: Date
-  end_date?: Date
-  currency?: string
-  is_recurring?: boolean
-  is_pending?: boolean
+  account_id?: string;
+  category_id?: string;
+  type?: "income" | "expense" | "transfer";
+  start_date?: Date;
+  end_date?: Date;
+  currency?: string;
+  is_recurring?: boolean;
+  is_pending?: boolean;
 }
 
 interface TransactionFilterDropdownProps {
@@ -116,22 +116,22 @@ export function TransactionFilterDropdown({ filters, onFiltersChange, onClearAll
   // Helper to get filter label
   const getFilterLabel = (key: keyof TransactionFilterState, value: any) => {
     switch (key) {
-      case 'account_id':
-        return accountOptions.find(opt => opt.value === value)?.label || 'Account'
-      case 'category_id':
-        return categoryOptions.find(opt => opt.value === value)?.label || 'Category'
-      case 'type':
-        return TRANSACTION_TYPES.find(opt => opt.value === value)?.label || 'Type'
-      case 'currency':
-        return CURRENCIES.find(opt => opt.value === value)?.label || 'Currency'
-      case 'is_recurring':
-        return value ? 'Recurring Only' : 'Non-recurring Only'
-      case 'is_pending':
-        return value ? 'Pending Approval' : 'Auto-posted'
-      case 'start_date':
-        return `From: ${format(value as Date, "MMM dd, yyyy")}`
-      case 'end_date':
-        return `To: ${format(value as Date, "MMM dd, yyyy")}`
+      case "account_id":
+        return accountOptions.find((opt) => opt.value === value)?.label || "Account";
+      case "category_id":
+        return categoryOptions.find((opt) => opt.value === value)?.label || "Category";
+      case "type":
+        return TRANSACTION_TYPES.find((opt) => opt.value === value)?.label || "Type";
+      case "currency":
+        return CURRENCIES.find((opt) => opt.value === value)?.label || "Currency";
+      case "is_recurring":
+        return value ? "Recurring Only" : "Non-recurring Only";
+      case "is_pending":
+        return value ? "Pending Approval" : "Auto-posted";
+      case "start_date":
+        return `From: ${format(value as Date, "MMM dd, yyyy")}`;
+      case "end_date":
+        return `To: ${format(value as Date, "MMM dd, yyyy")}`;
       default:
         return String(value);
     }
@@ -158,15 +158,15 @@ export function TransactionFilterDropdown({ filters, onFiltersChange, onClearAll
       hasSubmenu: true,
     },
     {
-      key: 'status',
-      label: 'Status',
-      icon: '🔔',
+      key: "status",
+      label: "Status",
+      icon: "🔔",
       hasSubmenu: true,
     },
     {
-      key: 'currency',
-      label: 'Currency',
-      icon: '💱',
+      key: "currency",
+      label: "Currency",
+      icon: "💱",
       hasSubmenu: true,
     },
     {
@@ -252,7 +252,7 @@ export function TransactionFilterDropdown({ filters, onFiltersChange, onClearAll
           </Command>
         );
 
-      case 'status':
+      case "status":
         return (
           <Command>
             <CommandList>
@@ -260,54 +260,39 @@ export function TransactionFilterDropdown({ filters, onFiltersChange, onClearAll
                 <CommandItem
                   value="recurring"
                   onSelect={() => {
-                    updateFilter('is_recurring', true)
-                    setActiveSubmenu(null)
+                    updateFilter("is_recurring", true);
+                    setActiveSubmenu(null);
                   }}
                 >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      filters.is_recurring === true ? "opacity-100" : "opacity-0"
-                    )}
-                  />
+                  <Check className={cn("mr-2 h-4 w-4", filters.is_recurring === true ? "opacity-100" : "opacity-0")} />
                   Recurring Transactions
                 </CommandItem>
                 <CommandItem
                   value="pending"
                   onSelect={() => {
-                    updateFilter('is_pending', true)
-                    setActiveSubmenu(null)
+                    updateFilter("is_pending", true);
+                    setActiveSubmenu(null);
                   }}
                 >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      filters.is_pending === true ? "opacity-100" : "opacity-0"
-                    )}
-                  />
+                  <Check className={cn("mr-2 h-4 w-4", filters.is_pending === true ? "opacity-100" : "opacity-0")} />
                   Pending Approval
                 </CommandItem>
                 <CommandItem
                   value="auto_posted"
                   onSelect={() => {
-                    updateFilter('is_pending', false)
-                    setActiveSubmenu(null)
+                    updateFilter("is_pending", false);
+                    setActiveSubmenu(null);
                   }}
                 >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      filters.is_pending === false ? "opacity-100" : "opacity-0"
-                    )}
-                  />
+                  <Check className={cn("mr-2 h-4 w-4", filters.is_pending === false ? "opacity-100" : "opacity-0")} />
                   Auto-posted
                 </CommandItem>
               </CommandGroup>
             </CommandList>
           </Command>
-        )
+        );
 
-      case 'currency':
+      case "currency":
         return (
           <Command>
             <CommandList>

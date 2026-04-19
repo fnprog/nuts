@@ -7,23 +7,12 @@ interface UseAutoProcessRecurringOptions {
   userId: string;
   lookAheadDays?: number;
   enabled?: boolean;
-  onSuccess?: (result: {
-    notificationsCreated: number;
-    transactionsCreated: number;
-    errors: string[];
-  }) => void;
+  onSuccess?: (result: { notificationsCreated: number; transactionsCreated: number; errors: string[] }) => void;
   onError?: (error: Error) => void;
 }
 
 export function useAutoProcessRecurring(options: UseAutoProcessRecurringOptions) {
-  const {
-    recurringTransactions,
-    userId,
-    lookAheadDays = 7,
-    enabled = true,
-    onSuccess,
-    onError,
-  } = options;
+  const { recurringTransactions, userId, lookAheadDays = 7, enabled = true, onSuccess, onError } = options;
 
   const { mutate, isPending, isSuccess, isError, error, data } = useProcessRecurringTransactions();
 

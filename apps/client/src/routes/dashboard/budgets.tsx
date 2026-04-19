@@ -26,7 +26,7 @@ function RouteComponent() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-center justify-center py-12">
-            <Wallet className="h-16 w-16 text-muted-foreground/30 mb-4" />
+            <Wallet className="text-muted-foreground/30 mb-4 h-16 w-16" />
             <P variant="muted">No budgets created yet</P>
             <P variant="muted" className="text-sm">
               Create budgets to track your spending by category

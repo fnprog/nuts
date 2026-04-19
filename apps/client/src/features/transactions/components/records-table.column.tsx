@@ -24,28 +24,22 @@ interface ActionColumnHandlers {
 }
 
 // Memoized components to prevent unnecessary re-renders
-const TransactionCell = memo(({
-  transaction,
-  onEdit
-}: {
-  transaction: TableRecordSchema;
-  onEdit: (transaction: TableRecordSchema) => void;
-}) => {
+const TransactionCell = memo(({ transaction, onEdit }: { transaction: TableRecordSchema; onEdit: (transaction: TableRecordSchema) => void }) => {
   const status = getTransactionStatus(transaction);
   const styles = getTransactionStyles(transaction);
 
   return (
     <div className={`flex items-center space-x-3 ${styles.containerClass}`}>
       <Avatar className="h-8 w-8">
-        <AvatarFallback className="bg-[#595959] text-background">
-          {transaction.account.name.slice(0, 2).toUpperCase()}
-        </AvatarFallback>
+        <AvatarFallback className="text-background bg-[#595959]">{transaction.account.name.slice(0, 2).toUpperCase()}</AvatarFallback>
       </Avatar>
       <div className="flex flex-col gap-0.5">
         <div className="flex items-center gap-2">
           <button
-            onClick={() => { onEdit(transaction) }}
-            className={`text-left hover:underline font-medium ${styles.textClass}`}
+            onClick={() => {
+              onEdit(transaction);
+            }}
+            className={`text-left font-medium hover:underline ${styles.textClass}`}
           >
             {transaction.description}
           </button>
@@ -62,11 +56,7 @@ const TransactionCell = memo(({
         >
           {transaction.account.name}
         </Link>
-        {transaction.template_name && (
-          <span className="text-xs text-muted-foreground">
-            Template: {transaction.template_name}
-          </span>
-        )}
+        {transaction.template_name && <span className="text-muted-foreground text-xs">Template: {transaction.template_name}</span>}
       </div>
     </div>
   );
@@ -124,9 +114,9 @@ const CategoryCell = memo(({ transaction }: { transaction: TableRecordSchema }) 
           </>
         )}
         popoverProps={{
-          className: "w-80"
+          className: "w-80",
         }}
-        className="[&>button]:h-auto [&>button]:rounded-full [&>button]:px-2 [&>button]:py-1 [&>button]:text-md [&>button]:border-input [&>button]:bg-background [&>button]:hover:bg-accent [&>button]:hover:text-accent-foreground [&>button]:transition-colors [&>button>span>svg]:size-4 [&>button>svg]:hidden"
+        className="[&>button]:text-md [&>button]:border-input [&>button]:bg-background [&>button]:hover:bg-accent [&>button]:hover:text-accent-foreground [&>button]:h-auto [&>button]:rounded-full [&>button]:px-2 [&>button]:py-1 [&>button]:transition-colors [&>button>span>svg]:size-4 [&>button>svg]:hidden"
       />
     </div>
   );

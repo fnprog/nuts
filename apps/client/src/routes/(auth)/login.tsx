@@ -25,20 +25,11 @@ import { useAuthStore } from "@/features/auth/stores/auth.store";
 import { arktypeResolver } from "@hookform/resolvers/arktype";
 import { H1, Muted } from "@/core/components/ui/typography";
 
-import {
-  Field,
-  FieldGroup,
-  FieldError,
-  FieldLabel,
-  FieldDescription,
-  FieldSet,
-} from "@/core/components/ui/field"
-
+import { Field, FieldGroup, FieldError, FieldLabel, FieldDescription, FieldSet } from "@/core/components/ui/field";
 
 const searchSchema = type({
   "redirect?": "string",
 });
-
 
 //TODO: Change the button components to match the style here
 //TODO: Change the Signup and Change password page to match the design
@@ -166,7 +157,6 @@ function RouteComponent() {
   }
 
   return (
-
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="w-full max-w-md">
       <div className="mb-8 lg:hidden">
         <div className="flex items-center gap-2">
@@ -187,23 +177,13 @@ function RouteComponent() {
                 <>
                   <FieldGroup>
                     <Field>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full gap-3"
-                        asChild
-                      >
+                      <Button type="button" variant="outline" className="w-full gap-3" asChild>
                         <a href={`${config.VITE_API_BASE_URL}/auth/oauth/apple`}>
                           <Apple className="size-5" fill="#000" />
                           <span>Login with Apple</span>
                         </a>
                       </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full  gap-3 "
-                        asChild
-                      >
+                      <Button type="button" variant="outline" className="w-full gap-3" asChild>
                         <a href={`${config.VITE_API_BASE_URL}/auth/oauth/google`}>
                           <Google className="size-5" />
                           <span>Login with Google</span>
@@ -212,51 +192,38 @@ function RouteComponent() {
                     </Field>
                   </FieldGroup>
 
-                  <div className="relative ">
+                  <div className="relative">
                     <div className="absolute inset-0 flex items-center">
                       <Separator className="w-full" />
                     </div>
                     <div className="relative flex justify-center text-sm">
-                      <Muted className="bg-white px-4 ">or</Muted>
+                      <Muted className="bg-white px-4">or</Muted>
                     </div>
                   </div>
 
                   <FieldGroup className="gap-3">
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} >
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
                       <Field>
-                        <FieldLabel className="sr-only hidden" htmlFor="username">Username</FieldLabel>
-                        <Input
-                          id="email"
-                          type="email"
-                          placeholder="Email"
-                          disabled={loginMutation.isPending}
-                          {...form.register("email")}
-                        />
+                        <FieldLabel className="sr-only hidden" htmlFor="username">
+                          Username
+                        </FieldLabel>
+                        <Input id="email" type="email" placeholder="Email" disabled={loginMutation.isPending} {...form.register("email")} />
                         {form.formState.errors.email && <FieldError>{form.formState.errors.email.message}</FieldError>}
                       </Field>
                     </motion.div>
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} >
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
                       <Field>
-                        <FieldLabel className="sr-only hidden" htmlFor="password">Password</FieldLabel>
-                        <Input
-                          id="password"
-                          type="password"
-                          placeholder="Password"
-                          disabled={loginMutation.isPending}
-                          {...form.register("password")}
-                        />
+                        <FieldLabel className="sr-only hidden" htmlFor="password">
+                          Password
+                        </FieldLabel>
+                        <Input id="password" type="password" placeholder="Password" disabled={loginMutation.isPending} {...form.register("password")} />
                         {form.formState.errors.password && <FieldError>{form.formState.errors.password.message}</FieldError>}
                       </Field>
                     </motion.div>
 
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
                       <Field>
-                        <Button
-                          type="submit"
-                          variant="mono"
-                          className="w-full"
-                          disabled={loginMutation.isPending || isMigrating}
-                        >
+                        <Button type="submit" variant="mono" className="w-full" disabled={loginMutation.isPending || isMigrating}>
                           {isMigrating ? "Migrating data..." : loginMutation.isPending ? "Verifying..." : "Login"}
                         </Button>
                       </Field>
@@ -264,7 +231,7 @@ function RouteComponent() {
 
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="space-y-3 pt-4 text-center">
                       <Field>
-                        <FieldDescription >
+                        <FieldDescription>
                           {"Don't have an account? "}
                           <Link to="/signup" className="font-medium text-black hover:underline">
                             Sign up
@@ -272,11 +239,7 @@ function RouteComponent() {
                         </FieldDescription>
                         <p className="text-sm text-gray-600">
                           {"or "}
-                          <button
-                            type="button"
-                            onClick={onLoginLater}
-                            className="font-medium text-black hover:underline"
-                          >
+                          <button type="button" onClick={onLoginLater} className="font-medium text-black hover:underline">
                             Continue Without Account
                           </button>
                         </p>
@@ -285,7 +248,6 @@ function RouteComponent() {
                   </FieldGroup>
                 </>
               ) : (
-
                 <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
                   <FieldGroup>
                     <Field>

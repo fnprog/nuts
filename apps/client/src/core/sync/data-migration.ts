@@ -114,9 +114,7 @@ class DataMigrationService {
         return result;
       }
 
-      logger.info(
-        `${dryRun ? "[DRY RUN]" : ""} Starting migration of ${totalItems} items from anonymous user ${anonymousUser.id}`
-      );
+      logger.info(`${dryRun ? "[DRY RUN]" : ""} Starting migration of ${totalItems} items from anonymous user ${anonymousUser.id}`);
 
       const migrationId = existingState?.migration_id || crypto.randomUUID();
 
@@ -174,8 +172,7 @@ class DataMigrationService {
         result.failedAccounts = finalState.failed_accounts;
         result.failedTransactions = finalState.failed_transactions;
 
-        const totalMigrated =
-          finalState.migrated_categories + finalState.migrated_accounts + finalState.migrated_transactions;
+        const totalMigrated = finalState.migrated_categories + finalState.migrated_accounts + finalState.migrated_transactions;
         const totalFailed = finalState.failed_categories + finalState.failed_accounts + finalState.failed_transactions;
 
         if (totalMigrated === totalItems && totalFailed === 0) {
@@ -232,13 +229,7 @@ class DataMigrationService {
     }
   }
 
-  private async migrateSingleChunk(
-    state: MigrationState,
-    categories: any[],
-    accounts: any[],
-    transactions: any[],
-    maxRetries: number
-  ): Promise<void> {
+  private async migrateSingleChunk(state: MigrationState, categories: any[], accounts: any[], transactions: any[], maxRetries: number): Promise<void> {
     const migrationRequest = {
       migration_id: state.migration_id,
       anonymous_user_id: state.anonymous_user_id,
@@ -382,11 +373,7 @@ class DataMigrationService {
     await this.saveMigrationState(state);
   }
 
-  private async executeWithRetry<T>(
-    fn: () => Promise<T>,
-    maxRetries: number,
-    state: MigrationState
-  ): Promise<T> {
+  private async executeWithRetry<T>(fn: () => Promise<T>, maxRetries: number, state: MigrationState): Promise<T> {
     let lastError: Error | null = null;
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -409,11 +396,7 @@ class DataMigrationService {
     throw lastError || new Error("Max retries exceeded");
   }
 
-  private validateMigrationData(
-    categories: any[],
-    accounts: any[],
-    transactions: any[]
-  ): { valid: boolean; errors: string[] } {
+  private validateMigrationData(categories: any[], accounts: any[], transactions: any[]): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
 
     if (categories.some((cat) => !cat.name || !cat.type)) {
@@ -431,9 +414,7 @@ class DataMigrationService {
     const accountIds = new Set(accounts.map((a) => a.id));
     const categoryIds = new Set(categories.map((c) => c.id));
 
-    const invalidTransactions = transactions.filter(
-      (txn) => !accountIds.has(txn.account_id) || (txn.category_id && !categoryIds.has(txn.category_id))
-    );
+    const invalidTransactions = transactions.filter((txn) => !accountIds.has(txn.account_id) || (txn.category_id && !categoryIds.has(txn.category_id)));
 
     if (invalidTransactions.length > 0) {
       errors.push(`${invalidTransactions.length} transactions reference invalid accounts or categories`);
@@ -533,10 +514,7 @@ class DataMigrationService {
   private async loadMigrationState(anonymousUserId: string): Promise<MigrationState | null> {
     try {
       await db.initialize();
-      const result = await db.execute(
-        "SELECT * FROM migration_state WHERE anonymous_user_id = ? ORDER BY created_at DESC LIMIT 1",
-        [anonymousUserId]
-      );
+      const result = await db.execute("SELECT * FROM migration_state WHERE anonymous_user_id = ? ORDER BY created_at DESC LIMIT 1", [anonymousUserId]);
 
       if (!result.results || result.results.length === 0) {
         return null;
@@ -572,11 +550,7 @@ class DataMigrationService {
       const binaryArray = Array.from(doc);
       const timestamp = new Date().toISOString();
 
-      await db.execute("INSERT INTO crdt_backups (backup_id, document_binary, created_at) VALUES (?, ?, ?)", [
-        backupId,
-        binaryArray,
-        timestamp,
-      ]);
+      await db.execute("INSERT INTO crdt_backups (backup_id, document_binary, created_at) VALUES (?, ?, ?)", [backupId, binaryArray, timestamp]);
 
       logger.info(`Created CRDT backup: ${backupId}`);
       return backupId;

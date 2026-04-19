@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
-import { arktypeResolver } from '@hookform/resolvers/arktype';
+import { arktypeResolver } from "@hookform/resolvers/arktype";
 
 import { Plus, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/core/components/ui/dialog";
@@ -313,114 +313,108 @@ export function CreateEditRuleDialog({ open, onOpenChange, rule, prefillData }: 
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    {conditionsArray.fields.map((field, index) => (
-                      <div key={field.id} className="space-y-3 rounded-lg border p-4">
-                        <div className="flex items-center justify-between">
-                          <Badge variant="outline">Condition {index + 1}</Badge>
-                          {conditionsArray.fields.length > 1 && (
-                            <Button type="button" variant="ghost" size="sm" onClick={() => conditionsArray.remove(index)}>
-                              <Trash2 className="size-4" />
-                            </Button>
-                          )}
-                        </div>
-
-                        <div className="grid grid-cols-3 gap-3">
-                          <FormField
-                            control={form.control}
-                            name={`conditions.${index}.type`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Field</FormLabel>
-                                <Select value={field.value} onValueChange={field.onChange}>
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    {Object.entries(CONDITION_TYPE_LABELS).map(([value, label]) => (
-                                      <SelectItem key={value} value={value}>
-                                        {label}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name={`conditions.${index}.operator`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Operator</FormLabel>
-                                <Select value={field.value} onValueChange={field.onChange}>
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    {getOperatorsForConditionType(form.watch(`conditions.${index}.type`)).map((op) => (
-                                      <SelectItem key={op} value={op}>
-                                        {CONDITION_OPERATOR_LABELS[op]}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name={`conditions.${index}.value`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Value</FormLabel>
-                                <FormControl>
-                                  {getValueInput(
-                                    form.watch(`conditions.${index}.type`),
-                                    field.value,
-                                    field.onChange
-                                  )}
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-
-                        {index < conditionsArray.fields.length - 1 && (
-                          <FormField
-                            control={form.control}
-                            name={`conditions.${index}.logic_gate`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Logic</FormLabel>
-                                <Select value={field.value || "AND"} onValueChange={field.onChange}>
-                                  <FormControl>
-                                    <SelectTrigger className="w-24">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value="AND">AND</SelectItem>
-                                    <SelectItem value="OR">OR</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
+                  {conditionsArray.fields.map((field, index) => (
+                    <div key={field.id} className="space-y-3 rounded-lg border p-4">
+                      <div className="flex items-center justify-between">
+                        <Badge variant="outline">Condition {index + 1}</Badge>
+                        {conditionsArray.fields.length > 1 && (
+                          <Button type="button" variant="ghost" size="sm" onClick={() => conditionsArray.remove(index)}>
+                            <Trash2 className="size-4" />
+                          </Button>
                         )}
                       </div>
-                    ))}
-                  </CardContent>
-                </Card>
+
+                      <div className="grid grid-cols-3 gap-3">
+                        <FormField
+                          control={form.control}
+                          name={`conditions.${index}.type`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Field</FormLabel>
+                              <Select value={field.value} onValueChange={field.onChange}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {Object.entries(CONDITION_TYPE_LABELS).map(([value, label]) => (
+                                    <SelectItem key={value} value={value}>
+                                      {label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name={`conditions.${index}.operator`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Operator</FormLabel>
+                              <Select value={field.value} onValueChange={field.onChange}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {getOperatorsForConditionType(form.watch(`conditions.${index}.type`)).map((op) => (
+                                    <SelectItem key={op} value={op}>
+                                      {CONDITION_OPERATOR_LABELS[op]}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name={`conditions.${index}.value`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Value</FormLabel>
+                              <FormControl>{getValueInput(form.watch(`conditions.${index}.type`), field.value, field.onChange)}</FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      {index < conditionsArray.fields.length - 1 && (
+                        <FormField
+                          control={form.control}
+                          name={`conditions.${index}.logic_gate`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Logic</FormLabel>
+                              <Select value={field.value || "AND"} onValueChange={field.onChange}>
+                                <FormControl>
+                                  <SelectTrigger className="w-24">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="AND">AND</SelectItem>
+                                  <SelectItem value="OR">OR</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
 
               <Card>
                 <CardHeader>
@@ -433,59 +427,59 @@ export function CreateEditRuleDialog({ open, onOpenChange, rule, prefillData }: 
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    {actionsArray.fields.map((field, index) => (
-                      <div key={field.id} className="space-y-3 rounded-lg border p-4">
-                        <div className="flex items-center justify-between">
-                          <Badge variant="outline">Action {index + 1}</Badge>
-                          {actionsArray.fields.length > 1 && (
-                            <Button type="button" variant="ghost" size="sm" onClick={() => actionsArray.remove(index)}>
-                              <Trash2 className="size-4" />
-                            </Button>
-                          )}
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
-                          <FormField
-                            control={form.control}
-                            name={`actions.${index}.type`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Action Type</FormLabel>
-                                <Select value={field.value} onValueChange={field.onChange}>
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    {Object.entries(ACTION_TYPE_LABELS).map(([value, label]) => (
-                                      <SelectItem key={value} value={value}>
-                                        {label}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name={`actions.${index}.value`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Value</FormLabel>
-                                <FormControl>{getActionValueInput(form.watch(`actions.${index}.type`), field.value, field.onChange)}</FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
+                  {actionsArray.fields.map((field, index) => (
+                    <div key={field.id} className="space-y-3 rounded-lg border p-4">
+                      <div className="flex items-center justify-between">
+                        <Badge variant="outline">Action {index + 1}</Badge>
+                        {actionsArray.fields.length > 1 && (
+                          <Button type="button" variant="ghost" size="sm" onClick={() => actionsArray.remove(index)}>
+                            <Trash2 className="size-4" />
+                          </Button>
+                        )}
                       </div>
-                    ))}
-                  </CardContent>
-                </Card>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <FormField
+                          control={form.control}
+                          name={`actions.${index}.type`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Action Type</FormLabel>
+                              <Select value={field.value} onValueChange={field.onChange}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {Object.entries(ACTION_TYPE_LABELS).map(([value, label]) => (
+                                    <SelectItem key={value} value={value}>
+                                      {label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name={`actions.${index}.value`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Value</FormLabel>
+                              <FormControl>{getActionValueInput(form.watch(`actions.${index}.type`), field.value, field.onChange)}</FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
             </div>
 
             <Separator className="my-4" />

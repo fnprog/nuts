@@ -1,12 +1,4 @@
-import {
-  AlertTriangle,
-  ChevronDown,
-  ChevronUp,
-  Loader2,
-  Mail,
-  RefreshCw,
-  X,
-} from "lucide-react";
+import { AlertTriangle, ChevronDown, ChevronUp, Loader2, Mail, RefreshCw, X } from "lucide-react";
 import { useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/core/components/ui/alert";
 import { Badge } from "@/core/components/ui/badge";
@@ -16,16 +8,7 @@ import { cn } from "@/lib/utils";
 
 export interface AIError {
   id: string;
-  type:
-  | "rate_limit"
-  | "network"
-  | "api_error"
-  | "authentication"
-  | "quota_exceeded"
-  | "invalid_request"
-  | "server_error"
-  | "timeout"
-  | "unknown";
+  type: "rate_limit" | "network" | "api_error" | "authentication" | "quota_exceeded" | "invalid_request" | "server_error" | "timeout" | "unknown";
   message: string;
   details?: string;
   errorCode?: string;
@@ -55,88 +38,56 @@ function getErrorConfig(type: AIError["type"]) {
         title: "Rate Limit Exceeded",
         icon: AlertTriangle,
         variant: "destructive" as const,
-        suggestedActions: [
-          "Wait a few moments before trying again",
-          "Reduce the frequency of your requests",
-          "Upgrade your plan for higher rate limits",
-        ],
+        suggestedActions: ["Wait a few moments before trying again", "Reduce the frequency of your requests", "Upgrade your plan for higher rate limits"],
       };
     case "network":
       return {
         title: "Network Error",
         icon: AlertTriangle,
         variant: "destructive" as const,
-        suggestedActions: [
-          "Check your internet connection",
-          "Try again in a moment",
-          "Verify your network settings",
-        ],
+        suggestedActions: ["Check your internet connection", "Try again in a moment", "Verify your network settings"],
       };
     case "api_error":
       return {
         title: "API Error",
         icon: AlertTriangle,
         variant: "destructive" as const,
-        suggestedActions: [
-          "Try again in a moment",
-          "Check if the service is available",
-          "Contact support if the issue persists",
-        ],
+        suggestedActions: ["Try again in a moment", "Check if the service is available", "Contact support if the issue persists"],
       };
     case "authentication":
       return {
         title: "Authentication Error",
         icon: AlertTriangle,
         variant: "destructive" as const,
-        suggestedActions: [
-          "Check your API key",
-          "Verify your authentication credentials",
-          "Re-authenticate if needed",
-        ],
+        suggestedActions: ["Check your API key", "Verify your authentication credentials", "Re-authenticate if needed"],
       };
     case "quota_exceeded":
       return {
         title: "Quota Exceeded",
         icon: AlertTriangle,
         variant: "destructive" as const,
-        suggestedActions: [
-          "Upgrade your plan for more quota",
-          "Wait until your quota resets",
-          "Contact support for assistance",
-        ],
+        suggestedActions: ["Upgrade your plan for more quota", "Wait until your quota resets", "Contact support for assistance"],
       };
     case "invalid_request":
       return {
         title: "Invalid Request",
         icon: AlertTriangle,
         variant: "destructive" as const,
-        suggestedActions: [
-          "Check your input parameters",
-          "Verify the request format",
-          "Review the API documentation",
-        ],
+        suggestedActions: ["Check your input parameters", "Verify the request format", "Review the API documentation"],
       };
     case "server_error":
       return {
         title: "Server Error",
         icon: AlertTriangle,
         variant: "destructive" as const,
-        suggestedActions: [
-          "Try again in a moment",
-          "The issue may be temporary",
-          "Contact support if it persists",
-        ],
+        suggestedActions: ["Try again in a moment", "The issue may be temporary", "Contact support if it persists"],
       };
     case "timeout":
       return {
         title: "Request Timeout",
         icon: AlertTriangle,
         variant: "destructive" as const,
-        suggestedActions: [
-          "Try again with a shorter request",
-          "Check your network connection",
-          "Reduce the complexity of your query",
-        ],
+        suggestedActions: ["Try again with a shorter request", "Check your network connection", "Reduce the complexity of your query"],
       };
     case "unknown":
     default:
@@ -144,10 +95,7 @@ function getErrorConfig(type: AIError["type"]) {
         title: "An Error Occurred",
         icon: AlertTriangle,
         variant: "destructive" as const,
-        suggestedActions: [
-          "Try again in a moment",
-          "Contact support if the issue persists",
-        ],
+        suggestedActions: ["Try again in a moment", "Contact support if the issue persists"],
       };
   }
 }
@@ -185,9 +133,7 @@ export default function AIErrorHandler({
   const errorConfig = getErrorConfig(error.type);
   const ErrorIcon = errorConfig.icon;
   const canRetry = error.retryable !== false && onRetry;
-  const retryAfterText = error.retryAfter
-    ? formatTimeUntil(error.retryAfter)
-    : null;
+  const retryAfterText = error.retryAfter ? formatTimeUntil(error.retryAfter) : null;
 
   const handleRetry = async () => {
     if (!onRetry) return;
@@ -201,21 +147,13 @@ export default function AIErrorHandler({
   };
 
   return (
-    <Alert
-      className={cn("w-full", className)}
-      live="assertive"
-      variant={errorConfig.variant}
-    >
+    <Alert className={cn("w-full", className)} live="assertive" variant={errorConfig.variant}>
       <ErrorIcon className="size-4" />
       <div className="flex min-w-0 flex-1 flex-col gap-3">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex min-w-0 flex-1 flex-col gap-1">
-            <AlertTitle className="wrap-break-word">
-              {errorConfig.title}
-            </AlertTitle>
-            <AlertDescription className="wrap-break-word">
-              {error.message}
-            </AlertDescription>
+            <AlertTitle className="wrap-break-word">{errorConfig.title}</AlertTitle>
+            <AlertDescription className="wrap-break-word">{error.message}</AlertDescription>
           </div>
           <div className="flex shrink-0 items-center gap-2">
             {error.errorCode && (
@@ -224,112 +162,76 @@ export default function AIErrorHandler({
               </Badge>
             )}
             {onDismiss && (
-              <Button
-                aria-label="Dismiss error"
-                onClick={onDismiss}
-                size="icon"
-                type="button"
-                variant="ghost"
-              >
+              <Button aria-label="Dismiss error" onClick={onDismiss} size="icon" type="button" variant="ghost">
                 <X className="size-4" />
               </Button>
             )}
           </div>
         </div>
 
-        {showDetails &&
-          (error.details ||
-            error.errorCode ||
-            error.suggestedActions ||
-            errorConfig.suggestedActions) && (
-            <>
-              <Separator />
-              <div className="flex flex-col gap-3">
-                <button
-                  aria-expanded={showErrorDetails}
-                  className="flex items-center justify-between text-muted-foreground text-sm hover:text-foreground"
-                  onClick={() => setShowErrorDetails(!showErrorDetails)}
-                  type="button"
-                >
-                  <span>Error Details</span>
-                  {showErrorDetails ? (
-                    <ChevronUp className="size-4" />
-                  ) : (
-                    <ChevronDown className="size-4" />
+        {showDetails && (error.details || error.errorCode || error.suggestedActions || errorConfig.suggestedActions) && (
+          <>
+            <Separator />
+            <div className="flex flex-col gap-3">
+              <button
+                aria-expanded={showErrorDetails}
+                className="text-muted-foreground hover:text-foreground flex items-center justify-between text-sm"
+                onClick={() => setShowErrorDetails(!showErrorDetails)}
+                type="button"
+              >
+                <span>Error Details</span>
+                {showErrorDetails ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+              </button>
+
+              {showErrorDetails && (
+                <div className="bg-muted/30 flex flex-col gap-3 rounded-lg border p-3">
+                  {error.details && (
+                    <div className="flex flex-col gap-1">
+                      <span className="text-muted-foreground text-xs font-medium">Details</span>
+                      <p className="text-sm wrap-break-word">{error.details}</p>
+                    </div>
                   )}
-                </button>
 
-                {showErrorDetails && (
-                  <div className="flex flex-col gap-3 rounded-lg border bg-muted/30 p-3">
-                    {error.details && (
-                      <div className="flex flex-col gap-1">
-                        <span className="font-medium text-muted-foreground text-xs">
-                          Details
-                        </span>
-                        <p className="wrap-break-word text-sm">
-                          {error.details}
-                        </p>
-                      </div>
-                    )}
+                  {error.errorCode && (
+                    <div className="flex flex-col gap-1">
+                      <span className="text-muted-foreground text-xs font-medium">Error Code</span>
+                      <code className="bg-background rounded px-2 py-1 text-xs">{error.errorCode}</code>
+                    </div>
+                  )}
 
-                    {error.errorCode && (
-                      <div className="flex flex-col gap-1">
-                        <span className="font-medium text-muted-foreground text-xs">
-                          Error Code
-                        </span>
-                        <code className="rounded bg-background px-2 py-1 text-xs">
-                          {error.errorCode}
-                        </code>
-                      </div>
-                    )}
+                  {(error.suggestedActions || errorConfig.suggestedActions) && (
+                    <div className="flex flex-col gap-2">
+                      <span className="text-muted-foreground text-xs font-medium">Suggested Actions</span>
+                      <ul className="flex flex-col gap-1.5 pl-4">
+                        {(error.suggestedActions || errorConfig.suggestedActions)?.map((action, idx) => (
+                          <li className="text-muted-foreground text-sm before:absolute before:-ml-4 before:content-['•']" key={idx}>
+                            {action}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
-                    {(error.suggestedActions ||
-                      errorConfig.suggestedActions) && (
-                        <div className="flex flex-col gap-2">
-                          <span className="font-medium text-muted-foreground text-xs">
-                            Suggested Actions
-                          </span>
-                          <ul className="flex flex-col gap-1.5 pl-4">
-                            {(
-                              error.suggestedActions ||
-                              errorConfig.suggestedActions
-                            )?.map((action, idx) => (
-                              <li
-                                className="before:-ml-4 text-muted-foreground text-sm before:absolute before:content-['•']"
-                                key={idx}
-                              >
-                                {action}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
+                  {error.retryCount !== undefined && error.maxRetries !== undefined && (
+                    <div className="flex flex-col gap-1">
+                      <span className="text-muted-foreground text-xs font-medium">Retry Attempts</span>
+                      <p className="text-sm">
+                        {error.retryCount} / {error.maxRetries}
+                      </p>
+                    </div>
+                  )}
 
-                    {error.retryCount !== undefined &&
-                      error.maxRetries !== undefined && (
-                        <div className="flex flex-col gap-1">
-                          <span className="font-medium text-muted-foreground text-xs">
-                            Retry Attempts
-                          </span>
-                          <p className="text-sm">
-                            {error.retryCount} / {error.maxRetries}
-                          </p>
-                        </div>
-                      )}
-
-                    {error.retryAfter && (
-                      <div className="flex flex-col gap-1">
-                        <span className="font-medium text-muted-foreground text-xs">
-                          Retry Available
-                        </span>
-                        <p className="text-sm">In {retryAfterText}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </>
-          )}
+                  {error.retryAfter && (
+                    <div className="flex flex-col gap-1">
+                      <span className="text-muted-foreground text-xs font-medium">Retry Available</span>
+                      <p className="text-sm">In {retryAfterText}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </>
+        )}
 
         <Separator />
 
@@ -339,10 +241,7 @@ export default function AIErrorHandler({
               aria-busy={isRetrying}
               className="w-full sm:w-auto"
               data-loading={isRetrying}
-              disabled={
-                isRetrying ||
-                (error.retryAfter && error.retryAfter > new Date())
-              }
+              disabled={isRetrying || (error.retryAfter && error.retryAfter > new Date())}
               onClick={handleRetry}
               type="button"
             >
@@ -360,12 +259,7 @@ export default function AIErrorHandler({
             </Button>
           )}
           {onContactSupport && (
-            <Button
-              className="w-full sm:w-auto"
-              onClick={onContactSupport}
-              type="button"
-              variant="outline"
-            >
+            <Button className="w-full sm:w-auto" onClick={onContactSupport} type="button" variant="outline">
               <Mail className="size-4" />
               Contact Support
             </Button>

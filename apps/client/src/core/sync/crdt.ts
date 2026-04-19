@@ -7,7 +7,6 @@ import { ServiceError } from "@/lib/service-error";
 import { logger } from "@/lib/logger";
 import { crdtStorage } from "./crdt-storage";
 
-
 /**
  * CRDT Service for Offline-First Architecture
  *
@@ -25,14 +24,12 @@ class CRDTService {
 
   private getCurrentUserId(): string {
     const authStore = useAuthStore.getState();
-    return authStore.isAuthenticated && authStore.user?.id
-      ? authStore.user.id
-      : anonymousUserService.getUserId();
+    return authStore.isAuthenticated && authStore.user?.id ? authStore.user.id : anonymousUserService.getUserId();
   }
 
   private migrateDocument(doc: Automerge.Doc<CRDTDocument>): Automerge.Doc<CRDTDocument> {
     const currentVersion = doc.version;
-    
+
     if (currentVersion === this.CURRENT_VERSION) {
       return doc;
     }
@@ -81,7 +78,7 @@ class CRDTService {
             logger.warn("Failed to persist migrated document:", persistResult.error);
           }
 
-          return
+          return;
         }
 
         this.doc = Automerge.from<CRDTDocument>({
@@ -112,7 +109,6 @@ class CRDTService {
         if (persistResult.isErr()) {
           throw persistResult.error;
         }
-
       })(),
       (error) => {
         logger.error("Failed to initialize CRDT document:", error);
@@ -128,7 +124,6 @@ class CRDTService {
     if (!this.doc) return null;
     return JSON.parse(JSON.stringify(this.doc)); // Deep clone
   }
-
 
   async persist(): Promise<Result<void, ServiceError>> {
     if (!this.doc) return ok(undefined);
@@ -173,13 +168,11 @@ class CRDTService {
     }
   }
 
-
   /**
    * Create a new transaction in the CRDT document
    */
   async createTransaction(transaction: Omit<CRDTTransaction, "created_at" | "updated_at">): Promise<Result<string, ServiceError>> {
     return this.withMutationLock(async () => {
-
       if (!this.doc) throw new Error("CRDT document not initialized");
 
       const timestamp = new Date().toISOString();
@@ -204,7 +197,7 @@ class CRDTService {
       this.notifySyncService("create", "transaction", transactionWithTimestamps);
 
       return ok(transaction.id);
-    })
+    });
   }
 
   async updateTransaction(id: string, updates: Partial<CRDTTransaction>): Promise<Result<void, ServiceError>> {
@@ -358,7 +351,6 @@ class CRDTService {
 
           tx.updated_at = timestamp;
           doc.updated_at = timestamp;
-
         }
       });
       logger.info("[CRDT] Step 2: Account updated in CRDT");
@@ -433,7 +425,6 @@ class CRDTService {
 
       this.doc = Automerge.change(this.doc, (doc) => {
         if (doc.categories[id]) {
-
           const tx = doc.categories[id] as any;
 
           for (const [key, value] of Object.entries(updates)) {
@@ -536,7 +527,6 @@ class CRDTService {
 
       this.doc = Automerge.change(this.doc, (doc) => {
         if (doc.budgets[id]) {
-
           const tx = doc.budgets[id] as any;
 
           for (const [key, value] of Object.entries(updates)) {
@@ -1131,11 +1121,7 @@ class CRDTService {
     return JSON.parse(JSON.stringify(collectionData));
   }
 
-  async setPluginData<T = any>(
-    pluginId: string,
-    collection: string,
-    data: Record<string, T>
-  ): Promise<Result<void, ServiceError>> {
+  async setPluginData<T = any>(pluginId: string, collection: string, data: Record<string, T>): Promise<Result<void, ServiceError>> {
     return this.withMutationLock(async () => {
       if (!this.doc) throw new Error("CRDT document not initialized");
 
@@ -1166,23 +1152,13 @@ class CRDTService {
     });
   }
 
-  async createPluginRecord<T = any>(
-    pluginId: string,
-    collection: string,
-    id: string,
-    record: T
-  ): Promise<Result<void, ServiceError>> {
+  async createPluginRecord<T = any>(pluginId: string, collection: string, id: string, record: T): Promise<Result<void, ServiceError>> {
     const collectionData = this.getPluginData(pluginId, collection);
     collectionData[id] = record;
     return this.setPluginData(pluginId, collection, collectionData);
   }
 
-  async updatePluginRecord<T = any>(
-    pluginId: string,
-    collection: string,
-    id: string,
-    updates: Partial<T>
-  ): Promise<Result<void, ServiceError>> {
+  async updatePluginRecord<T = any>(pluginId: string, collection: string, id: string, updates: Partial<T>): Promise<Result<void, ServiceError>> {
     const collectionData = this.getPluginData<T>(pluginId, collection);
     const existing = collectionData[id];
 
@@ -1194,11 +1170,7 @@ class CRDTService {
     return this.setPluginData(pluginId, collection, collectionData);
   }
 
-  async deletePluginRecord(
-    pluginId: string,
-    collection: string,
-    id: string
-  ): Promise<Result<void, ServiceError>> {
+  async deletePluginRecord(pluginId: string, collection: string, id: string): Promise<Result<void, ServiceError>> {
     const collectionData = this.getPluginData(pluginId, collection);
     delete collectionData[id];
     return this.setPluginData(pluginId, collection, collectionData);

@@ -7,43 +7,27 @@ interface ComponentErrorFallbackProps {
   componentName?: string;
 }
 
-export function ComponentErrorFallback({ 
-  error, 
-  resetErrorBoundary, 
-  componentName = "Component" 
-}: ComponentErrorFallbackProps) {
+export function ComponentErrorFallback({ error, resetErrorBoundary, componentName = "Component" }: ComponentErrorFallbackProps) {
   return (
-    <div className="flex items-center justify-center p-6 border border-destructive/20 rounded-lg bg-destructive/5">
-      <div className="text-center max-w-sm">
-        <div className="flex justify-center mb-4">
-          <AlertCircle className="h-6 w-6 text-destructive" />
+    <div className="border-destructive/20 bg-destructive/5 flex items-center justify-center rounded-lg border p-6">
+      <div className="max-w-sm text-center">
+        <div className="mb-4 flex justify-center">
+          <AlertCircle className="text-destructive h-6 w-6" />
         </div>
-        
-        <h3 className="font-semibold text-foreground mb-2">
-          {componentName} Error
-        </h3>
-        
-        <p className="text-sm text-muted-foreground mb-4">
-          This component failed to load. Try refreshing or contact support if the issue persists.
-        </p>
-        
-        <Button 
-          onClick={resetErrorBoundary}
-          variant="outline"
-          size="sm"
-        >
+
+        <h3 className="text-foreground mb-2 font-semibold">{componentName} Error</h3>
+
+        <p className="text-muted-foreground mb-4 text-sm">This component failed to load. Try refreshing or contact support if the issue persists.</p>
+
+        <Button onClick={resetErrorBoundary} variant="outline" size="sm">
           <RefreshCw className="mr-2 h-3 w-3" />
           Retry
         </Button>
-        
-        {process.env.NODE_ENV === 'development' && (
+
+        {process.env.NODE_ENV === "development" && (
           <details className="mt-3 text-left">
-            <summary className="text-xs text-muted-foreground hover:text-foreground cursor-pointer">
-              Error details
-            </summary>
-            <pre className="mt-1 p-2 bg-muted rounded text-xs overflow-auto max-h-24">
-              {error.message}
-            </pre>
+            <summary className="text-muted-foreground hover:text-foreground cursor-pointer text-xs">Error details</summary>
+            <pre className="bg-muted mt-1 max-h-24 overflow-auto rounded p-2 text-xs">{error.message}</pre>
           </details>
         )}
       </div>

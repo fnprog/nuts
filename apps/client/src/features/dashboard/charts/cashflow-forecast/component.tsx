@@ -3,13 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import type { DashboardChartComponentProps } from "../types";
 import { config } from "./index";
 
-import {
-  ChartCard,
-  ChartCardHeader,
-  ChartCardTitle,
-  ChartCardContent,
-  ChartCardMenu
-} from '@/features/dashboard/components/chart-card';
+import { ChartCard, ChartCardHeader, ChartCardTitle, ChartCardContent, ChartCardMenu } from "@/features/dashboard/components/chart-card";
 
 import { Chart } from "@/features/dashboard/components/chart-card/chart-renderer";
 import { ChartConfig, ChartTooltip, ChartTooltipContent } from "@/core/components/ui/chart";
@@ -63,9 +57,9 @@ function CashflowForecastChartComponent({ id, size, isLocked, hasAccounts }: Das
       <ChartCardMenu>
         <div>
           <ChartCardHeader>
-            <div className='flex-1'>
-              <ChartCardTitle className='text-muted-foreground'>{config.title}</ChartCardTitle>
-              <h2 className="text-2xl font-bold mt-1">${totalSavings.toLocaleString()}</h2>
+            <div className="flex-1">
+              <ChartCardTitle className="text-muted-foreground">{config.title}</ChartCardTitle>
+              <h2 className="mt-1 text-2xl font-bold">${totalSavings.toLocaleString()}</h2>
             </div>
           </ChartCardHeader>
           <ChartCardContent className="mt-2">
@@ -75,10 +69,7 @@ function CashflowForecastChartComponent({ id, size, isLocked, hasAccounts }: Das
                   <CartesianGrid strokeDasharray="4 4" vertical={false} stroke=" color-mix(in oklab, var(--muted-foreground) 50%, transparent)" />
                   <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#9ca3af" }} dy={10} />
                   <YAxis hide />
-                  <ChartTooltip
-                    cursor={{ fill: "rgba(0, 0, 0, 0.05)" }}
-                    content={<ChartTooltipContent />}
-                  />
+                  <ChartTooltip cursor={{ fill: "rgba(0, 0, 0, 0.05)" }} content={<ChartTooltipContent />} />
                   <Legend verticalAlign="bottom" height={36} iconType="circle" iconSize={8} wrapperStyle={{ fontSize: "14px", paddingTop: "8px" }} />
                   <Bar dataKey="income" name="Income" fill="var(--chart-1)" radius={[4, 4, 0, 0]} barSize={16} animationDuration={300} />
                   <Bar dataKey="expenses" name="Expenses" fill="var(--chart-2)" radius={[4, 4, 0, 0]} barSize={16} animationDuration={300} />

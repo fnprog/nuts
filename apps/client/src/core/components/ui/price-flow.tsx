@@ -8,11 +8,7 @@ export type PriceFlowProps = {
   className?: string;
 };
 
-const animateDigit = (
-  prevElement: HTMLElement | null,
-  nextElement: HTMLElement | null,
-  isIncreasing: boolean
-) => {
+const animateDigit = (prevElement: HTMLElement | null, nextElement: HTMLElement | null, isIncreasing: boolean) => {
   if (prevElement === null || nextElement === null) {
     return;
   }
@@ -85,36 +81,20 @@ export function PriceFlow({ value, className = "" }: PriceFlowProps) {
     <span className={cn("relative inline-flex items-center", className)}>
       <span className="relative inline-block overflow-hidden">
         {/* Tens digit */}
-        <span
-          className="absolute inset-0 flex items-center justify-center"
-          ref={prevTensRef}
-          style={{ transform: "translateY(-100%)" }}
-        >
+        <span className="absolute inset-0 flex items-center justify-center" ref={prevTensRef} style={{ transform: "translateY(-100%)" }}>
           {prevFormatted[0]}
         </span>
-        <span
-          className="flex items-center justify-center"
-          ref={nextTensRef}
-          style={{ transform: "translateY(0%)" }}
-        >
+        <span className="flex items-center justify-center" ref={nextTensRef} style={{ transform: "translateY(0%)" }}>
           {currentFormatted[0]}
         </span>
       </span>
 
       <span className="relative inline-block overflow-hidden">
         {/* Ones digit */}
-        <span
-          className="absolute inset-0 flex items-center justify-center"
-          ref={prevOnesRef}
-          style={{ transform: "translateY(-100%)" }}
-        >
+        <span className="absolute inset-0 flex items-center justify-center" ref={prevOnesRef} style={{ transform: "translateY(-100%)" }}>
           {prevFormatted[1]}
         </span>
-        <span
-          className="flex items-center justify-center"
-          ref={nextOnesRef}
-          style={{ transform: "translateY(0%)" }}
-        >
+        <span className="flex items-center justify-center" ref={nextOnesRef} style={{ transform: "translateY(0%)" }}>
           {currentFormatted[1]}
         </span>
       </span>

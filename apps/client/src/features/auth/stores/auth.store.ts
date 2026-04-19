@@ -24,7 +24,6 @@ export const useAuthStore = create<AuthState>()(
   devtools(
     persist(
       (set) => {
-
         return {
           ...initialState,
           setUser: (user) => set({ user }),

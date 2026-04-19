@@ -11,31 +11,31 @@ import {
 } from "@tanstack/react-table";
 import { Link } from "@tanstack/react-router";
 
-import { ChevronDown, ChevronRight, Plus, Minus, Search, Loader2 } from "lucide-react"
-import { Button } from "@/core/components/ui/button"
-import { Checkbox } from "@/core/components/ui/checkbox"
-import { Input } from "@/core/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/core/components/ui/table"
-import { Badge } from "@/core/components/ui/badge"
-import { formatCurrency, formatDate } from "@/lib/utils"
-import { getRecordsTableColumns } from "./records-table.column"
-import { useIsMobile } from "@/core/hooks/use-mobile"
-import { Avatar, AvatarFallback } from "@/core/components/ui/avatar"
-import { Card, CardContent } from "@/core/components/ui/card"
-import { ExtendedRecordSchema, TableRecordsArraySchema, TableRecordSchema } from "../services/transaction.types"
-import EditTransactionSheet from "./edt-records-sheet"
-import { DeleteTransactionDialog } from "./del-records-dialog"
-import { FloatingActionBar } from "./floating-records-bar"
-import { BulkEditDialog } from "./bulk-edit-dialog"
+import { ChevronDown, ChevronRight, Plus, Minus, Search, Loader2 } from "lucide-react";
+import { Button } from "@/core/components/ui/button";
+import { Checkbox } from "@/core/components/ui/checkbox";
+import { Input } from "@/core/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/core/components/ui/table";
+import { Badge } from "@/core/components/ui/badge";
+import { formatCurrency, formatDate } from "@/lib/utils";
+import { getRecordsTableColumns } from "./records-table.column";
+import { useIsMobile } from "@/core/hooks/use-mobile";
+import { Avatar, AvatarFallback } from "@/core/components/ui/avatar";
+import { Card, CardContent } from "@/core/components/ui/card";
+import { ExtendedRecordSchema, TableRecordsArraySchema, TableRecordSchema } from "../services/transaction.types";
+import EditTransactionSheet from "./edt-records-sheet";
+import { DeleteTransactionDialog } from "./del-records-dialog";
+import { FloatingActionBar } from "./floating-records-bar";
+import { BulkEditDialog } from "./bulk-edit-dialog";
 import { useDebounce } from "@/core/hooks/use-debounce";
-import { useQueryClient } from "@tanstack/react-query"
-import { type GetTransactionsParams } from "../api/transaction.api"
-import { useTransactionsSuspense } from "../services/transaction.queries"
-import { useBulkDeleteTransactions } from "../services/transaction.mutations"
-import { logger } from "@/lib/logger"
-import { toast } from "sonner"
-import { TransactionFilterDropdown, type TransactionFilterState } from "./transaction-filter-dropdown"
-import { getTransactionStatus, getTransactionStyles } from "../utils/transaction-status"
+import { useQueryClient } from "@tanstack/react-query";
+import { type GetTransactionsParams } from "../api/transaction.api";
+import { useTransactionsSuspense } from "../services/transaction.queries";
+import { useBulkDeleteTransactions } from "../services/transaction.mutations";
+import { logger } from "@/lib/logger";
+import { toast } from "sonner";
+import { TransactionFilterDropdown, type TransactionFilterState } from "./transaction-filter-dropdown";
+import { getTransactionStatus, getTransactionStyles } from "../utils/transaction-status";
 
 interface RecordsTableProps {
   initialPage: number;
@@ -46,7 +46,7 @@ interface RecordsTableProps {
 const DUMMY_TRANSACTIONS = {
   data: [
     {
-      date: new Date().toISOString().split('T')[0],
+      date: new Date().toISOString().split("T")[0],
       transactions: [
         {
           id: "dummy-1",
@@ -61,7 +61,7 @@ const DUMMY_TRANSACTIONS = {
         {
           id: "dummy-2",
           description: "Coffee Shop",
-          amount: -4.50,
+          amount: -4.5,
           transaction_datetime: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
           type: "expense" as const,
           is_external: true,
@@ -71,12 +71,12 @@ const DUMMY_TRANSACTIONS = {
       ],
     },
     {
-      date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
       transactions: [
         {
           id: "dummy-3",
           description: "Monthly Salary",
-          amount: 5000.00,
+          amount: 5000.0,
           transaction_datetime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
           type: "income" as const,
           is_external: true,
@@ -86,7 +86,7 @@ const DUMMY_TRANSACTIONS = {
         {
           id: "dummy-4",
           description: "Gas Station",
-          amount: -45.00,
+          amount: -45.0,
           transaction_datetime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
           type: "expense" as const,
           is_external: true,
@@ -96,7 +96,7 @@ const DUMMY_TRANSACTIONS = {
       ],
     },
     {
-      date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
       transactions: [
         {
           id: "dummy-5",
@@ -130,75 +130,66 @@ const DUMMY_TRANSACTIONS = {
   },
 };
 
-const MemoizedTransactionCard = memo(({
-  transaction,
-  row,
-  formatCurrency,
-  onEdit
-}: {
-  transaction: TableRecordSchema;
-  row: Row<TableRecordSchema>;
-  formatCurrency: (amount: number) => string;
-  onEdit: (transaction: TableRecordSchema) => void;
-}) => {
-  const status = getTransactionStatus(transaction);
-  const styles = getTransactionStyles(transaction);
+const MemoizedTransactionCard = memo(
+  ({
+    transaction,
+    row,
+    formatCurrency,
+    onEdit,
+  }: {
+    transaction: TableRecordSchema;
+    row: Row<TableRecordSchema>;
+    formatCurrency: (amount: number) => string;
+    onEdit: (transaction: TableRecordSchema) => void;
+  }) => {
+    const status = getTransactionStatus(transaction);
+    const styles = getTransactionStyles(transaction);
 
-  return (
-    <Card key={transaction.id} className={`${row.getIsSelected() ? "border-primary" : ""} ${styles.borderClass}`}>
-      <CardContent className={`p-3 ${styles.containerClass}`}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 pt-1">
-            <Checkbox
-              checked={row.getIsSelected()}
-              onCheckedChange={(value) => row.toggleSelected(!!value)}
-              aria-label={`Select transaction ${transaction.id}`}
-            />
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <Avatar className="h-12 w-12">
-                  <AvatarFallback>
-                    {transaction.account.name.slice(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => onEdit(transaction)}
-                      className={`font-medium text-left hover:underline text-md ${styles.textClass}`}
+    return (
+      <Card key={transaction.id} className={`${row.getIsSelected() ? "border-primary" : ""} ${styles.borderClass}`}>
+        <CardContent className={`p-3 ${styles.containerClass}`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 pt-1">
+              <Checkbox
+                checked={row.getIsSelected()}
+                onCheckedChange={(value) => row.toggleSelected(!!value)}
+                aria-label={`Select transaction ${transaction.id}`}
+              />
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Avatar className="h-12 w-12">
+                    <AvatarFallback>{transaction.account.name.slice(0, 2).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => onEdit(transaction)} className={`text-md text-left font-medium hover:underline ${styles.textClass}`}>
+                        {transaction.description}
+                      </button>
+                      {status.statusLabel && (
+                        <Badge variant={status.badgeVariant} className="text-xs">
+                          {status.statusLabel}
+                        </Badge>
+                      )}
+                    </div>
+                    <Link
+                      to="/dashboard/accounts/$id"
+                      params={{ id: transaction.account.id }}
+                      className={`text-sm hover:underline ${styles.textClass || "text-muted-foreground"}`}
                     >
-                      {transaction.description}
-                    </button>
-                    {status.statusLabel && (
-                      <Badge variant={status.badgeVariant} className="text-xs">
-                        {status.statusLabel}
-                      </Badge>
-                    )}
+                      {transaction.account.name}
+                    </Link>
+                    {transaction.template_name && <span className="text-muted-foreground text-xs">Template: {transaction.template_name}</span>}
                   </div>
-                  <Link
-                    to="/dashboard/accounts/$id"
-                    params={{ id: transaction.account.id }}
-                    className={`text-sm hover:underline ${styles.textClass || "text-muted-foreground"}`}
-                  >
-                    {transaction.account.name}
-                  </Link>
-                  {transaction.template_name && (
-                    <span className="text-xs text-muted-foreground">
-                      Template: {transaction.template_name}
-                    </span>
-                  )}
                 </div>
               </div>
             </div>
+            <div className={`font-medium ${styles.textClass}`}>{formatCurrency(Number(transaction.amount))}</div>
           </div>
-          <div className={`font-medium ${styles.textClass}`}>
-            {formatCurrency(Number(transaction.amount))}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-});
+        </CardContent>
+      </Card>
+    );
+  }
+);
 
 export const RecordsTable = ({ initialPage, onPageChange, hasAccounts }: RecordsTableProps) => {
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -289,13 +280,13 @@ export const RecordsTable = ({ initialPage, onPageChange, hasAccounts }: Records
   const groups: TableRecordsArraySchema = useMemo(() => {
     if (!transactions?.data) return [];
     const rawGroups = transactions.data as TableRecordsArraySchema;
-    
+
     if (sorting.length === 0) return rawGroups;
-    
+
     const sortField = sorting[0].id;
     const sortDirection = sorting[0].desc ? -1 : 1;
-    
-    return rawGroups.map(group => ({
+
+    return rawGroups.map((group) => ({
       ...group,
       transactions: [...group.transactions].sort((a, b) => {
         if (sortField === "amount") {
@@ -523,8 +514,8 @@ export const RecordsTable = ({ initialPage, onPageChange, hasAccounts }: Records
                       </div>
                     </TableHead>
                     {headerGroup.headers.slice(1).map((header) => (
-                      <TableHead 
-                        key={header.id} 
+                      <TableHead
+                        key={header.id}
                         style={{ width: header.getSize() }}
                         className={header.column.getCanSort() ? "cursor-pointer select-none" : ""}
                         onClick={header.column.getToggleSortingHandler()}
@@ -577,20 +568,21 @@ export const RecordsTable = ({ initialPage, onPageChange, hasAccounts }: Records
                       </TableCell>
                     </TableRow>
 
-                    {openGroups.has(group.id) && group.transactions.map((transaction) => {
-                      const row = findRowByTransactionId(transaction.id);
-                      if (!row) return null;
+                    {openGroups.has(group.id) &&
+                      group.transactions.map((transaction) => {
+                        const row = findRowByTransactionId(transaction.id);
+                        if (!row) return null;
 
-                      return (
-                        <TableRow key={`transaction-row-${transaction.id}`} data-state={row.getIsSelected() && "selected"}>
-                          {row.getVisibleCells().map((cell) => (
-                            <TableCell key={`cell-${cell.id}`} style={{ width: cell.column.getSize() }}>
-                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      );
-                    })}
+                        return (
+                          <TableRow key={`transaction-row-${transaction.id}`} data-state={row.getIsSelected() && "selected"}>
+                            {row.getVisibleCells().map((cell) => (
+                              <TableCell key={`cell-${cell.id}`} style={{ width: cell.column.getSize() }}>
+                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        );
+                      })}
                   </Fragment>
                 ))}
                 {groups.length === 0 && (

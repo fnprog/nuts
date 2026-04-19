@@ -31,13 +31,7 @@ export function createAnonymousUserService() {
 
       return ok(undefined);
     } catch (error) {
-      return err(
-        ServiceError.internal(
-          "anonymous-user-init",
-          error instanceof Error ? error.message : "Failed to initialize anonymous user",
-          error
-        )
-      );
+      return err(ServiceError.internal("anonymous-user-init", error instanceof Error ? error.message : "Failed to initialize anonymous user", error));
     }
   };
 
@@ -75,23 +69,23 @@ export function createAnonymousUserService() {
 
   const updateAnonymousUser = (data: Partial<AnonymousUser>): AnonymousUser => {
     if (!anonymousUser) {
-      throw Error("tried to update an anonymous user while not being one")
+      throw Error("tried to update an anonymous user while not being one");
     }
 
     anonymousUser = {
       ...anonymousUser,
-      ...data
-    }
+      ...data,
+    };
 
-    return anonymousUser
-  }
+    return anonymousUser;
+  };
 
   return {
     initialize,
     getAnonymousUser,
     getUserId,
     clearAnonymousUser,
-    updateAnonymousUser
+    updateAnonymousUser,
   };
 }
 

@@ -10,7 +10,6 @@ import { Nuts } from "@/core/components/icons/Logo";
 
 export const Route = createFileRoute("/onboarding")({
   beforeLoad: async ({ context, location }) => {
-
     if (!context.auth.isAuthenticated && !context.auth.isAnonymous) {
       throw redirect({
         to: "/login",
@@ -25,7 +24,6 @@ export const Route = createFileRoute("/onboarding")({
         to: "/dashboard/home",
       });
     }
-
   },
   component: OnboardingLayout,
 });
@@ -34,9 +32,9 @@ function OnboardingLayout() {
   return (
     <div className="flex min-h-screen flex-col overflow-hidden">
       <OnboardingProgress />
-      <div className="px-4 pt-20 flex flex-1 items-center justify-center">
+      <div className="flex flex-1 items-center justify-center px-4 pt-20">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="relative z-10 w-full">
-          <main className="w-full flex flex-1 items-center justify-center">
+          <main className="flex w-full flex-1 items-center justify-center">
             <Outlet />
           </main>
         </motion.div>
@@ -51,17 +49,16 @@ function OnboardingProgress() {
   const progressValue = ((step + 1) / totalSteps) * 100;
 
   return (
-
-    <div className="fixed flex flex-col left-0 right-0 top-0 z-50">
+    <div className="fixed top-0 right-0 left-0 z-50 flex flex-col">
       <div className="flex items-center justify-between px-6 py-4">
         <Link to="/login">
           <Nuts className="h-8 w-8" fill="var(--color-primary)" />
         </Link>
       </div>
 
-      <div className="flex-1 w-full">
-        <Progress value={progressValue} className="h-1 w-full  " />
+      <div className="w-full flex-1">
+        <Progress value={progressValue} className="h-1 w-full" />
       </div>
     </div>
-  )
+  );
 }

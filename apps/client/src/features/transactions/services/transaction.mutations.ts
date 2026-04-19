@@ -114,12 +114,7 @@ export const useBulkUpdateManualTransactions = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (params: {
-      transactionIds: string[];
-      categoryId?: string;
-      accountId?: string;
-      transactionDatetime?: Date;
-    }) => {
+    mutationFn: async (params: { transactionIds: string[]; categoryId?: string; accountId?: string; transactionDatetime?: Date }) => {
       const result = await transactionService.bulkUpdateManualTransactions(params);
       if (result.isErr()) throw result.error;
       return result.value;

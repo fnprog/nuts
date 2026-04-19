@@ -72,7 +72,7 @@ class ConnectivityService {
   setFullyOfflineMode(enabled: boolean): void {
     if (enabled) {
       this.updateState({ status: "fully-offline", hasServerAccess: false });
-      return
+      return;
     }
 
     // Re-check connectivity when coming out of fully offline mode
@@ -92,7 +92,6 @@ class ConnectivityService {
     // updateOnlineStatus();
   }
 
-
   private updateOnlineStatus() {
     const isOnline = navigator.onLine;
     this.updateState({ isOnline });
@@ -100,13 +99,12 @@ class ConnectivityService {
     // When coming back online, check server connectivity
     if (isOnline) {
       this.checkServerConnectivity();
-      return
+      return;
     }
 
     // When going offline, update status immediately
     this.updateState({ status: "offline", hasServerAccess: false });
-  };
-
+  }
 
   /**
    * Start periodic server connectivity checks
@@ -138,7 +136,6 @@ class ConnectivityService {
     if (this.isChecking) return;
     this.isChecking = true;
 
-
     if (!this.state.isOnline) {
       this.updateState({ status: "offline", hasServerAccess: false });
       return;
@@ -154,7 +151,6 @@ class ConnectivityService {
         signal: controller.signal,
         cache: "no-cache",
       });
-
 
       const hasServerAccess = response.ok || response.status === 404; // 404 is ok, means server is reachable
 

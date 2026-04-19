@@ -96,10 +96,10 @@ function RouteComponent() {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.3 }}
-      className="flex min-h-[calc(100vh-200px)] flex-col w-full  max-w-xl"
+      className="flex min-h-[calc(100vh-200px)] w-full max-w-xl flex-col"
     >
-      <div className="flex-1 gap-8 flex flex-col items-center">
-        <div className="space-y-3 text-center max-w-md w-full  ">
+      <div className="flex flex-1 flex-col items-center gap-8">
+        <div className="w-full max-w-md space-y-3 text-center">
           <H1 className="font-semibold">What do you hope to accomplish with Nuts Finance?</H1>
           <Muted className="text-base">Select all that apply. We'll help you track progress toward these goals.</Muted>
         </div>
@@ -116,8 +116,9 @@ function RouteComponent() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 + 0.1 }}
                 onClick={() => handleGoalToggle(goal.id)}
-                className={`relative rounded-lg border-2 p-4 text-left transition-all duration-200 ${isSelected ? "border-blue-500 bg-blue-50" : "border-gray-300 bg-white hover:border-gray-400"
-                  }`}
+                className={`relative rounded-lg border-2 p-4 text-left transition-all duration-200 ${
+                  isSelected ? "border-blue-500 bg-blue-50" : "border-gray-300 bg-white hover:border-gray-400"
+                }`}
               >
                 <div className="flex items-start space-x-3">
                   <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${goal.color}`}>

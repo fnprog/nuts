@@ -11,8 +11,6 @@
     pkgs.sqlc
     pkgs.go-task
     pkgs.goose
-    pkgs.httpie
-    pkgs.k6
     pkgs.awscli2
     pkgs.golangci-lint
   ];
@@ -39,9 +37,6 @@
     enable = true;
   };
 
-  services.redis = {
-    enable = true;
-  };
 
    services.mailpit = {
     enable = true;

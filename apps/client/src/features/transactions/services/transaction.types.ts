@@ -5,11 +5,11 @@ import { accountSchema } from "@/features/accounts/services/account.types";
 const recurringFrequency = type("'daily' | 'weekly' | 'biweekly' | 'monthly' | 'yearly' | 'custom'");
 
 const recurringFrequencyData = type({
-  "day_of_week?": "number | string.numeric.parse", // min 0 max 6 
-  "day_of_month?": "number | string.numeric.parse", // min 1 max 31 
-  "week_of_month?": "number | string.numeric.parse", // min -1 max 5 
-  "month_of_year?": "number | string.numeric.parse", // min 1 max 12 
-  "week_days?": "number[]", // for the num min0 max 6 
+  "day_of_week?": "number | string.numeric.parse", // min 0 max 6
+  "day_of_month?": "number | string.numeric.parse", // min 1 max 31
+  "week_of_month?": "number | string.numeric.parse", // min -1 max 5
+  "month_of_year?": "number | string.numeric.parse", // min 1 max 12
+  "week_days?": "number[]", // for the num min0 max 6
   "specific_dates?": "number[]", // for the num min1 max 31
   "pattern?": "string",
 });
@@ -23,9 +23,8 @@ const recurringConfigSchema = type({
   auto_post: "boolean",
   "max_occurrences?": "number | string.numeric.parse", // min(1)
   "template_name?": "string",
-  "tags?": "string[]"
+  "tags?": "string[]",
 });
-
 
 const recordDetailsSchema = type({
   "payment_medium?": "string",
@@ -213,7 +212,6 @@ export type RecurringConfigSchema = typeof recurringConfigSchema.infer;
 //   ...record,
 //   amount: record.type === "expense" && record.amount > 0 ? -record.amount : record.amount,
 // }));
-
 
 export type RecordCreateSchema = typeof recordCreateSchema.infer;
 export type RecordUpdateSchema = typeof recordUpdateSchema.infer;

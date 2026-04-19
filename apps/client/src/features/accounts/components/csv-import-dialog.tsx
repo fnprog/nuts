@@ -25,7 +25,7 @@ import { RecordCreateSchema } from "@/features/transactions/services/transaction
 import { AccountFormSchema } from "@/features/accounts/services/account.types";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
-import { arktypeResolver } from '@hookform/resolvers/arktype';
+import { arktypeResolver } from "@hookform/resolvers/arktype";
 import { type } from "arktype";
 import { useQuery } from "@tanstack/react-query";
 
@@ -372,12 +372,13 @@ export function CSVImportDialog({ children }: React.PropsWithChildren) {
             {["upload", "account", "mapping", "preview", "importing"].map((s, index) => (
               <div key={s} className="flex items-center">
                 <div
-                  className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${step === s
+                  className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${
+                    step === s
                       ? "bg-primary text-primary-foreground"
                       : ["upload", "account", "mapping", "preview"].indexOf(step) > index
                         ? "bg-green-500 text-white"
                         : "bg-muted text-muted-foreground"
-                    } `}
+                  } `}
                 >
                   {index + 1}
                 </div>
