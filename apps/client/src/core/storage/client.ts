@@ -5,6 +5,7 @@ import { WaSqliteDialect } from "./dialect";
 import type { Database } from "@nuts/types/storage";
 import { MigrationRunner, allMigrations } from "@nuts/migrations";
 import { CURRENCIES } from "@nuts/constants";
+import { logger } from "@/lib/logger";
 
 export interface SQLiteWorkerAPI {
   initialize(): Promise<void>;
@@ -14,6 +15,7 @@ export interface SQLiteWorkerAPI {
 }
 
 export class DatabaseClient {
+  private lastWorkerError: ErrorEvent | null = null;
   private worker: Worker | null = null;
   private workerAPI: Remote<SQLiteWorkerAPI> | null = null;
   private isInitialized = false;
@@ -24,31 +26,43 @@ export class DatabaseClient {
   async initialize(): Promise<void> {
     if (this.isInitialized) return;
     if (this.initPromise) return this.initPromise;
+    if (this.lastWorkerError) throw new Error(`Previous SQLite worker error: ${this.lastWorkerError.message || this.lastWorkerError.type}`);
 
-    this.initPromise = this.performInitialization();
+    this.initPromise = this.performInitialization()
+      .catch((err) => {
+        // Defensive: if initialization fails, clear references and state for future retries
+        this.isInitialized = false;
+        this._db = null;
+        this.migrationRunner = null;
+        this.workerAPI = null;
+        if (this.worker) {
+          this.worker.terminate();
+          this.worker = null;
+        }
+        throw err;
+      });
     await this.initPromise;
   }
 
   private async performInitialization(): Promise<void> {
-    console.log("Starting SQLite worker initialization...");
+    logger.info("Starting SQLite worker initialization...");
 
     this.worker = new Worker(new URL("./sqlite.worker.ts", import.meta.url), { type: "module" });
 
     // Add error handler
-    // this.worker.onerror = (error) => {
-    //   console.error("SQLite worker error:", error);
-    //   this.handleWorkerError(error);
-    // };
-    //
-    // this.worker.onmessageerror = (error) => {
-    //   console.error("SQLite worker message error:", error);
-    //   this.handleWorkerError(error);
-    // };
+    this.worker.onerror = (error) => {
+      logger.error("SQLite worker error:", error);
+      this.handleWorkerError(error);
+    };
+
+    this.worker.onmessageerror = (error) => {
+      logger.error("SQLite worker message error:", error);
+    };
 
     this.workerAPI = wrap<SQLiteWorkerAPI>(this.worker);
 
     await this.workerAPI.initialize();
-    console.log("✓ SQLite worker initialized");
+    logger.info("✓ SQLite worker initialized");
 
     this._db = new Kysely<Database>({
       dialect: new WaSqliteDialect({
@@ -69,7 +83,7 @@ export class DatabaseClient {
 
     this.isInitialized = true;
     this.initPromise = null;
-    console.log("✅ Local database client initialized with wa-sqlite worker and OPFS VFS");
+    logger.info("Local database client initialized with wa-sqlite worker and OPFS VFS");
   }
 
   get db(): Kysely<Database> {
@@ -91,6 +105,28 @@ export class DatabaseClient {
       throw new Error("Worker not initialized");
     }
     await this.workerAPI.exec(sql);
+  }
+
+  /**
+   * Handles errors from the SQLite worker (e.g. OPFS unavailable, WASM failure).
+   * Sets state so that future initialization attempts throw immediately.
+   */
+  private handleWorkerError(error: ErrorEvent) {
+    this.lastWorkerError = error;
+    this.isInitialized = false;
+    this._db = null;
+    this.migrationRunner = null;
+    this.workerAPI = null;
+    if (this.worker) {
+      this.worker.terminate();
+      this.worker = null;
+    }
+    // Create an immediately rejected promise for callers.
+    this.initPromise = Promise.reject(
+      new Error(
+        `SQLite worker initialization failed: ${error?.message || error?.type || "unknown error"}`
+      )
+    );
   }
 
   /**
@@ -121,11 +157,11 @@ export class DatabaseClient {
       const currentVersion = await this.migrationRunner.getCurrentVersion();
       const pending = await this.migrationRunner.getPendingMigrations();
 
-      console.log(`Current database version: ${currentVersion}`);
-      console.log(`Pending migrations: ${pending.length}`);
+      logger.info(`Database version: ${currentVersion}. Pending: ${pending.length}`);
 
       if (pending.length > 0) {
-        console.log("Running pending migrations...");
+        logger.debug("Running pending migrations...");
+
         const results = await this.migrationRunner.runPending();
 
         const failed = results.find((r) => !r.success);
@@ -133,12 +169,12 @@ export class DatabaseClient {
           throw new Error(`Migration ${failed.version} failed: ${failed.error}`);
         }
 
-        console.log(`✓ Successfully applied ${results.length} migration(s)`);
+        logger.info(`✓ Successfully applied ${results.length} migration(s)`);
       } else {
-        console.log("✓ Database is up to date");
+        logger.debug("Database is up to date");
       }
     } catch (error) {
-      console.error("Failed to run migrations:", error);
+      logger.error("Failed to run migrations:", error);
       throw error;
     }
   }
@@ -148,22 +184,19 @@ export class DatabaseClient {
    * NOTE: i think it might be better to just put it as a migration
    */
   private async seedDefaultData(): Promise<void> {
-    try {
-      const result = await this.execute("SELECT COUNT(*) as count FROM currencies");
-      const count = result.results[0]?.count || 0;
-      const currencies = CURRENCIES.map(({ code, name }) => ({
-        code,
-        name,
-      }));
+    // Fail loudly if seeding is unsuccessful
+    const result = await this.execute("SELECT COUNT(*) as count FROM currencies");
+    const count = result.results[0]?.count || 0;
+    const currencies = CURRENCIES.map(({ code, name }) => ({
+      code,
+      name,
+    }));
 
-      if (count === 0) {
-        for (const currency of currencies) {
-          await this.execute("INSERT INTO currencies (code, name) VALUES (?, ?)", [currency.code, currency.name]);
-        }
-        console.log("Default currencies seeded");
+    if (count === 0) {
+      for (const currency of currencies) {
+        await this.execute("INSERT INTO currencies (code, name) VALUES (?, ?)", [currency.code, currency.name]);
       }
-    } catch (error) {
-      console.warn("Failed to seed default data:", error);
+      console.log("Default currencies seeded");
     }
   }
 
@@ -180,7 +213,9 @@ export class DatabaseClient {
     this.migrationRunner = null;
     this.isInitialized = false;
     this.initPromise = null;
+    this.lastWorkerError = null;
   }
+
 
   async getMigrationInfo() {
     if (!this.migrationRunner) {
@@ -212,10 +247,10 @@ export class DatabaseClient {
     if (!this.migrationRunner) {
       throw new Error("Migration runner not initialized");
     }
-
-    console.warn("⚠️  Resetting database - all data will be lost!");
+    this.lastWorkerError = null; // On a reset, clear previous fatal error
+    logger.warn("⚠️ Resetting database - all data will be lost!");
     await this.migrationRunner.reset();
-    console.log("✓ Database reset complete");
+    logger.info("✓ Database reset complete");
   }
 
   getMigrationRunner(): MigrationRunner {

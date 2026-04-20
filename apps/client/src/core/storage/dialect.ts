@@ -18,7 +18,7 @@ export interface WaSqliteDialectConfig {
 }
 
 export class WaSqliteDialect implements Dialect {
-  constructor(private config: WaSqliteDialectConfig) {}
+  constructor(private config: WaSqliteDialectConfig) { }
 
   createAdapter() {
     return new SqliteAdapter();
@@ -38,12 +38,21 @@ export class WaSqliteDialect implements Dialect {
 }
 
 class WaSqliteDriver implements Driver {
-  constructor(private config: WaSqliteDialectConfig) {}
+  private connection: WaSqliteConnection | null = null;
+  private connectionInUse: boolean = false;
+  constructor(private config: WaSqliteDialectConfig) { }
 
-  async init(): Promise<void> {}
+  async init(): Promise<void> { }
 
   async acquireConnection(): Promise<DatabaseConnection> {
-    return new WaSqliteConnection(this.config);
+    if (this.connectionInUse) {
+      throw new Error("Multiple concurrent transactions are not supported with wa-sqlite in-browser storage. Only one connection/transaction can be active at a time.");
+    }
+    if (!this.connection) {
+      this.connection = new WaSqliteConnection(this.config);
+    }
+    this.connectionInUse = true;
+    return this.connection;
   }
 
   async beginTransaction(connection: DatabaseConnection, _settings: TransactionSettings): Promise<void> {
@@ -58,13 +67,19 @@ class WaSqliteDriver implements Driver {
     await connection.executeQuery(CompiledQuery.raw("ROLLBACK"));
   }
 
-  async releaseConnection(): Promise<void> {}
+  async releaseConnection(): Promise<void> {
+    this.connectionInUse = false;
+    // We intentionally do NOT null the connection; stays alive for reuse
+  }
 
-  async destroy(): Promise<void> {}
+  async destroy(): Promise<void> {
+    this.connection = null;
+    this.connectionInUse = false;
+  }
 }
 
 class WaSqliteConnection implements DatabaseConnection {
-  constructor(private config: WaSqliteDialectConfig) {}
+  constructor(private config: WaSqliteDialectConfig) { }
 
   async executeQuery(compiledQuery: any): Promise<any> {
     const { sql, parameters } = compiledQuery;

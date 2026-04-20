@@ -17,6 +17,7 @@ import { preferencesService } from "@/features/preferences/services/preferences.
 import { userService } from "@/features/users/services/user.service";
 import { logger } from "@/lib/logger";
 import { useAuthStore } from "@/features/auth/stores/auth.store";
+import { db } from "../storage/client";
 
 //NOTE: We have a weird redunduncy concerning data flow here. The default categories are in sqlite, we then put them in crdt then rebuild the db from the crdt again
 
@@ -242,8 +243,7 @@ class OfflineFirstInitService {
         return false;
       }
 
-      const db = kyselyQueryService.getDb();
-      const sqliteCategories = await db.selectFrom("categories").selectAll().where("is_default", "=", 1).where("created_by", "=", "system").execute();
+      const sqliteCategories = await db.db.selectFrom("categories").selectAll().where("is_default", "=", 1).where("created_by", "=", "system").execute();
 
       if (sqliteCategories.length === 0) {
         logger.info("No default categories found in SQLite");

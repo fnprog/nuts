@@ -9,11 +9,28 @@ export interface ConnectivityState {
   lastServerCheck: Date | null;
 }
 
+// Backoff
+const CHECK_INTERVAL_BASE_MS = 30_000;
+const CHECK_INTERVAL_MAX_MS = 5 * 60_000;
+const CHECK_INTERVAL_BACKOFF_FACTOR = 2;
+const SERVER_CHECK_TIMEOUT_MS = 5_000;
+
+// A response with any status below 500 means the server is up and reachable.
+// 4xx codes (including 401, 403, 404, 405) all indicate the server responded —
+// they are auth or routing concerns, not connectivity concerns.
+const SERVER_REACHABLE = (status: number): boolean => status < 500;
+
+
+
 /**
  * Connectivity Detection Service
  *
- * Handles detection of network connectivity and determines if the app
- * should operate in fully offline mode.
+ * Detects network reachability and whether the server is accessible.
+ * Uses a dedicated /health endpoint to avoid conflating auth state with
+ * connectivity state. Falls back gracefully when the endpoint is absent.
+ *
+ * The polling interval grows exponentially when checks fail (up to 5 minutes)
+ * and resets to 30 seconds on success, avoiding hammering a down server.
  */
 
 class ConnectivityService {
@@ -25,197 +42,195 @@ class ConnectivityService {
   };
 
   private listeners: Set<(state: ConnectivityState) => void> = new Set();
-  private checkInterval: NodeJS.Timeout | null = null;
-  private serverCheckUrl = "/auth/sessions"; // Use existing auth endpoint instead of health
+  private checkTimeout: ReturnType<typeof setTimeout> | null = null;
+  private currentIntervalMs = CHECK_INTERVAL_BASE_MS;
+  private consecutiveFailures = 0;
   private isChecking = false;
 
-  private onlineHandler: (() => void) | null = null;
-  private offlineHandler: (() => void) | null = null;
+  // Stored by reference so removeEventListener works correctly in destroy().
+  private readonly onlineHandler = () => this.handleBrowserOnline();
+  private readonly offlineHandler = () => this.handleBrowserOffline();
 
   constructor() {
-    this.setupOnlineStatusListener();
-    this.startPeriodicServerCheck();
+    window.addEventListener("online", this.onlineHandler);
+    window.addEventListener("offline", this.offlineHandler);
+    // Run an immediate check so the initial state reflects reality, then
+    // schedule subsequent checks from there.
+    this.runCheckAndSchedule();
   }
 
-  /**
-   * Get current connectivity state
-   */
+  // Public API
+
   getState(): ConnectivityState {
     return { ...this.state };
   }
 
-  /**
-   * Check if we're in fully offline mode
-   */
   isFullyOffline(): boolean {
     return this.state.status === "fully-offline";
   }
 
-  /**
-   * Check if we have server access
-   */
   hasServerAccess(): boolean {
     return this.state.hasServerAccess;
   }
 
-  /**
-   * Subscribe to connectivity changes
-   */
   subscribe(listener: (state: ConnectivityState) => void): () => void {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
   }
 
   /**
-   * Force fully offline mode (for testing or when user wants to work offline)
+   * Enables or disables user-requested fully-offline mode.
+   *
+   * When disabling, we transition to "offline" immediately (so listeners see
+   * a consistent non-"fully-offline" state while the check is in flight) and
+   * then run a server check to determine the real status.
    */
   setFullyOfflineMode(enabled: boolean): void {
     if (enabled) {
+      this.stopScheduledChecks();
       this.updateState({ status: "fully-offline", hasServerAccess: false });
       return;
     }
 
-    // Re-check connectivity when coming out of fully offline mode
-    this.checkServerConnectivity();
+    // Transition away from fully-offline before the async check resolves.
+    this.updateState({ status: "offline" });
+    this.runCheckAndSchedule();
   }
 
-  /**
-   * Setup browser online/offline event listeners
-   */
-  private setupOnlineStatusListener(): void {
-    this.onlineHandler = () => this.updateOnlineStatus();
-    this.offlineHandler = () => this.updateOnlineStatus();
-
-    window.addEventListener("online", this.onlineHandler);
-    window.addEventListener("offline", this.offlineHandler);
-    // Initial check
-    // updateOnlineStatus();
-  }
-
-  private updateOnlineStatus() {
-    const isOnline = navigator.onLine;
-    this.updateState({ isOnline });
-
-    // When coming back online, check server connectivity
-    if (isOnline) {
-      this.checkServerConnectivity();
-      return;
-    }
-
-    // When going offline, update status immediately
-    this.updateState({ status: "offline", hasServerAccess: false });
-  }
-
-  /**
-   * Start periodic server connectivity checks
-   */
-  private startPeriodicServerCheck(): void {
-    // Check immediately
-    this.checkServerConnectivity();
-
-    // Check every 30 seconds
-    this.checkInterval = setInterval(() => {
-      this.checkServerConnectivity();
-    }, 30000);
-  }
-
-  /**
-   * Stop periodic server checks
-   */
-  stopPeriodicChecks(): void {
-    if (this.checkInterval) {
-      clearInterval(this.checkInterval);
-      this.checkInterval = null;
-    }
-  }
-
-  /**
-   * Check if the server is accessible
-   */
-  private async checkServerConnectivity(): Promise<void> {
-    if (this.isChecking) return;
-    this.isChecking = true;
-
-    if (!this.state.isOnline) {
-      this.updateState({ status: "offline", hasServerAccess: false });
-      return;
-    }
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-
-    try {
-      // Try a simple fetch to check server connectivity
-      const response = await fetch(this.serverCheckUrl, {
-        method: "HEAD",
-        signal: controller.signal,
-        cache: "no-cache",
-      });
-
-      const hasServerAccess = response.ok || response.status === 404; // 404 is ok, means server is reachable
-
-      this.updateState({
-        status: hasServerAccess ? "online" : "offline",
-        hasServerAccess,
-        lastServerCheck: new Date(),
-      });
-    } catch (error) {
-      // Server is not accessible
-      this.updateState({
-        status: "offline",
-        hasServerAccess: false,
-        lastServerCheck: new Date(),
-      });
-    } finally {
-      clearTimeout(timeoutId);
-      this.isChecking = false;
-    }
-  }
-
-  /**
-   * Update connectivity state and notify listeners
-   */
-  private updateState(updates: Partial<ConnectivityState>): void {
-    const previousStatus = this.state.status;
-    this.state = { ...this.state, ...updates };
-
-    // Log status changes
-    if (previousStatus !== this.state.status) {
-      logger.info(`Connectivity status changed: ${previousStatus} → ${this.state.status}`);
-    }
-
-    // Notify listeners
-    this.listeners.forEach((listener) => {
-      try {
-        listener(this.state);
-      } catch (error) {
-        logger.error("Error in connectivity listener:", error);
-      }
-    });
-  }
-
-  /**
-   * Manual connectivity check (for user-triggered refresh)
-   */
   async refreshConnectivity(): Promise<ConnectivityState> {
     await this.checkServerConnectivity();
     return this.getState();
   }
 
-  /**
-   * Cleanup resources
-   */
   destroy(): void {
-    if (this.onlineHandler) {
-      window.removeEventListener("online", this.onlineHandler);
-    }
-
-    if (this.offlineHandler) {
-      window.removeEventListener("offline", this.offlineHandler);
-    }
-
-    this.stopPeriodicChecks();
+    window.removeEventListener("online", this.onlineHandler);
+    window.removeEventListener("offline", this.offlineHandler);
+    this.stopScheduledChecks();
     this.listeners.clear();
+  }
+
+
+  // Browser event handlers
+
+  private handleBrowserOnline(): void {
+    this.updateState({ isOnline: true });
+    // Trigger an immediate check rather than waiting for the next scheduled one.
+    this.runCheckAndSchedule();
+  }
+
+  private handleBrowserOffline(): void {
+    this.updateState({ isOnline: false, status: "offline", hasServerAccess: false });
+  }
+
+  // Scheduling
+
+
+  /**
+   * Runs a single connectivity check then schedules the next one.
+   * Uses setTimeout rather than setInterval so each check fires only after
+   * the previous one completes and the interval can vary with backoff.
+   */
+  private async runCheckAndSchedule(): Promise<void> {
+    this.stopScheduledChecks();
+    await this.checkServerConnectivity();
+    this.scheduleNextCheck();
+  }
+
+  private scheduleNextCheck(): void {
+    this.checkTimeout = setTimeout(() => {
+      this.runCheckAndSchedule();
+    }, this.currentIntervalMs);
+  }
+
+  private stopScheduledChecks(): void {
+    if (this.checkTimeout !== null) {
+      clearTimeout(this.checkTimeout);
+      this.checkTimeout = null;
+    }
+  }
+
+  // Server Check
+
+  private async checkServerConnectivity(): Promise<void> {
+    // Prevent overlapping checks — e.g. if a manual refresh fires while a
+    // scheduled check is already in flight.
+    if (this.isChecking) return;
+    this.isChecking = true;
+
+    try {
+      if (!this.state.isOnline) {
+        this.updateState({ status: "offline", hasServerAccess: false });
+        return;
+      }
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), SERVER_CHECK_TIMEOUT_MS);
+
+      try {
+        const response = await fetch("/health", {
+          method: "HEAD",
+          signal: controller.signal,
+          cache: "no-cache",
+        });
+
+        const hasServerAccess = SERVER_REACHABLE(response.status);
+
+        if (hasServerAccess) {
+          this.consecutiveFailures = 0;
+          this.currentIntervalMs = CHECK_INTERVAL_BASE_MS;
+        } else {
+          this.recordFailure();
+        }
+
+        this.updateState({
+          status: hasServerAccess ? "online" : "offline",
+          hasServerAccess,
+          lastServerCheck: new Date(),
+        });
+      } catch {
+        // fetch threw — network error or timeout abort.
+        this.recordFailure();
+        this.updateState({
+          status: "offline",
+          hasServerAccess: false,
+          lastServerCheck: new Date(),
+        });
+      } finally {
+        clearTimeout(timeoutId);
+      }
+    } finally {
+      // Always reset — even if we returned early on the !isOnline path.
+      this.isChecking = false;
+    }
+  }
+
+  private recordFailure(): void {
+    this.consecutiveFailures++;
+    this.currentIntervalMs = Math.min(
+      CHECK_INTERVAL_BASE_MS * Math.pow(CHECK_INTERVAL_BACKOFF_FACTOR, this.consecutiveFailures),
+      CHECK_INTERVAL_MAX_MS
+    );
+    logger.warn(
+      `Server check failed (attempt ${this.consecutiveFailures}), ` +
+      `next check in ${this.currentIntervalMs / 1000}s`
+    );
+  }
+
+  private updateState(updates: Partial<ConnectivityState>): void {
+    const previousStatus = this.state.status;
+    this.state = { ...this.state, ...updates };
+
+    if (previousStatus !== this.state.status) {
+      logger.info(`Connectivity: ${previousStatus} → ${this.state.status}`);
+    }
+
+    this.listeners.forEach((listener) => {
+      try {
+        listener(this.getState());
+      } catch (error) {
+        logger.error("Error in connectivity listener:", error);
+      }
+    });
   }
 }
 

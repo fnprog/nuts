@@ -22,25 +22,27 @@ const crdtPluginMigrationStateSchema = type({
   applied_at: "string",
 });
 
-export const crdtDocumentSchema = type({
-  version: "string",
-  created_at: "string",
-  updated_at: "string",
-  user_id: "string",
-  transactions: "Record<string, unknown>",
-  accounts: "Record<string, unknown>",
-  categories: "Record<string, unknown>",
-  budgets: "Record<string, unknown>",
-  tags: "Record<string, unknown>",
-  preferences: "Record<string, unknown>",
-  rules: "Record<string, unknown>",
-  recurring_transactions: "Record<string, unknown>",
-  notifications: "Record<string, unknown>",
-  plugins: "Record<string, unknown>",
-  plugin_data: "Record<string, Record<string, unknown>>",
-  plugin_migrations: "Record<string, unknown>",
-  indices: crdtIndicesSchema,
-});
+// export const crdtDocumentSchema = type({
+//   version: "string",
+//   created_at: "string",
+//   updated_at: "string",
+//   user_id: "string",
+//   transactions: "Record<string, unknown>",
+//   accounts: "Record<string, unknown>",
+//   categories: "Record<string, unknown>",
+//   budgets: "Record<string, unknown>",
+//   tags: "Record<string, unknown>",
+//   preferences: "Record<string, unknown>",
+//   rules: "Record<string, unknown>",
+//   recurring_transactions: "Record<string, unknown>",
+//   notifications: "Record<string, unknown>",
+//   plugins: "Record<string, unknown>",
+//   plugin_data: "Record<string, Record<string, unknown>>",
+//   plugin_migrations: "Record<string, unknown>",
+//   indices: crdtIndicesSchema,
+// });
+
+
 
 const crdtDetailsSchema = type({
   "payment_medium?": "string",
@@ -235,6 +237,27 @@ export const crdtNotificationSchema = type({
   "deleted_at?": "string",
 });
 
+
+export const crdtDocumentSchema = type({
+  version: "string",
+  created_at: "string",
+  updated_at: "string",
+  user_id: "string",
+  transactions: type({ "[string]": crdtTransactionSchema }),
+  accounts: type({ "[string]": crdtAccountSchema }),
+  categories: type({ "[string]": crdtCategorySchema }),
+  budgets: type({ "[string]": crdtBudgetSchema }),
+  tags: type({ "[string]": crdtTagSchema }),
+  preferences: type({ "[string]": crdtPreferenceSchema }),
+  rules: type({ "[string]": crdtRuleSchema }),
+  recurring_transactions: type({ "[string]": crdtRecurringTransactionSchema }),
+  notifications: type({ "[string]": crdtNotificationSchema }),
+  plugins: type({ "[string]": crdtPluginSchema }),
+  plugin_data: type({ "[string]": type({ "[string]": "unknown" }) }),
+  plugin_migrations: type({ "[string]": crdtPluginMigrationStateSchema }),
+  indices: crdtIndicesSchema,
+});
+
 export type CRDTDocument = typeof crdtDocumentSchema.infer;
 export type CRDTTransaction = typeof crdtTransactionSchema.infer;
 export type CRDTAccount = typeof crdtAccountSchema.infer;
@@ -255,3 +278,20 @@ export interface CRDTOperation {
   data?: any;
   timestamp: string;
 }
+
+
+export type EntityCollections = {
+  transactions: CRDTTransaction;
+  accounts: CRDTAccount;
+  categories: CRDTCategory;
+  budgets: CRDTBudget;
+  tags: CRDTTag;
+  preferences: CRDTPreference;
+  rules: CRDTRule;
+  recurring_transactions: CRDTRecurringTransaction;
+  notifications: CRDTNotification;
+  plugins: CRDTPlugin;
+};
+
+export type CollectionKey = keyof EntityCollections;
+export type CollectionEntity<K extends CollectionKey> = EntityCollections[K];

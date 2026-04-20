@@ -1,21 +1,195 @@
+import { next as Automerge } from "@automerge/automerge";
 import { crdtService } from "./crdt";
 import { kyselyQueryService } from "./query";
 import { connectivityService } from "./connectivity";
 import { authService } from "@/features/auth/services/auth.service";
+import { db } from "@/core/storage/client";
 import { api } from "@/lib/api";
 import { logger } from "@/lib/logger";
 import { ResourceType, SyncConflict, SyncState } from "@nuts/types";
 import { Result, ok, err } from "@/lib/result";
 import { ServiceError } from "@/lib/service-error";
+import type {
+  CRDTTransaction,
+  CRDTAccount,
+  CRDTCategory,
+  CRDTBudget,
+  CRDTTag,
+  CRDTPreference,
+} from "@nuts/types";
 
 /**
  * Synchronization Service for Offline-First Architecture
  *
  * Handles bidirectional sync between local CRDT documents and the server.
  * Manages conflict resolution, offline queue, and background sync.
+ *
+ * Conflict detection uses Automerge heads saved at last sync time so we
+ * can tell whether the local document was genuinely modified since the
+ * last successful pull — not just whether timestamps differ.
  */
 
+// ─── Backoff ──────────────────────────────────────────────────────────────────
+
+const SYNC_INTERVAL_BASE_MS = 30_000;
+const SYNC_INTERVAL_MAX_MS = 5 * 60_000; // 5 minutes
+const SYNC_INTERVAL_BACKOFF_FACTOR = 2;
+
+// ─── Server response shapes ───────────────────────────────────────────────────
+
+interface ServerSyncResponse {
+  transactions?: unknown[];
+  accounts?: unknown[];
+  categories?: unknown[];
+  budgets?: unknown[];
+  tags?: unknown[];
+  preferences?: unknown[];
+  server_timestamp?: string;
+}
+
+// ─── Normalizers ──────────────────────────────────────────────────────────────
+//
+// Each function coerces a raw server payload into the expected CRDT shape.
+// Keeping them separate means a change to the server response for accounts
+// can't accidentally corrupt transaction data, and type errors are caught
+// at the boundary rather than silently downstream.
+
+function normalizeTransaction(raw: any): CRDTTransaction {
+  return {
+    id: raw.id,
+    amount: coerceNumeric(raw.amount, 0),
+    transaction_datetime: raw.transaction_datetime || raw.transactionDatetime || new Date().toISOString(),
+    description: raw.description ?? "",
+    category_id: raw.category_id ?? null,
+    account_id: raw.account_id ?? "",
+    type: raw.type ?? "expense",
+    destination_account_id: raw.destination_account_id ?? null,
+    transaction_currency: raw.transaction_currency ?? "USD",
+    original_amount: coerceNumeric(raw.original_amount ?? raw.amount, 0),
+    is_external: Boolean(raw.is_external),
+    details: parseJsonField(raw.details, {}),
+    created_at: raw.created_at || raw.createdAt || new Date().toISOString(),
+    updated_at: raw.updated_at || raw.updatedAt || new Date().toISOString(),
+    deleted_at: raw.deleted_at || raw.deletedAt || undefined,
+  };
+}
+
+function normalizeAccount(raw: any): CRDTAccount {
+  return {
+    id: raw.id,
+    name: raw.name ?? "",
+    type: raw.type ?? "checking",
+    subtype: raw.subtype ?? undefined,
+    currency: raw.currency ?? "USD",
+    balance: coerceNumeric(raw.balance, 0),
+    meta: parseJsonField(raw.meta, null),
+    is_active: raw.is_active !== false,
+    is_external: Boolean(raw.is_external),
+    provider_account_id: raw.provider_account_id ?? undefined,
+    provider_name: raw.provider_name ?? undefined,
+    sync_status: raw.sync_status ?? undefined,
+    last_synced_at: raw.last_synced_at ?? undefined,
+    connection_id: raw.connection_id ?? undefined,
+    created_by: raw.created_by ?? undefined,
+    updated_by: raw.updated_by ?? undefined,
+    created_at: raw.created_at || raw.createdAt || new Date().toISOString(),
+    updated_at: raw.updated_at || raw.updatedAt || new Date().toISOString(),
+    deleted_at: raw.deleted_at || raw.deletedAt || undefined,
+  };
+}
+
+function normalizeCategory(raw: any): CRDTCategory {
+  return {
+    id: raw.id,
+    name: raw.name ?? "",
+    type: raw.type ?? "expense",
+    color: raw.color ?? "#000000",
+    icon: raw.icon ?? undefined,
+    parent_id: raw.parent_id ?? undefined,
+    plugin_id: raw.plugin_id ?? undefined,
+    is_active: raw.is_active !== false,
+    created_at: raw.created_at || raw.createdAt || new Date().toISOString(),
+    updated_at: raw.updated_at || raw.updatedAt || new Date().toISOString(),
+    deleted_at: raw.deleted_at || raw.deletedAt || undefined,
+  };
+}
+
+function normalizeBudget(raw: any): CRDTBudget {
+  return {
+    id: raw.id,
+    category_id: raw.category_id ?? "",
+    amount: coerceNumeric(raw.amount, 0),
+    start_date: raw.start_date ?? "",
+    end_date: raw.end_date ?? "",
+    frequency: raw.frequency ?? "monthly",
+    name: raw.name ?? undefined,
+    created_at: raw.created_at || raw.createdAt || new Date().toISOString(),
+    updated_at: raw.updated_at || raw.updatedAt || new Date().toISOString(),
+  };
+}
+
+function normalizeTag(raw: any): CRDTTag {
+  return {
+    id: raw.id,
+    name: raw.name ?? "",
+    color: raw.color ?? "#000000",
+    created_at: raw.created_at || raw.createdAt || new Date().toISOString(),
+  };
+}
+
+function normalizePreference(raw: any): CRDTPreference {
+  return {
+    id: raw.id,
+    locale: raw.locale ?? "en",
+    theme: raw.theme ?? "light",
+    currency: raw.currency ?? "USD",
+    timezone: raw.timezone ?? "UTC",
+    time_format: raw.time_format ?? "24h",
+    date_format: raw.date_format ?? "YYYY-MM-DD",
+    start_week_on_monday: Boolean(raw.start_week_on_monday),
+    dark_sidebar: Boolean(raw.dark_sidebar),
+    created_at: raw.created_at || raw.createdAt || new Date().toISOString(),
+    updated_at: raw.updated_at || raw.updatedAt || new Date().toISOString(),
+    deleted_at: raw.deleted_at || raw.deletedAt || undefined,
+  };
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function coerceNumeric(value: unknown, fallback: number): number {
+  if (typeof value === "number") return value;
+  if (typeof value === "object" && value !== null) {
+    const v = value as any;
+    return parseFloat(v.String ?? v.value ?? fallback) || fallback;
+  }
+  return fallback;
+}
+
+function parseJsonField<T>(value: unknown, fallback: T): T {
+  if (value === null || value === undefined) return fallback;
+  if (typeof value === "string") {
+    try {
+      return JSON.parse(value) as T;
+    } catch {
+      return fallback;
+    }
+  }
+  return value as T;
+}
+
+function safeArray<T>(value: unknown): T[] {
+  return Array.isArray(value) ? (value as T[]) : [];
+}
+
+function extractHttpStatus(error: unknown): number | null {
+  const e = error as any;
+  return e?.response?.status ?? e?.status ?? null;
+}
+
+
+
 class SyncService {
+
   private syncState: SyncState = {
     status: "offline",
     lastSyncAt: null,
@@ -33,9 +207,23 @@ class SyncService {
     timestamp: Date;
   }> = [];
 
+  // Items are added to the queue while pushLocalChanges is running. This flag
+  // marks the index boundary so new arrivals during a push cycle are deferred
+  // to the next cycle rather than silently dropped or double-processed.
+  private pushCursorIndex = 0;
+
+
   private conflicts: SyncConflict[] = [];
-  private syncInterval: NodeJS.Timeout | null = null;
+  private syncTimeout: ReturnType<typeof setTimeout> | null = null;
+  private currentBackoffMs = SYNC_INTERVAL_BASE_MS;
+  private consecutiveFailures = 0;
+
+  // Automerge heads saved at the end of each successful pull. Used by
+  // hasLocalModifications to detect genuine local edits vs. server-newer records.
+  private lastSyncHeads: Map<string, Automerge.Heads> = new Map();
+
   private listeners: Set<(state: SyncState) => void> = new Set();
+
 
   constructor() {
     this.setupOnlineStatusListener();
@@ -43,16 +231,12 @@ class SyncService {
     this.loadConflicts();
   }
 
-  /**
-   * Initialize the sync service
-   */
   async initialize(): Promise<Result<void, ServiceError>> {
     if (authService.canSync()) {
       const result = await this.startBackgroundSync();
 
       if (result.isErr()) {
         logger.error("Failed to initialize sync service:", result.error);
-
         this.updateSyncState({
           status: "error",
           error: "Failed to initialize sync - will retry when connectivity and auth are restored",
@@ -68,10 +252,7 @@ class SyncService {
     const hasConnectivity = connectivityService.hasServerAccess();
     const hasAuth = authService.isAuthenticated();
 
-    logger.info(
-      `Sync service initialized in offline mode - ${!hasConnectivity ? "no connectivity" : "no valid auth"}`
-    );
-
+    logger.info(`Sync service initialized in offline mode - ${!hasConnectivity ? "no connectivity" : "no valid auth"}`);
     this.updateSyncState({
       status: "offline",
       isOnline: hasConnectivity,
@@ -80,54 +261,33 @@ class SyncService {
         ? "No server connectivity - sync will resume when online"
         : "No valid authentication - sync requires valid auth tokens",
     });
-
     return ok(undefined);
   }
 
-  /**
-   * Start background sync process
-   */
   async startBackgroundSync(): Promise<Result<void, ServiceError>> {
-    if (this.syncInterval) {
-      clearInterval(this.syncInterval);
-    }
+    this.stopBackgroundSync();
 
     const syncResult = await this.performSync();
-    if (syncResult.isErr()) {
-      return err(syncResult.error);
-    }
+    if (syncResult.isErr()) return err(syncResult.error);
 
-    this.syncInterval = setInterval(async () => {
-      if (authService.canSync()) {
-        await this.performSync();
-      }
-    }, 30000);
-
+    this.scheduleNextSync();
     return ok(undefined);
   }
 
-  /**
-   * Stop background sync
-   */
   stopBackgroundSync(): void {
-    if (this.syncInterval) {
-      clearInterval(this.syncInterval);
-      this.syncInterval = null;
+    if (this.syncTimeout !== null) {
+      clearTimeout(this.syncTimeout);
+      this.syncTimeout = null;
     }
   }
 
-  /**
-   * Perform a complete sync cycle
-   */
+
   async performSync(): Promise<Result<void, ServiceError>> {
-    if (this.syncState.status === "syncing") {
-      return ok(undefined);
-    }
+    if (this.syncState.status === "syncing") return ok(undefined);
 
     if (!authService.canSync()) {
       const hasConnectivity = connectivityService.hasServerAccess();
       const hasAuth = authService.isAuthenticated();
-
       this.updateSyncState({
         status: "offline",
         isOnline: hasConnectivity,
@@ -143,54 +303,26 @@ class SyncService {
     const accessToken = await authService.getAccessTokenForSync();
 
     if (!accessToken) {
-      this.updateSyncState({
-        status: "error",
-        error: "Failed to get valid access token for sync",
-      });
+      this.updateSyncState({ status: "error", error: "Failed to get valid access token for sync" });
       return err(ServiceError.sync("Failed to get valid access token"));
     }
 
     const pushResult = await this.pushLocalChanges();
 
     if (pushResult.isErr()) {
-      logger.error("Sync failed:", pushResult.error);
-      const httpError = pushResult.error.cause as any;
-      const status = httpError?.response?.status ?? httpError?.status;
-      if (status === 401 || status === 403) {
-        this.updateSyncState({
-          status: "error",
-          error: "Authentication failed during sync - please re-authenticate",
-          hasValidAuth: false,
-        });
-      } else {
-        this.updateSyncState({
-          status: "error",
-          error: `Sync failed: ${pushResult.error.message}`,
-        });
-      }
+      this.handleSyncError(pushResult.error);
       return err(pushResult.error);
     }
 
     const pullResult = await this.pullServerChanges();
 
     if (pullResult.isErr()) {
-      logger.error("Sync failed:", pullResult.error);
-      const httpError = pullResult.error.cause as any;
-      const status = httpError?.response?.status ?? httpError?.status;
-      if (status === 401 || status === 403) {
-        this.updateSyncState({
-          status: "error",
-          error: "Authentication failed during sync - please re-authenticate",
-          hasValidAuth: false,
-        });
-      } else {
-        this.updateSyncState({
-          status: "error",
-          error: `Sync failed: ${pullResult.error.message}`,
-        });
-      }
+      this.handleSyncError(pullResult.error);
       return err(pullResult.error);
     }
+
+    this.consecutiveFailures = 0;
+    this.currentBackoffMs = SYNC_INTERVAL_BASE_MS;
 
     this.updateSyncState({
       status: this.conflicts.length > 0 ? "conflict" : "synced",
@@ -204,33 +336,185 @@ class SyncService {
     return ok(undefined);
   }
 
-  /**
-   * Push local changes to server
-   */
-  private async pushLocalChanges(): Promise<Result<void, ServiceError>> {
-    const queueCopy = [...this.syncQueue];
-    const successfulOperations: string[] = [];
+  addToSyncQueue(operation: {
+    operation: "create" | "update" | "delete";
+    type: "transaction" | "account" | "category" | "rule";
+    data: any;
+  }): void {
+    const queueItem = {
+      ...operation,
+      id: `${operation.type}_${operation.data.id}_${Date.now()}`,
+      timestamp: new Date(),
+    };
 
-    for (const operation of queueCopy) {
+    this.syncQueue.push(queueItem);
+    this.updateSyncState({ pendingOperations: this.syncQueue.length });
+    this.persistSyncQueue();
+
+    if (authService.canSync()) {
+      this.performSync().catch((e) => logger.error("Sync error:", e));
+    }
+  }
+
+  async resolveConflict(
+    conflictId: string,
+    resolution: "local" | "server" | "merge"
+  ): Promise<Result<void, ServiceError>> {
+    const conflict = this.conflicts.find((c) => c.id === conflictId);
+    if (!conflict) return err(ServiceError.notFound("Conflict", conflictId));
+
+    switch (resolution) {
+      case "local":
+        // Re-queue the local version to be pushed to the server.
+        this.addToSyncQueue({ operation: "update", type: conflict.type, data: conflict.localVersion });
+        break;
+
+      case "server":
+        // Overwrite local with the server version via CRDT update.
+        if (conflict.type === "transaction") {
+          const result = await crdtService.updateTransaction(conflict.id, conflict.serverVersion);
+          if (result.isErr()) return err(result.error);
+        } else if (conflict.type === "account") {
+          const result = await crdtService.updateAccount(conflict.id, conflict.serverVersion);
+          if (result.isErr()) return err(result.error);
+        } else if (conflict.type === "category") {
+          const result = await crdtService.updateCategory(conflict.id, conflict.serverVersion);
+          if (result.isErr()) return err(result.error);
+        }
+        break;
+
+      case "merge":
+        // Field-level merge: server wins on conflict, local-only fields are preserved.
+        // This is a last-write-wins merge per field, not a semantic merge.
+        if (conflict.type === "transaction") {
+          const merged = { ...conflict.localVersion, ...conflict.serverVersion };
+          const result = await crdtService.updateTransaction(conflict.id, merged);
+          if (result.isErr()) return err(result.error);
+        } else if (conflict.type === "account") {
+          const merged = { ...conflict.localVersion, ...conflict.serverVersion };
+          const result = await crdtService.updateAccount(conflict.id, merged);
+          if (result.isErr()) return err(result.error);
+        } else if (conflict.type === "category") {
+          const merged = { ...conflict.localVersion, ...conflict.serverVersion };
+          const result = await crdtService.updateCategory(conflict.id, merged);
+          if (result.isErr()) return err(result.error);
+        }
+        break;
+    }
+
+    this.conflicts = this.conflicts.filter((c) => c.id !== conflictId);
+    await this.persistConflicts();
+
+    this.updateSyncState({ status: this.conflicts.length > 0 ? "conflict" : "synced" });
+    return ok(undefined);
+  }
+
+  getSyncState(): SyncState {
+    return { ...this.syncState };
+  }
+
+  subscribe(listener: (state: SyncState) => void): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+
+  getConflicts(): SyncConflict[] {
+    return [...this.conflicts];
+  }
+
+  async forceSync(): Promise<Result<void, ServiceError>> {
+    return this.performSync();
+  }
+
+  async clear(): Promise<void> {
+    this.stopBackgroundSync();
+    this.syncQueue = [];
+    this.conflicts = [];
+    this.lastSyncHeads.clear();
+    await this.persistSyncQueue();
+    await this.persistConflicts();
+    this.updateSyncState({
+      status: "offline",
+      lastSyncAt: null,
+      pendingOperations: 0,
+      error: null,
+    });
+  }
+
+  // ─── Scheduling ─────────────────────────────────────────────────────────────
+
+  /**
+   * Uses setTimeout rather than setInterval so each sync fires only after
+   * the previous one completes. The interval grows exponentially on failure
+   * and resets on success, avoiding hammering a down server.
+   */
+  private scheduleNextSync(): void {
+    this.syncTimeout = setTimeout(async () => {
+      if (authService.canSync()) {
+        await this.performSync();
+      }
+      this.scheduleNextSync();
+    }, this.currentBackoffMs);
+  }
+
+  private handleSyncError(error: ServiceError): void {
+    this.consecutiveFailures++;
+    this.currentBackoffMs = Math.min(
+      SYNC_INTERVAL_BASE_MS * Math.pow(SYNC_INTERVAL_BACKOFF_FACTOR, this.consecutiveFailures),
+      SYNC_INTERVAL_MAX_MS
+    );
+
+    const httpStatus = extractHttpStatus(error.cause);
+    if (httpStatus === 401 || httpStatus === 403) {
+      this.updateSyncState({
+        status: "error",
+        error: "Authentication failed during sync - please re-authenticate",
+        hasValidAuth: false,
+      });
+    } else {
+      this.updateSyncState({
+        status: "error",
+        error: `Sync failed: ${error.message}`,
+      });
+    }
+
+    logger.warn(
+      `Sync failed (attempt ${this.consecutiveFailures}), next retry in ${this.currentBackoffMs}ms:`,
+      error
+    );
+  }
+
+
+  // ─── Push ────────────────────────────────────────────────────────────────────
+
+  private async pushLocalChanges(): Promise<Result<void, ServiceError>> {
+    // Snapshot the current end-of-queue index. Items appended by addToSyncQueue
+    // during this push cycle are beyond this boundary and will be picked up in
+    // the next sync, preventing them from being silently dropped.
+    const snapshotEnd = this.syncQueue.length;
+    this.pushCursorIndex = snapshotEnd;
+
+    const batch = this.syncQueue.slice(0, snapshotEnd);
+    const successIds = new Set<string>();
+
+    for (const operation of batch) {
       const result = await this.pushOperation(operation);
       if (result.isOk()) {
-        successfulOperations.push(operation.id);
+        successIds.add(operation.id);
       } else {
-        logger.error("Failed to push operation:", operation, result.error);
+        logger.error("Failed to push operation:", operation.id, result.error);
       }
     }
 
-    this.syncQueue = this.syncQueue.filter((op) => !successfulOperations.includes(op.id));
+    // Remove only the successfully pushed items; leave failures for retry.
+    this.syncQueue = this.syncQueue.filter((op) => !successIds.has(op.id));
     this.updateSyncState({ pendingOperations: this.syncQueue.length });
-    this.persistSyncQueue();
+    await this.persistSyncQueue();
 
     return ok(undefined);
   }
 
-  /**
-   * Push a single operation to server
-   */
-  private async pushOperation(operation: any): Promise<Result<void, ServiceError>> {
+  private async pushOperation(operation: (typeof this.syncQueue)[number]): Promise<Result<void, ServiceError>> {
     const endpoint = this.getEndpointForOperation(operation);
     try {
       switch (operation.operation) {
@@ -250,261 +534,123 @@ class SyncService {
     }
   }
 
-  /**
-   * Pull server changes and merge with local CRDT
-   */
+  // ─── Pull ────────────────────────────────────────────────────────────────────
+
   private async pullServerChanges(): Promise<Result<void, ServiceError>> {
     try {
-      const lastSync = this.syncState.lastSyncAt?.toISOString() || new Date(0).toISOString();
-      // Ky: build query string manually
-      const url = `/sync?since=${encodeURIComponent(lastSync)}`;
-      const response = await api.get(url);
-      const data = await response.json();
+      const lastSync = this.syncState.lastSyncAt?.toISOString() ?? new Date(0).toISOString();
+      const response = await api.get(`/sync?since=${encodeURIComponent(lastSync)}`);
+      const data = (await response.json()) as ServerSyncResponse;
 
       if (!data || typeof data !== "object") {
         logger.error("Invalid sync response:", data);
         return err(ServiceError.sync("Invalid sync response format"));
       }
-      const transactionsData = Array.isArray(data.transactions) ? data.transactions : [];
-      const accountsData = Array.isArray(data.accounts) ? data.accounts : [];
-      const categoriesData = Array.isArray(data.categories) ? data.categories : [];
-      const budgetsData = Array.isArray(data.budgets) ? data.budgets : [];
-      const tagsData = Array.isArray(data.tags) ? data.tags : [];
-      const preferencesData = Array.isArray(data.preferences) ? data.preferences : [];
 
-      const mergeResult = await this.mergeServerChanges({
-        transactions: transactionsData,
-        accounts: accountsData,
-        categories: categoriesData,
-        budgets: budgetsData,
-        tags: tagsData,
-        preferences: preferencesData,
-      });
-      if (mergeResult.isErr()) {
-        return err(mergeResult.error);
-      }
-      const serverTimestamp = data.server_timestamp || new Date().toISOString();
-      this.syncState.lastSyncAt = new Date(serverTimestamp);
+      const mergeResult = await this.mergeServerChanges(data);
+      if (mergeResult.isErr()) return err(mergeResult.error);
+
+      this.syncState.lastSyncAt = new Date(data.server_timestamp ?? Date.now());
       return ok(undefined);
     } catch (error) {
-      logger.warn("Unified sync endpoint not available, performing full sync fallback:", error);
-      return await this.performFullSync();
+      logger.warn("Unified sync endpoint unavailable, falling back to full sync:", error);
+      return this.performFullSync();
     }
   }
 
-  /**
-   * Perform full data sync (fallback when incremental sync isn't available)
-   */
   private async performFullSync(): Promise<Result<void, ServiceError>> {
     try {
-      const [transactionsResponse, accountsResponse, categoriesResponse] = await Promise.all([
+      const [transactionsRaw, accountsRaw, categoriesRaw] = await Promise.all([
         api.get("/transactions").then((r) => r.json()),
         api.get("/accounts").then((r) => r.json()),
         api.get("/categories").then((r) => r.json()),
       ]);
-      const extractData = (response: any) => {
-        if (response?.data && Array.isArray(response.data)) {
-          return response.data;
-        } else if (Array.isArray(response)) {
-          return response;
-        } else {
-          logger.warn("Unexpected server response format:", response);
-          return [];
-        }
+
+      const extract = (response: any): unknown[] => {
+        if (Array.isArray(response?.data)) return response.data;
+        if (Array.isArray(response)) return response;
+        logger.warn("Unexpected server response format:", response);
+        return [];
       };
-      const serverData = {
-        transactions: this.convertServerDataToCRDT(extractData(transactionsResponse)),
-        accounts: this.convertServerDataToCRDT(extractData(accountsResponse)),
-        categories: this.convertServerDataToCRDT(extractData(categoriesResponse)),
-      };
-      return await this.mergeServerChanges(serverData);
+
+      return this.mergeServerChanges({
+        transactions: extract(transactionsRaw),
+        accounts: extract(accountsRaw),
+        categories: extract(categoriesRaw),
+      });
     } catch (error) {
       logger.error("Full sync failed:", error);
-      return err(ServiceError.fromAxiosError(error));
+      return err(ServiceError.fromKyError(error));
     }
   }
 
-  /**
-   * Merge server changes into local CRDT
-   */
-  private async mergeServerChanges(serverData: {
-    transactions: any[];
-    accounts: any[];
-    categories: any[];
-    budgets?: any[];
-    tags?: any[];
-    preferences?: any[];
-  }): Promise<Result<void, ServiceError>> {
-    if (!Array.isArray(serverData.transactions)) {
-      logger.error("Server transactions data is not an array:", serverData.transactions);
-      serverData.transactions = [];
-    }
-    if (!Array.isArray(serverData.accounts)) {
-      logger.error("Server accounts data is not an array:", serverData.accounts);
-      serverData.accounts = [];
-    }
-    if (!Array.isArray(serverData.categories)) {
-      logger.error("Server categories data is not an array:", serverData.categories);
-      serverData.categories = [];
-    }
+  // ─── Merge ───────────────────────────────────────────────────────────────────
 
+  private async mergeServerChanges(serverData: ServerSyncResponse): Promise<Result<void, ServiceError>> {
     const localTransactions = crdtService.getTransactions();
     const localAccounts = crdtService.getAccounts();
     const localCategories = crdtService.getCategories();
+    const localBudgets = crdtService.getBudgets();
+    const localTags = crdtService.getTags();
+    const localPreferences = crdtService.getPreferences();
 
-    for (const serverTx of serverData.transactions) {
-      if (!serverTx.id) {
-        logger.warn("Skipping transaction without ID:", serverTx);
-        continue;
-      }
+    await this.mergeCollection(
+      safeArray(serverData.transactions),
+      localTransactions,
+      normalizeTransaction,
+      "transaction",
+      (item) => crdtService.createTransaction(item),
+      (id, item) => crdtService.updateTransaction(id, item)
+    );
 
-      const localTx = localTransactions[serverTx.id];
+    await this.mergeCollection(
+      safeArray(serverData.accounts),
+      localAccounts,
+      normalizeAccount,
+      "account",
+      (item) => crdtService.createAccount(item),
+      (id, item) => crdtService.updateAccount(id, item)
+    );
 
-      if (!localTx) {
-        const createResult = await crdtService.createTransaction(serverTx);
-        if (createResult.isErr()) {
-          logger.error("Failed to create transaction from server:", createResult.error);
-        }
-      } else if (new Date(serverTx.updated_at) > new Date(localTx.updated_at)) {
-        if (this.hasLocalModifications(localTx, serverTx)) {
-          this.addConflict({
-            id: serverTx.id,
-            type: "transaction",
-            localVersion: localTx,
-            serverVersion: serverTx,
-            timestamp: new Date(),
-          });
-        } else {
-          const updateResult = await crdtService.updateTransaction(serverTx.id, serverTx);
-          if (updateResult.isErr()) {
-            logger.error("Failed to update transaction from server:", updateResult.error);
-          }
-        }
-      }
-    }
+    await this.mergeCollection(
+      safeArray(serverData.categories),
+      localCategories,
+      normalizeCategory,
+      "category",
+      (item) => crdtService.createCategory(item),
+      (id, item) => crdtService.updateCategory(id, item)
+    );
 
-    for (const serverAccount of serverData.accounts) {
-      if (!serverAccount.id) {
-        logger.warn("Skipping account without ID:", serverAccount);
-        continue;
-      }
+    await this.mergeCollection(
+      safeArray(serverData.budgets),
+      localBudgets,
+      normalizeBudget,
+      null, // no conflict tracking for budgets
+      (item) => crdtService.createBudget(item),
+      (id, item) => crdtService.updateBudget(id, item)
+    );
 
-      const localAccount = localAccounts[serverAccount.id];
+    await this.mergeCollection(
+      safeArray(serverData.tags),
+      localTags,
+      normalizeTag,
+      null,
+      (item) => crdtService.createTag(item),
+      null // tags are append-only from server
+    );
 
-      if (!localAccount) {
-        const createResult = await crdtService.createAccount(serverAccount);
-        if (createResult.isErr()) {
-          logger.error("Failed to create account from server:", createResult.error);
-        }
-      } else if (new Date(serverAccount.updated_at) > new Date(localAccount.updated_at)) {
-        if (this.hasLocalModifications(localAccount, serverAccount)) {
-          this.addConflict({
-            id: serverAccount.id,
-            type: "account",
-            localVersion: localAccount,
-            serverVersion: serverAccount,
-            timestamp: new Date(),
-          });
-        } else {
-          const updateResult = await crdtService.updateAccount(serverAccount.id, serverAccount);
-          if (updateResult.isErr()) {
-            logger.error("Failed to update account from server:", updateResult.error);
-          }
-        }
-      }
-    }
+    await this.mergeCollection(
+      safeArray(serverData.preferences),
+      localPreferences,
+      normalizePreference,
+      null,
+      (item) => crdtService.createPreference(item),
+      (id, item) => crdtService.updatePreference(id, item)
+    );
 
-    for (const serverCategory of serverData.categories) {
-      if (!serverCategory.id) {
-        logger.warn("Skipping category without ID:", serverCategory);
-        continue;
-      }
-
-      const localCategory = localCategories[serverCategory.id];
-
-      if (!localCategory) {
-        const createResult = await crdtService.createCategory(serverCategory);
-        if (createResult.isErr()) {
-          logger.error("Failed to create category from server:", createResult.error);
-        }
-      } else if (new Date(serverCategory.updated_at) > new Date(localCategory.updated_at)) {
-        if (this.hasLocalModifications(localCategory, serverCategory)) {
-          this.addConflict({
-            id: serverCategory.id,
-            type: "category",
-            localVersion: localCategory,
-            serverVersion: serverCategory,
-            timestamp: new Date(),
-          });
-        } else {
-          const updateResult = await crdtService.updateCategory(serverCategory.id, serverCategory);
-          if (updateResult.isErr()) {
-            logger.error("Failed to update category from server:", updateResult.error);
-          }
-        }
-      }
-    }
-
-    for (const serverBudget of serverData.budgets || []) {
-      if (!serverBudget.id) {
-        logger.warn("Skipping budget without ID:", serverBudget);
-        continue;
-      }
-
-      const localBudgets = crdtService.getBudgets();
-      const localBudget = localBudgets[serverBudget.id];
-
-      if (!localBudget) {
-        const createResult = await crdtService.createBudget(serverBudget);
-        if (createResult.isErr()) {
-          logger.error("Failed to create budget from server:", createResult.error);
-        }
-      } else if (new Date(serverBudget.updated_at) > new Date(localBudget.updated_at)) {
-        const updateResult = await crdtService.updateBudget(serverBudget.id, serverBudget);
-        if (updateResult.isErr()) {
-          logger.error("Failed to update budget from server:", updateResult.error);
-        }
-      }
-    }
-
-    for (const serverTag of serverData.tags || []) {
-      if (!serverTag.id) {
-        logger.warn("Skipping tag without ID:", serverTag);
-        continue;
-      }
-
-      const localTags = crdtService.getTags();
-      const localTag = localTags[serverTag.id];
-
-      if (!localTag) {
-        const createResult = await crdtService.createTag(serverTag);
-        if (createResult.isErr()) {
-          logger.error("Failed to create tag from server:", createResult.error);
-        }
-      }
-    }
-
-    for (const serverPreference of serverData.preferences || []) {
-      if (!serverPreference.id) {
-        logger.warn("Skipping preference without ID:", serverPreference);
-        continue;
-      }
-
-      const localPreferences = crdtService.getPreferences();
-      const localPreference = localPreferences[serverPreference.id];
-
-      if (!localPreference) {
-        const createResult = await crdtService.createPreference(serverPreference);
-        if (createResult.isErr()) {
-          logger.error("Failed to create preference from server:", createResult.error);
-        }
-      } else if (new Date(serverPreference.updated_at) > new Date(localPreference.updated_at)) {
-        const updateResult = await crdtService.updatePreference(serverPreference.id, serverPreference);
-        if (updateResult.isErr()) {
-          logger.error("Failed to update preference from server:", updateResult.error);
-        }
-      }
-    }
+    // Snapshot Automerge heads for all known entity IDs after a successful pull.
+    // These are used by hasLocalModifications to detect real local edits.
+    this.snapshotHeads();
 
     const rebuildResult = await kyselyQueryService.rebuildFromCRDT(
       crdtService.getTransactions(),
@@ -512,6 +658,7 @@ class SyncService {
       crdtService.getCategories(),
       crdtService.getRules()
     );
+
     if (rebuildResult.isErr()) {
       logger.error("Failed to rebuild SQLite indices:", rebuildResult.error);
       return err(ServiceError.sync(`Failed to rebuild search indices: ${rebuildResult.error.message}`));
@@ -521,117 +668,219 @@ class SyncService {
   }
 
   /**
-   * Check if local data has modifications that conflict with server
-   * NOTE: This may be inneficient we must consider
-   * Deep equality check for actual data changes
-   * Vector clocks or Lamport timestamps for proper CRDT conflict detection
-   * Hash-based comparison for performance
+   * Generic merge loop for a single entity collection.
+   *
+   * For each server item:
+   * - If it doesn't exist locally → create it.
+   * - If the server version is newer:
+   *   - If a conflictType is provided and local modifications exist → record a conflict.
+   *   - Otherwise → apply the server version.
    */
+  private async mergeCollection<T extends { id: string; updated_at?: string }>(
+    serverItems: unknown[],
+    localItems: Record<string, T>,
+    normalize: (raw: any) => T,
+    conflictType: string | null,
+    onCreate: (item: Omit<T, "created_at" | "updated_at">) => Promise<Result<string, ServiceError>>,
+    onUpdate: ((id: string, item: Partial<T>) => Promise<Result<void, ServiceError>>) | null
+  ): Promise<void> {
+    for (const raw of serverItems) {
+      const serverItem = raw as any;
+      if (!serverItem?.id) {
+        logger.warn("Skipping item without ID in merge:", serverItem);
+        continue;
+      }
 
-  private hasLocalModifications(local: any, server: any): boolean {
-    // Simple conflict detection - in reality, this would be more sophisticated
-    return local.updated_at !== server.updated_at;
-  }
+      let normalized: T;
+      try {
+        normalized = normalize(serverItem);
+      } catch (e) {
+        logger.error("Failed to normalize server item:", serverItem, e);
+        continue;
+      }
 
-  /**
-   * Add an operation to the sync queue
-   */
-  addToSyncQueue(operation: { operation: "create" | "update" | "delete"; type: "transaction" | "account" | "category" | "rule"; data: any }): void {
-    const queueItem = {
-      ...operation,
-      id: `${operation.type}_${operation.data.id}_${Date.now()}`,
-      timestamp: new Date(),
-    };
+      const localItem = localItems[normalized.id];
 
-    this.syncQueue.push(queueItem);
-    this.updateSyncState({ pendingOperations: this.syncQueue.length });
-    this.persistSyncQueue();
+      if (!localItem) {
+        const result = await onCreate(normalized as any);
+        if (result.isErr()) {
+          logger.error(`Failed to create ${normalized.id} from server:`, result.error);
+        }
+        continue;
+      }
 
-    // Trigger immediate sync if we can sync
-    if (authService.canSync()) {
-      this.performSync().catch(logger.error);
-    }
-  }
+      const serverNewer =
+        normalized.updated_at &&
+        localItem.updated_at &&
+        new Date(normalized.updated_at) > new Date(localItem.updated_at);
 
-  /**
-   * Resolve a sync conflict
-   */
-  async resolveConflict(conflictId: string, resolution: "local" | "server" | "merge"): Promise<Result<void, ServiceError>> {
-    const conflict = this.conflicts.find((c) => c.id === conflictId);
-    if (!conflict) {
-      return err(ServiceError.notFound("Conflict", conflictId));
-    }
+      if (!serverNewer) continue;
 
-    switch (resolution) {
-      case "local":
-        this.addToSyncQueue({
-          operation: "update",
-          type: conflict.type,
-          data: conflict.localVersion,
+      if (conflictType && this.hasLocalModifications(normalized.id)) {
+        this.addConflict({
+          id: normalized.id,
+          type: conflictType as any,
+          localVersion: localItem,
+          serverVersion: normalized,
+          timestamp: new Date(),
         });
-        break;
-
-      case "server":
-        if (conflict.type === "transaction") {
-          const updateResult = await crdtService.updateTransaction(conflict.id, conflict.serverVersion);
-          if (updateResult.isErr()) {
-            logger.error("Failed to resolve conflict with server version:", updateResult.error);
-            return err(updateResult.error);
-          }
+      } else if (onUpdate) {
+        const result = await onUpdate(normalized.id, normalized);
+        if (result.isErr()) {
+          logger.error(`Failed to update ${normalized.id} from server:`, result.error);
         }
-        break;
+      }
+    }
+  }
 
-      case "merge":
-        if (conflict.type === "transaction") {
-          const updateResult = await crdtService.updateTransaction(conflict.id, conflict.serverVersion);
-          if (updateResult.isErr()) {
-            logger.error("Failed to resolve conflict with merge:", updateResult.error);
-            return err(updateResult.error);
-          }
-        }
-        break;
+  // ─── Conflict Detection ───────────────────────────────────────────────────────
+
+  /**
+   * Determines whether an entity has been locally modified since the last
+   * successful sync by comparing the current Automerge document heads against
+   * the heads that were snapshotted at sync time.
+   *
+   * This is the correct way to detect local changes in an Automerge-backed
+   * system — not timestamp comparison, which can't distinguish "server updated
+   * the record" from "we applied the server update locally".
+   */
+  private hasLocalModifications(entityId: string): boolean {
+    const savedHeads = this.lastSyncHeads.get(entityId);
+    if (!savedHeads) {
+      // No snapshot means we've never synced this entity — treat as modified
+      // only if the local version actually exists (it was created offline).
+      return true;
     }
 
-    this.conflicts = this.conflicts.filter((c) => c.id !== conflictId);
-    this.persistConflicts();
+    const binaryDoc = crdtService.getBinaryDocument();
+    if (!binaryDoc) return false;
 
-    this.updateSyncState({
-      status: this.conflicts.length > 0 ? "conflict" : "synced",
+    const liveDoc = Automerge.load(binaryDoc);
+    const currentHeads = Automerge.getHeads(liveDoc);
+
+    // If heads are identical, no changes have been made since last sync.
+    if (
+      currentHeads.length === savedHeads.length &&
+      currentHeads.every((h, i) => h === savedHeads[i])
+    ) {
+      return false;
+    }
+
+    // Diff the document between saved heads and current heads.
+    // A patch touching this entity's path means it was locally modified.
+    const patches = Automerge.diff(liveDoc, savedHeads, currentHeads);
+
+    return patches.some((patch) => {
+      const path = (patch as any).path as string[] | undefined;
+      // Paths look like: ["transactions", entityId, "amount"]
+      return Array.isArray(path) && path.length >= 2 && path[1] === entityId;
     });
-
-    return ok(undefined);
   }
 
   /**
-   * Get current sync state
+   * Saves the current Automerge heads for every known entity after a
+   * successful pull. Called once per sync cycle, not per entity.
    */
-  getSyncState(): SyncState {
-    return { ...this.syncState };
+  private snapshotHeads(): void {
+    const binaryDoc = crdtService.getBinaryDocument();
+    if (!binaryDoc) return;
+
+    const liveDoc = Automerge.load(binaryDoc);
+    const heads = Automerge.getHeads(liveDoc);
+
+    // We snapshot at document level — same heads for all entities in this doc.
+    // Per-entity granularity would require separate Automerge docs per entity.
+    const allIds = [
+      ...Object.keys(crdtService.getTransactions()),
+      ...Object.keys(crdtService.getAccounts()),
+      ...Object.keys(crdtService.getCategories()),
+    ];
+
+    for (const id of allIds) {
+      this.lastSyncHeads.set(id, heads);
+    }
   }
 
-  /**
-   * Subscribe to sync state changes
-   */
-  subscribe(listener: (state: SyncState) => void): () => void {
-    this.listeners.add(listener);
-    return () => this.listeners.delete(listener);
+  // ─── Persistence (SQLite) ─────────────────────────────────────────────────────
+  //
+  // The sync queue and conflicts are stored in SQLite rather than localStorage.
+  // localStorage is synchronous, origin-shared, capped at ~5MB, and not
+  // transactional — all problems for a queue that may contain many large
+  // transaction payloads and must survive mid-write crashes cleanly.
+
+  private async persistSyncQueue(): Promise<void> {
+    try {
+      await db.initialize();
+      await db.execute("DELETE FROM sync_queue", []);
+      for (const item of this.syncQueue) {
+        await db.execute(
+          "INSERT INTO sync_queue (id, operation, type, data, timestamp) VALUES (?, ?, ?, ?, ?)",
+          [item.id, item.operation, item.type, JSON.stringify(item.data), item.timestamp.toISOString()]
+        );
+      }
+    } catch (error) {
+      logger.error("Failed to persist sync queue:", error);
+    }
   }
 
-  /**
-   * Get current conflicts
-   */
-  getConflicts(): SyncConflict[] {
-    return [...this.conflicts];
+  private async loadSyncQueue(): Promise<void> {
+    try {
+      await db.initialize();
+      const result = await db.execute("SELECT * FROM sync_queue ORDER BY timestamp ASC", []);
+      this.syncQueue = (result.results || []).map((row: any) => ({
+        id: row.id,
+        operation: row.operation,
+        type: row.type,
+        data: JSON.parse(row.data),
+        timestamp: new Date(row.timestamp),
+      }));
+      this.updateSyncState({ pendingOperations: this.syncQueue.length });
+    } catch (error) {
+      logger.error("Failed to load sync queue:", error);
+      this.syncQueue = [];
+    }
   }
 
-  /**
-   * Force a manual sync
-   */
-  async forceSync(): Promise<Result<void, ServiceError>> {
-    return await this.performSync();
+  private async persistConflicts(): Promise<void> {
+    try {
+      await db.initialize();
+      await db.execute("DELETE FROM sync_conflicts", []);
+      for (const conflict of this.conflicts) {
+        await db.execute(
+          "INSERT INTO sync_conflicts (id, type, local_version, server_version, timestamp) VALUES (?, ?, ?, ?, ?)",
+          [
+            conflict.id,
+            conflict.type,
+            JSON.stringify(conflict.localVersion),
+            JSON.stringify(conflict.serverVersion),
+            conflict.timestamp.toISOString(),
+          ]
+        );
+      }
+    } catch (error) {
+      logger.error("Failed to persist conflicts:", error);
+    }
   }
 
-  // Private helper methods
+  private loadConflicts(): void {
+    db.initialize()
+      .then(() => db.execute("SELECT * FROM sync_conflicts ORDER BY timestamp ASC", []))
+      .then((result) => {
+        this.conflicts = (result.results || []).map((row: any) => ({
+          id: row.id,
+          type: row.type,
+          localVersion: JSON.parse(row.local_version),
+          serverVersion: JSON.parse(row.server_version),
+          timestamp: new Date(row.timestamp),
+        }));
+      })
+      .catch((error) => {
+        logger.error("Failed to load conflicts:", error);
+        this.conflicts = [];
+      });
+  }
+
+  // ─── Internals ───────────────────────────────────────────────────────────────
 
   private updateSyncState(updates: Partial<SyncState>): void {
     this.syncState = { ...this.syncState, ...updates };
@@ -641,7 +890,7 @@ class SyncService {
   private setupOnlineStatusListener(): void {
     window.addEventListener("online", () => {
       this.updateSyncState({ isOnline: true });
-      this.performSync().catch(logger.error);
+      this.performSync().catch((e) => logger.error("Sync error on reconnect:", e));
     });
 
     window.addEventListener("offline", () => {
@@ -649,209 +898,24 @@ class SyncService {
     });
   }
 
-  private getEndpointForOperation(operation: any): string {
-    switch (operation.type) {
-      case "transaction":
-        return "/transactions";
-      case "account":
-        return "/accounts";
-      case "category":
-        return "/categories";
-      case "rule":
-        return "/rules";
-      default:
-        throw new Error(`Unknown operation type: ${operation.type}`);
-    }
-  }
-
-  private convertServerDataToCRDT(data: any[]): any[] {
-    if (!Array.isArray(data)) {
-      logger.warn("Expected array data for CRDT conversion, got:", typeof data);
-      return [];
-    }
-
-    return data.map((item) => {
-      // Ensure all required CRDT fields are present with proper fallbacks
-      const converted = {
-        ...item,
-        id: item.id || crypto.randomUUID(),
-        created_at: item.created_at || item.createdAt || new Date().toISOString(),
-        updated_at: item.updated_at || item.updatedAt || new Date().toISOString(),
-        deleted_at: item.deleted_at || item.deletedAt || null,
-      };
-
-      // Handle transaction-specific fields
-      if (item.transaction_datetime || item.transactionDatetime) {
-        converted.transaction_datetime = item.transaction_datetime || item.transactionDatetime;
-      }
-
-      // Handle numeric fields that might come as objects from PostgreSQL
-      if (item.amount && typeof item.amount === "object") {
-        converted.amount = parseFloat(item.amount.String || item.amount.value || item.amount) || 0;
-      }
-
-      if (item.original_amount && typeof item.original_amount === "object") {
-        converted.original_amount = parseFloat(item.original_amount.String || item.original_amount.value || item.original_amount) || 0;
-      }
-
-      if (item.balance && typeof item.balance === "object") {
-        converted.balance = parseFloat(item.balance.String || item.balance.value || item.balance) || 0;
-      }
-
-      if (item.exchange_rate && typeof item.exchange_rate === "object") {
-        converted.exchange_rate = parseFloat(item.exchange_rate.String || item.exchange_rate.value || item.exchange_rate) || 1.0;
-      }
-
-      // Ensure boolean fields are properly converted
-      converted.is_external = Boolean(item.is_external);
-      converted.is_active = Boolean(item.is_active !== false); // Default to true if not specified
-      converted.is_categorized = Boolean(item.is_categorized);
-
-      // Handle optional UUID fields
-      converted.category_id = item.category_id || null;
-      converted.destination_account_id = item.destination_account_id || null;
-      converted.parent_id = item.parent_id || null;
-      converted.account_id = item.account_id || null;
-      converted.created_by = item.created_by || null;
-      converted.updated_by = item.updated_by || null;
-
-      // Ensure required string fields have fallback values
-      converted.type = item.type || "expense";
-      converted.description = item.description || "";
-      converted.transaction_currency = item.transaction_currency || "USD";
-      converted.name = item.name || "";
-      converted.currency = item.currency || "USD";
-      converted.color = item.color || "#000000";
-      converted.icon = item.icon || "Box";
-
-      // Handle account and category embedded data from server joins
-      // For transactions: extract embedded account and category data
-      if (item.account_id && item.account_name) {
-        // This is transaction data with embedded account info
-        converted.account_name = item.account_name;
-        converted.account_type = item.account_type;
-        converted.account_currency = item.account_currency;
-        converted.account_balance = item.account_balance;
-      }
-
-      if (item.category_id && item.category_name) {
-        // This is transaction data with embedded category info
-        converted.category_name = item.category_name;
-        converted.category_color = item.category_color;
-        converted.category_icon = item.category_icon;
-      }
-
-      if (item.destination_account_name) {
-        // This is transaction data with embedded destination account info
-        converted.destination_account_name = item.destination_account_name;
-        converted.destination_account_type = item.destination_account_type;
-        converted.destination_account_currency = item.destination_account_currency;
-      }
-
-      // Handle JSONB fields
-      if (item.details && typeof item.details === "string") {
-        try {
-          converted.details = JSON.parse(item.details);
-        } catch {
-          converted.details = item.details;
-        }
-      } else {
-        converted.details = item.details || {};
-      }
-
-      if (item.meta && typeof item.meta === "string") {
-        try {
-          converted.meta = JSON.parse(item.meta);
-        } catch {
-          converted.meta = item.meta;
-        }
-      } else {
-        converted.meta = item.meta || {};
-      }
-
-      // Handle date fields
-      if (item.exchange_rate_date) {
-        converted.exchange_rate_date = item.exchange_rate_date;
-      }
-
-      // Handle provider-specific fields
-      converted.provider_transaction_id = item.provider_transaction_id || null;
-
-      return converted;
-    });
+  private getEndpointForOperation(operation: { type: ResourceType }): string {
+    const endpoints: Record<string, string> = {
+      transaction: "/transactions",
+      account: "/accounts",
+      category: "/categories",
+      rule: "/rules",
+    };
+    const endpoint = endpoints[operation.type as string];
+    if (!endpoint) throw new Error(`Unknown operation type: ${operation.type}`);
+    return endpoint;
   }
 
   private addConflict(conflict: SyncConflict): void {
-    this.conflicts.push(conflict);
-    this.persistConflicts();
-  }
-
-  private persistSyncQueue(): void {
-    try {
-      localStorage.setItem("nuts-sync-queue", JSON.stringify(this.syncQueue));
-    } catch (error) {
-      logger.error("Failed to persist sync queue:", error);
+    // Deduplicate — a second sync cycle might re-detect the same conflict.
+    if (!this.conflicts.find((c) => c.id === conflict.id)) {
+      this.conflicts.push(conflict);
+      this.persistConflicts();
     }
-  }
-
-  //NOTE: Should this be in local-storage or in our sqlite db. what is most secure and what makes since
-  private loadSyncQueue(): void {
-    const result = Result.fromThrowable(() => {
-      const stored = localStorage.getItem("nuts-sync-queue");
-      if (!stored) return null;
-      return JSON.parse(stored);
-    })();
-
-    result
-      .map((parsed) => {
-        if (Array.isArray(parsed)) {
-          this.syncQueue = parsed;
-          this.updateSyncState({ pendingOperations: this.syncQueue.length });
-        } else {
-          logger.warn("Invalid sync queue format, resetting");
-          this.syncQueue = [];
-        }
-      })
-      .mapErr((error) => {
-        logger.error("Failed to load sync queue:", error);
-        this.syncQueue = [];
-      });
-  }
-
-  private persistConflicts(): void {
-    try {
-      localStorage.setItem("nuts-sync-conflicts", JSON.stringify(this.conflicts));
-    } catch (error) {
-      logger.error("Failed to persist conflicts:", error);
-    }
-  }
-
-  private loadConflicts(): void {
-    try {
-      const stored = localStorage.getItem("nuts-sync-conflicts");
-      if (stored) {
-        this.conflicts = JSON.parse(stored);
-      }
-    } catch (error) {
-      logger.error("Failed to load conflicts:", error);
-    }
-  }
-
-  /**
-   * Clear all sync data (for logout/reset)
-   */
-  async clear(): Promise<void> {
-    this.stopBackgroundSync();
-    this.syncQueue = [];
-    this.conflicts = [];
-    localStorage.removeItem("nuts-sync-queue");
-    localStorage.removeItem("nuts-sync-conflicts");
-    this.updateSyncState({
-      status: "offline",
-      lastSyncAt: null,
-      pendingOperations: 0,
-      error: null,
-    });
   }
 }
 

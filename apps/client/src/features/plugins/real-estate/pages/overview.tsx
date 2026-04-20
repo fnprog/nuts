@@ -1,5 +1,6 @@
 import { useRealEstateStore } from "../store";
 import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
+import { NumberFlow } from "@number-flow/react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/core/components/ui/tabs";
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { Home, DollarSign, PiggyBank, ArrowUpRight, Building } from "lucide-react";
@@ -53,9 +54,18 @@ export function Overview() {
     }));
   }, [properties]);
 
-  const valueFormatter = useCallback((value: string) => [`$${value.toLocaleString()}`, "Value"], []);
+  const valueFormatter = useCallback((value: number) => {
+  return [
+    <NumberFlow key={value} value={value} style="currency" currency="USD" trailingZeroDisplay="stripIfInteger" />, 
+    "Value"
+  ];
+}, []);
 
-  const pieChartLabelFormatter = useCallback(({ name, percent }: { name: string; percent: number }) => `${name}: ${(percent * 100).toFixed(0)}%`, []);
+  const pieChartLabelFormatter = useCallback(({ name, percent }: { name: string; percent: number }) => (
+  <>
+    {name}: <NumberFlow value={percent} style="percent" minimumFractionDigits={0} maximumFractionDigits={0} />
+  </>
+), []);
 
   return (
     <div className="space-y-6">
@@ -70,7 +80,7 @@ export function Overview() {
             <Home className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalValue.toLocaleString()}</div>
+            <div className="text-2xl font-bold"><NumberFlow value={totalValue} style="currency" currency="USD" trailingZeroDisplay="stripIfInteger" /></div>
             <p className="text-muted-foreground text-xs">{properties.length} properties</p>
           </CardContent>
         </Card>
@@ -80,10 +90,10 @@ export function Overview() {
             <PiggyBank className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalEquity.toLocaleString()}</div>
+            <div className="text-2xl font-bold"><NumberFlow value={totalEquity} style="currency" currency="USD" trailingZeroDisplay="stripIfInteger" /></div>
             <div className="flex items-center text-xs text-green-500">
               <ArrowUpRight className="mr-1 h-4 w-4" />
-              {totalEquity > 0 ? ((totalEquity / totalValue) * 100).toFixed(1) : 0}% of value
+              {totalEquity > 0 ? <NumberFlow value={(totalEquity / totalValue)} style="percent" minimumFractionDigits={1} maximumFractionDigits={1} /> : <NumberFlow value={0} style="percent" minimumFractionDigits={1} maximumFractionDigits={1} />} of value
             </div>
           </CardContent>
         </Card>
@@ -93,8 +103,8 @@ export function Overview() {
             <Building className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalDebt.toLocaleString()}</div>
-            <div className="text-muted-foreground flex items-center text-xs">{totalDebt > 0 ? ((totalDebt / totalValue) * 100).toFixed(1) : 0}% of value</div>
+            <div className="text-2xl font-bold"><NumberFlow value={totalDebt} style="currency" currency="USD" trailingZeroDisplay="stripIfInteger" /></div>
+            <div className="text-muted-foreground flex items-center text-xs">{totalDebt > 0 ? <NumberFlow value={(totalDebt / totalValue)} style="percent" minimumFractionDigits={1} maximumFractionDigits={1} /> : <NumberFlow value={0} style="percent" minimumFractionDigits={1} maximumFractionDigits={1} />} of value</div>
           </CardContent>
         </Card>
         <Card>
@@ -103,9 +113,9 @@ export function Overview() {
             <DollarSign className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalRentalIncome.toLocaleString()}</div>
+            <div className="text-2xl font-bold"><NumberFlow value={totalRentalIncome} style="currency" currency="USD" trailingZeroDisplay="stripIfInteger" /></div>
             <div className="flex items-center text-xs text-green-500">
-              <ArrowUpRight className="mr-1 h-4 w-4" />${(totalRentalIncome * 12).toLocaleString()} annually
+              <ArrowUpRight className="mr-1 h-4 w-4" /><NumberFlow value={totalRentalIncome * 12} style="currency" currency="USD" trailingZeroDisplay="stripIfInteger" suffix=" annually" />
             </div>
           </CardContent>
         </Card>

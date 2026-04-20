@@ -104,7 +104,6 @@ export default defineConfig({
       '@tanstack/react-query',
       '@tanstack/react-router',
       'zustand',
-      'axios',
       'date-fns',
       'clsx',
       'tailwind-merge',

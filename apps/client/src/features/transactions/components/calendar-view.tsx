@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { NumberFlow } from '@number-flow/react';
 import { useQueryClient } from "@tanstack/react-query";
 
 import { Calendar } from "@/core/components/ui/calendar";
@@ -141,10 +142,7 @@ export function CalendarView({ initialPage = 1, hasAccounts }: CalendarViewProps
   }, [selectedDate, transactionsByDate]);
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(Math.abs(amount));
+    return <NumberFlow value={Math.abs(amount)} format={{ style: 'currency', currency: 'USD', trailingZeroDisplay: 'stripIfInteger' }} />;
   };
 
   const getTransactionTypeColor = (type: string, amount: number) => {

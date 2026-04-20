@@ -1,4 +1,5 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
+import NumberFlow from '@number-flow/react';
 
 import type { DashboardChartComponentProps } from "../types";
 import { config } from "./index";
@@ -53,7 +54,7 @@ function SavingsGoalsChartComponent({ id, size, isLocked, hasAccounts }: Dashboa
           <ChartCardHeader>
             <div className="flex-1">
               <ChartCardTitle className="text-muted-foreground">{config.title}</ChartCardTitle>
-              <h2 className="mt-1 text-2xl font-bold">${totalCurrent.toLocaleString()}</h2>
+              <NumberFlow className="mt-1 text-2xl font-bold" value={totalCurrent} format={{ style: 'currency', currency: 'USD', trailingZeroDisplay: 'stripIfInteger' }} />
             </div>
           </ChartCardHeader>
           <ChartCardContent className="mt-2">

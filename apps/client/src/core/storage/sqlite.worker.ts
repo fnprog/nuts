@@ -35,6 +35,13 @@ class SQLiteWorker {
       throw new Error("SQLite worker not initialized");
     }
 
+    // Reject multi-statement SQL (security and correctness)
+    // const trimmed = sql.trim();
+    // const idx = trimmed.indexOf(";");
+    // if (idx !== -1 && idx !== trimmed.length - 1) {
+    //   throw new Error("Refused to execute multi-statement SQL in .execute; use .exec for DDL/multi-statement.");
+    // }
+
     const results: Record<string, any>[] = [];
     let columns: string[] = [];
 

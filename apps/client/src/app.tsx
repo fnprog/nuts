@@ -7,6 +7,7 @@ import { ConflictResolutionIndicator } from "@/core/components/dev/ConflictResol
 import { crdtService } from "@/core/sync/crdt";
 import { usePluginStore } from "@/features/plugins/store";
 import { FeatureFlagsDeveloperPanel } from "./core/components/dev/FeatureFlagsDeveloperPanel";
+import { HotkeysProvider } from "react-hotkeys-hook";
 
 if (import.meta.env.DEV) {
   (window as any).__CRDT_SERVICE__ = crdtService;
@@ -34,11 +35,13 @@ function RouterWrapper() {
 export function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Initializer>
-        <RouterWrapper />
-        <ConflictResolutionIndicator />
-        <FeatureFlagsDeveloperPanel />
-      </Initializer>
+      <HotkeysProvider initiallyActiveScopes={["*"]}>
+        <Initializer>
+          <RouterWrapper />
+          <ConflictResolutionIndicator />
+          <FeatureFlagsDeveloperPanel />
+        </Initializer>
+      </HotkeysProvider>
     </QueryClientProvider>
   );
 }

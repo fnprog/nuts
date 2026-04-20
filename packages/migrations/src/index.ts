@@ -25,5 +25,21 @@ import { migration008 } from "./files/008_add_crdt_backups";
 import { migration009 } from "./files/009_add_migration_state";
 import { migration010 } from "./files/010_add_file_metadata_table";
 import { migration011 } from "./files/011_add_folders_table";
+import { migration012 } from "./files/012_add_sync_queue_table";
+import { migration013 } from "./files/013_add_sync_conflicts_table";
 
-export const allMigrations: Migration[] = [migration001, migration002, migration003, migration004, migration005, migration006, migration007, migration008, migration009, migration010, migration011];
+export const allMigrations: Migration[] = [
+  migration001,
+  migration002,
+  migration003,
+  migration004,
+  migration005,
+  migration006,
+  migration007,
+  migration008,
+  migration009,
+  migration010,
+  migration011,
+  migration012,
+  migration013
+];
