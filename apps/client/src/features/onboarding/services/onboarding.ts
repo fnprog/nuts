@@ -30,14 +30,7 @@ export const shouldSkipNameStep = (user: UserInfo | null): boolean => {
  * Gets the appropriate onboarding entry point based on user status
  */
 export const getOnboardingEntryPoint = (user: UserInfo | null): string => {
-  if (!user) return "/onboarding/name";
-
-  // If user has names from OAuth, skip to step 2
-  if (shouldSkipNameStep(user)) {
-    return "/onboarding/finance-interest";
-  }
-
-  return "/onboarding/name";
+  return "/onboarding/welcome";
 };
 
 export const isOnboardingCompleted = (user: UserInfo | null, onboardingCompleted: boolean): boolean => {

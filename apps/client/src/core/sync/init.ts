@@ -1,7 +1,9 @@
 /**
  * Offline-First Initialization Service
  *
- * Handles the initialization and coordination of all offline-first services
+ * Coordinates sequential startup of all offline-first services and provides
+ * ordered teardown on failure. Each service is registered in the order it
+ * must be initialized; cleanup runs in reverse.
  */
 
 import { crdtService } from "./crdt";
@@ -19,9 +21,9 @@ import { logger } from "@/lib/logger";
 import { useAuthStore } from "@/features/auth/stores/auth.store";
 import { db } from "../storage/client";
 
-//NOTE: We have a weird redunduncy concerning data flow here. The default categories are in sqlite, we then put them in crdt then rebuild the db from the crdt again
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-type InitializedService =
+type ServiceName =
   | "anonymous-user"
   | "auth"
   | "crdt"
@@ -33,24 +35,93 @@ type InitializedService =
   | "preferences"
   | "sync";
 
+export interface InitStatus {
+  isInitialized: boolean;
+  syncEnabled: boolean;
+  services: Record<ServiceName, boolean>;
+}
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const INIT_TIMEOUT_MS = 30_000;
+const MAX_RETRIES = 3;
+const RETRY_BASE_DELAY_MS = 1_000;
+
+// ─── Service ──────────────────────────────────────────────────────────────────
+
 class OfflineFirstInitService {
   private isInitialized = false;
   private initializePromise: Promise<void> | null = null;
-  private initializedServices: Set<InitializedService> = new Set();
-  private readonly INIT_TIMEOUT_MS = 30000;
-  private readonly MAX_RETRIES = 3;
-  private readonly RETRY_DELAY_MS = 1000;
+  private initializedServices: Set<ServiceName> = new Set();
+
+  // ─── Public API ─────────────────────────────────────────────────────────────
 
   async initialize(options?: { maxRetries?: number; timeout?: number }): Promise<void> {
     if (this.isInitialized) return;
     if (this.initializePromise) return this.initializePromise;
 
-    const maxRetries = options?.maxRetries ?? this.MAX_RETRIES;
-    const timeout = options?.timeout ?? this.INIT_TIMEOUT_MS;
+    const maxRetries = options?.maxRetries ?? MAX_RETRIES;
+    const timeout = options?.timeout ?? INIT_TIMEOUT_MS;
 
-    this.initializePromise = this.initializeWithRetry(maxRetries, timeout);
-    await this.initializePromise;
+    this.initializePromise = this.initializeWithRetry(maxRetries, timeout).finally(() => {
+      // Always clear the promise slot so a future call can retry from scratch
+      // if this attempt ultimately failed.
+      if (!this.isInitialized) this.initializePromise = null;
+    });
+
+    return this.initializePromise;
   }
+
+  isReady(): boolean {
+    return this.isInitialized;
+  }
+
+  getStatus(): InitStatus {
+    const all: ServiceName[] = [
+      "anonymous-user", "auth", "crdt", "kysely", "default-categories",
+      "transaction", "account", "category", "preferences", "sync",
+    ];
+    return {
+      isInitialized: this.isInitialized,
+      syncEnabled: featureFlagsService.isSyncEnabled(),
+      services: Object.fromEntries(
+        all.map((s) => [s, this.initializedServices.has(s)])
+      ) as Record<ServiceName, boolean>,
+    };
+  }
+
+  async reinitialize(): Promise<void> {
+    logger.info("Reinitializing offline-first services...");
+    await this.clear();
+    await this.initialize();
+  }
+
+  async clear(): Promise<void> {
+    logger.info("Clearing offline-first data...");
+
+    try {
+      syncService.stopBackgroundSync();
+      if (this.initializedServices.has("sync")) await syncService.clear();
+
+      const closeResult = await kyselyQueryService.close();
+      if (closeResult.isErr()) logger.warn("Failed to close Kysely:", closeResult.error);
+
+      await Promise.all([crdtService.clear(), authService.clear()]);
+
+      anonymousUserService.clearAnonymousUser();
+      preferencesService.clear();
+      userService.clear();
+    } catch (error) {
+      logger.error("Failed to clear offline-first data:", error);
+      throw error;
+    } finally {
+      this.isInitialized = false;
+      this.initializePromise = null;
+      this.initializedServices.clear();
+    }
+  }
+
+  // ─── Initialization ──────────────────────────────────────────────────────────
 
   private async initializeWithRetry(maxRetries: number, timeout: number): Promise<void> {
     let lastError: Error | null = null;
@@ -58,333 +129,259 @@ class OfflineFirstInitService {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         logger.info(`Initialization attempt ${attempt}/${maxRetries}`);
-
         await this.withTimeout(this.performInitialization(), timeout);
-
         return;
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
-        logger.error(`Initialization attempt ${attempt} failed:`, lastError);
+        logger.error(`Initialization attempt ${attempt} failed:`, lastError.message);
 
         if (attempt < maxRetries) {
-          const delay = this.RETRY_DELAY_MS * attempt;
-          logger.info(`Retrying in ${delay}ms...`);
-          await new Promise((resolve) => setTimeout(resolve, delay));
-
           await this.cleanupPartialInitialization();
-          this.initializedServices.clear();
+          const delay = RETRY_BASE_DELAY_MS * Math.pow(2, attempt - 1);
+          logger.info(`Retrying in ${delay}ms…`);
+          await new Promise((resolve) => setTimeout(resolve, delay));
         }
       }
     }
 
+    await this.cleanupPartialInitialization();
     throw new Error(`Failed to initialize after ${maxRetries} attempts: ${lastError?.message}`);
   }
 
-  private async withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
-    return Promise.race([
-      promise,
-      new Promise<T>((_, reject) => setTimeout(() => reject(new Error(`Initialization timeout after ${timeoutMs}ms`)), timeoutMs)),
-    ]);
+  private withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+      const timer = setTimeout(
+        () => reject(new Error(`Initialization timed out after ${ms}ms`)),
+        ms
+      );
+      promise.then(
+        (value) => { clearTimeout(timer); resolve(value); },
+        (error) => { clearTimeout(timer); reject(error); }
+      );
+    });
   }
 
   private async performInitialization(): Promise<void> {
-    try {
-      logger.info("Initializing offline-first services...");
+    logger.info("Starting offline-first service initialization…");
 
-      const isAnonymous = useAuthStore.getState().isAnonymous;
-      console.log("initStore", isAnonymous);
-
-      if (isAnonymous) {
-        logger.info("1. Initializing anonymous user...");
-        const anonymousResult = await anonymousUserService.initialize();
-        if (anonymousResult.isErr()) throw anonymousResult.error;
-        this.initializedServices.add("anonymous-user");
-      } else {
-        logger.info("1. Skipping anonymous user initialization (not in anonymous mode)");
-      }
-
-      logger.info("2. Initializing offline auth service...");
-      const authResult = await authService.initialize();
-      if (authResult.isErr()) throw authResult.error;
-      this.initializedServices.add("auth");
-
-      logger.info("3. Initializing CRDT service...");
-      const crdtResult = await crdtService.initialize();
-      if (crdtResult.isErr()) throw crdtResult.error;
-      this.initializedServices.add("crdt");
-
-      logger.info("4. Initializing Kysely query service...");
-      const kyselyResult = await kyselyQueryService.initialize();
-      if (kyselyResult.isErr()) throw kyselyResult.error;
-      this.initializedServices.add("kysely");
-
-      logger.info("4a. Loading default categories from SQLite to CRDT...");
-      const loadedDefaults = await this.loadDefaultCategories();
-      this.initializedServices.add("default-categories");
-
-      logger.info("5. Initializing transaction service...");
-      const transactionInitResult = await transactionService.initialize();
-      if (transactionInitResult.isErr()) throw transactionInitResult.error;
-      this.initializedServices.add("transaction");
-
-      logger.info("6. Initializing account service...");
-      const accountInitResult = await accountService.initialize();
-      if (accountInitResult.isErr()) throw accountInitResult.error;
-      this.initializedServices.add("account");
-
-      logger.info("7. Initializing category service...");
-      const categoryInitResult = await categoryService.initialize();
-      if (categoryInitResult.isErr()) throw categoryInitResult.error;
-      this.initializedServices.add("category");
-
-      logger.info("8. Initializing adaptive preferences service...");
-      const preferencesResult = await preferencesService.initialize();
-      if (preferencesResult.isErr()) throw preferencesResult.error;
-      this.initializedServices.add("preferences");
-
-      if (featureFlagsService.isSyncEnabled()) {
-        logger.info("9. Initializing sync service...");
-        const syncInitResult = await syncService.initialize();
-        if (syncInitResult.isErr()) {
-          logger.warn("Sync service initialization failed, continuing in offline mode:", syncInitResult.error);
-        } else {
-          this.initializedServices.add("sync");
-        }
-      } else {
-        logger.info("9. Sync service disabled");
-      }
-
-      const transactions = crdtService.getTransactions();
-      const accounts = crdtService.getAccounts();
-      const categories = crdtService.getCategories();
-      const rules = crdtService.getRules();
-
-      const hasUserData = Object.keys(transactions).length > 0 || Object.keys(accounts).length > 0;
-      const hasNonDefaultCategories = !loadedDefaults && Object.keys(categories).length > 0;
-
-      if (hasUserData || hasNonDefaultCategories) {
-        logger.info("🔄 Rebuilding Kysely database from CRDT data...");
-        const rebuildResult = await kyselyQueryService.rebuildFromCRDT(transactions, accounts, categories, rules);
-        if (rebuildResult.isErr()) throw rebuildResult.error;
-      } else if (loadedDefaults) {
-        logger.info("✓ Skipped redundant rebuild - default categories already in SQLite");
-      }
-
-      this.isInitialized = true;
-      logger.info("Offline-first services initialized successfully");
-    } catch (error) {
-      logger.error("Failed to initialize offline-first services:", error);
-      logger.error("Services initialized before failure:", Array.from(this.initializedServices));
-      await this.cleanupPartialInitialization();
-      this.isInitialized = false;
-      throw error;
+    // ── 1. Anonymous user (only when running unauthenticated) ─────────────────
+    if (useAuthStore.getState().isAnonymous) {
+      const result = await anonymousUserService.initialize();
+      if (result.isErr()) throw result.error;
+      this.initializedServices.add("anonymous-user");
+      logger.info("✓ Anonymous user initialized");
+    } else {
+      logger.info("✓ Anonymous user skipped (authenticated session)");
     }
+
+    // ── 2. Auth ───────────────────────────────────────────────────────────────
+    const authResult = await authService.initialize();
+    if (authResult.isErr()) throw authResult.error;
+    this.initializedServices.add("auth");
+    logger.info("✓ Auth service initialized");
+
+    // ── 3. CRDT ───────────────────────────────────────────────────────────────
+    const crdtResult = await crdtService.initialize();
+    if (crdtResult.isErr()) throw crdtResult.error;
+    this.initializedServices.add("crdt");
+    logger.info("✓ CRDT service initialized");
+
+    // ── 4. Kysely ─────────────────────────────────────────────────────────────
+    const kyselyResult = await kyselyQueryService.initialize();
+    if (kyselyResult.isErr()) throw kyselyResult.error;
+    this.initializedServices.add("kysely");
+    logger.info("✓ Kysely query service initialized");
+
+    // ── 5. Domain services ────────────────────────────────────────────────────
+    for (const [name, svc] of [
+      ["transaction", transactionService],
+      ["account", accountService],
+      ["category", categoryService],
+      ["preferences", preferencesService],
+    ] as const) {
+      const result = await (svc as any).initialize();
+      if (result.isErr()) throw result.error;
+      this.initializedServices.add(name as ServiceName);
+      logger.info(`✓ ${name} service initialized`);
+    }
+
+    // ── 6. Sync (optional — failure is non-fatal) ─────────────────────────────
+    if (featureFlagsService.isSyncEnabled()) {
+      const syncResult = await syncService.initialize();
+      if (syncResult.isErr()) {
+        logger.warn("Sync service failed to initialize — continuing in offline mode:", syncResult.error);
+      } else {
+        this.initializedServices.add("sync");
+        logger.info("✓ Sync service initialized");
+      }
+    } else {
+      logger.info("✓ Sync service disabled by feature flag");
+    }
+
+    // ── 7. Populate SQLite from CRDT ──────────────────────────────────────────
+    //
+    // There's a known data flow awkwardness: default categories live in SQLite
+    // (seeded at migration time), get copied into the CRDT, then the CRDT is
+    // used to rebuild SQLite. The right long-term fix is to seed defaults
+    // directly into the CRDT on first run so SQLite is always a derived view.
+    // For now we skip the rebuild when only default categories are present to
+    // avoid the round-trip.
+    await this.rebuildSQLiteIfNeeded();
+
+    this.isInitialized = true;
+    logger.info("✓ All offline-first services initialized");
   }
 
+  // ─── SQLite rebuild ───────────────────────────────────────────────────────────
+
+  /**
+   * Rebuilds the SQLite query layer from the CRDT snapshot.
+   *
+   * Skipped entirely when the CRDT is empty — avoids deleting seed data
+   * (default categories) that was just written by migrations. When the CRDT
+   * has no categories, we instead copy defaults from SQLite into the CRDT so
+   * subsequent rebuilds produce the correct state.
+   */
+  private async rebuildSQLiteIfNeeded(): Promise<void> {
+    const transactions = crdtService.getTransactions();
+    const accounts = crdtService.getAccounts();
+    const categories = crdtService.getCategories();
+    const rules = crdtService.getRules();
+
+    const hasTransactions = Object.keys(transactions).length > 0;
+    const hasAccounts = Object.keys(accounts).length > 0;
+    const hasCategories = Object.keys(categories).length > 0;
+
+    // No CRDT data at all → new user. Load default categories from SQLite into
+    // the CRDT first, then a rebuild will naturally include them.
+    if (!hasTransactions && !hasAccounts && !hasCategories) {
+      const loaded = await this.loadDefaultCategoriesIntoCRDT();
+      this.initializedServices.add("default-categories");
+
+      if (!loaded) {
+        logger.info("✓ SQLite rebuild skipped — no CRDT data and no default categories found");
+        return;
+      }
+
+      // Flush any deferred CRDT persist before reading back from the document
+      // for the SQLite rebuild. Without this, the 60 category writes queued by
+      // loadDefaultCategoriesIntoCRDT may not have hit disk yet.
+      await crdtService.flushPending();
+
+      // Default categories were just written into the CRDT; rebuild so SQLite
+      // reflects them as proper query-layer rows.
+      logger.info("Rebuilding SQLite with default categories…");
+    } else {
+      this.initializedServices.add("default-categories");
+      logger.info("Rebuilding SQLite from existing CRDT data…");
+    }
+
+    const rebuildResult = await kyselyQueryService.rebuildFromCRDT(
+      crdtService.getTransactions(),
+      crdtService.getAccounts(),
+      crdtService.getCategories(),
+      crdtService.getRules()
+    );
+
+    if (rebuildResult.isErr()) throw rebuildResult.error;
+    logger.info("✓ SQLite rebuilt from CRDT");
+  }
+
+  /**
+   * Copies system default categories from SQLite into the CRDT.
+   * Returns true if any categories were loaded, false if none were found.
+   * Throws on error so the init sequence fails cleanly.
+   */
+  private async loadDefaultCategoriesIntoCRDT(): Promise<boolean> {
+    const defaults = await db.db
+      .selectFrom("categories")
+      .selectAll()
+      .where("is_default", "=", 1)
+      .where("created_by", "=", "system")
+      .execute();
+
+    if (defaults.length === 0) {
+      logger.info("No default categories found in SQLite");
+      return false;
+    }
+
+    logger.info(`Loading ${defaults.length} default categories into CRDT…`);
+
+    for (const cat of defaults) {
+      const result = await crdtService.createCategory({
+        id: cat.id,
+        name: cat.name,
+        type: (cat.type as "income" | "expense") ?? "expense",
+        color: cat.color ?? "#000000",
+        icon: cat.icon ?? null,
+        parent_id: cat.parent_id ?? null,
+        is_active: true,
+        created_by: cat.created_by ?? "system",
+        updated_by: cat.updated_by ?? null,
+      });
+
+      if (result.isErr()) {
+        throw new Error(`Failed to load default category "${cat.name}": ${result.error.message}`);
+      }
+    }
+
+    logger.info(`✓ ${defaults.length} default categories loaded into CRDT`);
+    return true;
+  }
+
+  // ─── Cleanup ──────────────────────────────────────────────────────────────────
+
+  /**
+   * Tears down services in reverse initialization order.
+   * Each failure is logged but does not prevent subsequent cleanups —
+   * we want to release as many resources as possible even if one step fails.
+   */
   private async cleanupPartialInitialization(): Promise<void> {
-    logger.info("Cleaning up partially initialized services...");
+    if (this.initializedServices.size === 0) return;
 
-    const servicesToClean = Array.from(this.initializedServices).reverse();
+    logger.info("Cleaning up partially initialized services…");
 
-    for (const service of servicesToClean) {
+    const teardownOrder: ServiceName[] = [
+      "sync", "preferences", "category", "account",
+      "transaction", "default-categories", "crdt", "kysely", "auth", "anonymous-user",
+    ];
+
+    for (const service of teardownOrder) {
+      if (!this.initializedServices.has(service)) continue;
+
       try {
         switch (service) {
           case "sync":
+            syncService.stopBackgroundSync();
             await syncService.clear();
-            logger.info("Cleaned up sync service");
             break;
           case "preferences":
             preferencesService.clear();
-            logger.info("Cleaned up preferences service");
-            break;
-          case "category":
-            logger.info("Category service cleanup (no action needed)");
-            break;
-          case "account":
-            logger.info("Account service cleanup (no action needed)");
-            break;
-          case "transaction":
-            logger.info("Transaction service cleanup (no action needed)");
-            break;
-          case "default-categories":
-            logger.info("Default categories cleanup (no action needed)");
             break;
           case "kysely":
             await kyselyQueryService.close();
-            logger.info("Cleaned up kysely service");
             break;
           case "crdt":
             await crdtService.clear();
-            logger.info("Cleaned up CRDT service");
             break;
           case "auth":
-            await authService.clear();
-            logger.info("Cleaned up auth service");
+            authService.clear();
             break;
           case "anonymous-user":
             anonymousUserService.clearAnonymousUser();
-            logger.info("Cleaned up anonymous user service");
             break;
+          // domain services have no teardown; inclusion in the set is enough
+          // for tracking — no action needed for category/account/transaction/
+          // default-categories.
         }
-      } catch (cleanupError) {
-        logger.warn(`Failed to cleanup ${service}:`, cleanupError);
+        logger.info(`  cleaned up: ${service}`);
+      } catch (error) {
+        logger.warn(`  cleanup failed for ${service}:`, error);
       }
     }
 
     this.initializedServices.clear();
-    logger.info("Partial initialization cleanup complete");
-  }
-
-  private async loadDefaultCategories(): Promise<boolean> {
-    try {
-      const existingCategories = crdtService.getCategories();
-      if (Object.keys(existingCategories).length > 0) {
-        logger.info("Categories already exist in CRDT, skipping default load");
-        return false;
-      }
-
-      const sqliteCategories = await db.db.selectFrom("categories").selectAll().where("is_default", "=", 1).where("created_by", "=", "system").execute();
-
-      if (sqliteCategories.length === 0) {
-        logger.info("No default categories found in SQLite");
-        return false;
-      }
-
-      logger.info(`Loading ${sqliteCategories.length} default categories into CRDT...`);
-
-      for (const category of sqliteCategories) {
-        try {
-          const categoryData: any = {
-            id: category.id,
-            name: category.name,
-            type: (category.type as "income" | "expense") || "expense",
-            color: category.color || "#000000",
-            icon: category.icon || "",
-            is_active: true,
-          };
-
-          if (category.parent_id) {
-            categoryData.parent_id = category.parent_id;
-          }
-
-          const createResult = await crdtService.createCategory(categoryData);
-          if (createResult.isErr()) {
-            logger.error(`Failed to create category ${category.name}:`, createResult.error);
-            throw createResult.error;
-          }
-        } catch (categoryError) {
-          logger.error(`Failed to create category ${category.name}:`, categoryError);
-          throw categoryError;
-        }
-      }
-
-      logger.info("Default categories loaded into CRDT");
-      return true;
-    } catch (error) {
-      logger.error("Failed to load default categories:", error);
-      logger.error("Error details:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
-      throw error;
-    }
-  }
-
-  /**
-   * Check if services are initialized
-   */
-  isReady(): boolean {
-    return this.isInitialized;
-  }
-
-  getStatus(): {
-    isInitialized: boolean;
-    syncEnabled: boolean;
-    services: {
-      anonymousUser: boolean;
-      auth: boolean;
-      crdt: boolean;
-      kysely: boolean;
-      defaultCategories: boolean;
-      transaction: boolean;
-      account: boolean;
-      category: boolean;
-      preferences: boolean;
-      sync: boolean;
-    };
-  } {
-    return {
-      isInitialized: this.isInitialized,
-      syncEnabled: featureFlagsService.isSyncEnabled(),
-      services: {
-        anonymousUser: this.initializedServices.has("anonymous-user"),
-        auth: this.initializedServices.has("auth"),
-        crdt: this.initializedServices.has("crdt"),
-        kysely: this.initializedServices.has("kysely"),
-        defaultCategories: this.initializedServices.has("default-categories"),
-        transaction: this.initializedServices.has("transaction"),
-        account: this.initializedServices.has("account"),
-        category: this.initializedServices.has("category"),
-        preferences: this.initializedServices.has("preferences"),
-        sync: this.initializedServices.has("sync"),
-      },
-    };
-  }
-
-  /**
-   * Reinitialize services (useful when feature flags change)
-   * NOTE: We should make it stop running service first (sync polling, DB connections, etc...)
-   */
-  async reinitialize(): Promise<void> {
-    logger.info("Reinitializing offline-first services...");
-    await this.stopRunningServices();
-    await this.clear();
-    this.isInitialized = false;
-    this.initializePromise = null;
-    this.initializedServices.clear();
-    await this.initialize();
-  }
-
-  private async stopRunningServices(): Promise<void> {
-    logger.info("Stopping running services...");
-
-    try {
-      if (this.initializedServices.has("sync")) {
-        syncService.stopBackgroundSync();
-        logger.info("Stopped sync background polling");
-      }
-    } catch (error) {
-      logger.warn("Failed to stop services:", error);
-    }
-  }
-
-  async clear(): Promise<void> {
-    try {
-      logger.info("Clearing offline-first data...");
-
-      await this.stopRunningServices();
-
-      if (this.initializedServices.has("sync")) {
-        await syncService.clear();
-      }
-
-      const closeResult = await kyselyQueryService.close();
-      if (closeResult.isErr()) logger.warn("Failed to close kysely:", closeResult.error);
-
-      await Promise.all([crdtService.clear(), authService.clear()]);
-
-      anonymousUserService.clearAnonymousUser();
-      preferencesService.clear();
-      userService.clear();
-
-      this.isInitialized = false;
-      this.initializePromise = null;
-      this.initializedServices.clear();
-
-      logger.info("Offline-first data cleared");
-    } catch (error) {
-      logger.error("Failed to clear offline-first data:", error);
-      throw error;
-    }
   }
 }
 
-// Export singleton instance
 export const offlineFirstInitService = new OfflineFirstInitService();

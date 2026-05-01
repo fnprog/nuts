@@ -48,6 +48,12 @@ class CRDTService {
   // Chain of promises ensures mutations are applied in order
   private operationQueue: Promise<any> = Promise.resolve();
 
+  // Debounced persist: coalesces rapid successive mutations into a single
+  // SQLite write. Mutations are always committed to the in-memory Automerge
+  // doc immediately; only the disk flush is deferred.
+  private pendingPersistTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly PERSIST_DEBOUNCE_MS = 300;
+
 
 
   // lifecycle
@@ -126,6 +132,39 @@ class CRDTService {
     );
   }
 
+  /**
+   * Schedule a deferred persist. Resets the timer on each call so that a
+   * burst of mutations (e.g. seeding 60 default categories) results in a
+   * single SQLite write after the quiet period instead of N writes.
+   *
+   * Errors from the deferred write are logged but not propagated — callers
+   * that need a guaranteed flush should call flushPending() instead.
+   */
+  private schedulePersist(): void {
+    if (this.pendingPersistTimer !== null) {
+      clearTimeout(this.pendingPersistTimer);
+    }
+    this.pendingPersistTimer = setTimeout(() => {
+      this.pendingPersistTimer = null;
+      this.persist().then((result) => {
+        if (result.isErr()) logger.error("Deferred persist failed:", result.error);
+      });
+    }, this.PERSIST_DEBOUNCE_MS);
+  }
+
+  /**
+   * Cancel any pending deferred persist and flush to disk immediately.
+   * Call this at synchronization boundaries — e.g. before reading from CRDT
+   * to rebuild SQLite, before sync, or before closing the service.
+   */
+  async flushPending(): Promise<Result<void, ServiceError>> {
+    if (this.pendingPersistTimer !== null) {
+      clearTimeout(this.pendingPersistTimer);
+      this.pendingPersistTimer = null;
+    }
+    return this.persist();
+  }
+
 
   /**
    * Merge changes from another CRDT document (for sync)
@@ -162,6 +201,11 @@ class CRDTService {
 
 
   async clear(): Promise<void> {
+    // Cancel any deferred write — the document is being deleted, not saved.
+    if (this.pendingPersistTimer !== null) {
+      clearTimeout(this.pendingPersistTimer);
+      this.pendingPersistTimer = null;
+    }
     if (this.currentUserId) {
       const deleteResult = await crdtStorage.deleteDocument(this.currentUserId);
       if (deleteResult.isErr()) {
@@ -311,12 +355,7 @@ class CRDTService {
         doc.updated_at = timestamp;
       });
 
-      const persistResult = await this.persist();
-
-      if (persistResult.isErr()) {
-        logger.error(`Failed to persist creation in ${collection}:`, persistResult.error);
-        return err(persistResult.error);
-      }
+      this.schedulePersist();
 
       if (notifyType) this.notifySyncService("create", notifyType as any, entityWithTimestamps);
 
@@ -353,12 +392,7 @@ class CRDTService {
 
       });
 
-      const persistResult = await this.persist();
-
-      if (persistResult.isErr()) {
-        logger.error(`Failed to persist update in ${collection}:`, persistResult.error);
-        return err(persistResult.error);
-      }
+      this.schedulePersist();
 
       // fetch fresh entity after update
       if (notifyType) {
@@ -397,12 +431,7 @@ class CRDTService {
         (doc as CRDTDocument).updated_at = timestamp;
       });
 
-      const persistResult = await this.persist();
-
-      if (persistResult.isErr()) {
-        logger.error(`Failed to persist delete in ${collection}:`, persistResult.error);
-        return err(persistResult.error);
-      }
+      this.schedulePersist();
 
       if (notifyType) {
         this.notifySyncService("delete", notifyType as any, {

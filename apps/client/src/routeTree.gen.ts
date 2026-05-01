@@ -15,14 +15,11 @@ import { Route as authRouteRouteImport } from './routes/(auth)/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OnboardingIndexRouteImport } from './routes/onboarding/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
-import { Route as OnboardingSocialProofRouteImport } from './routes/onboarding/social-proof'
-import { Route as OnboardingNameRouteImport } from './routes/onboarding/name'
-import { Route as OnboardingLanguageRouteImport } from './routes/onboarding/language'
-import { Route as OnboardingGoalsRouteImport } from './routes/onboarding/goals'
-import { Route as OnboardingFinanceInterestRouteImport } from './routes/onboarding/finance-interest'
-import { Route as OnboardingFeaturesRouteImport } from './routes/onboarding/features'
-import { Route as OnboardingCurrencyRouteImport } from './routes/onboarding/currency'
-import { Route as OnboardingComplexityRouteImport } from './routes/onboarding/complexity'
+import { Route as OnboardingWelcomeRouteImport } from './routes/onboarding/welcome'
+import { Route as OnboardingSnapshotRouteImport } from './routes/onboarding/snapshot'
+import { Route as OnboardingProfileRouteImport } from './routes/onboarding/profile'
+import { Route as OnboardingIncomeRouteImport } from './routes/onboarding/income'
+import { Route as OnboardingAccountsRouteImport } from './routes/onboarding/accounts'
 import { Route as DashboardRecordsRouteImport } from './routes/dashboard/records'
 import { Route as DashboardInboxRouteImport } from './routes/dashboard/inbox'
 import { Route as DashboardHomeRouteImport } from './routes/dashboard/home'
@@ -78,45 +75,29 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
-const OnboardingSocialProofRoute = OnboardingSocialProofRouteImport.update({
-  id: '/social-proof',
-  path: '/social-proof',
+const OnboardingWelcomeRoute = OnboardingWelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
   getParentRoute: () => OnboardingRouteRoute,
 } as any)
-const OnboardingNameRoute = OnboardingNameRouteImport.update({
-  id: '/name',
-  path: '/name',
+const OnboardingSnapshotRoute = OnboardingSnapshotRouteImport.update({
+  id: '/snapshot',
+  path: '/snapshot',
   getParentRoute: () => OnboardingRouteRoute,
 } as any)
-const OnboardingLanguageRoute = OnboardingLanguageRouteImport.update({
-  id: '/language',
-  path: '/language',
+const OnboardingProfileRoute = OnboardingProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => OnboardingRouteRoute,
 } as any)
-const OnboardingGoalsRoute = OnboardingGoalsRouteImport.update({
-  id: '/goals',
-  path: '/goals',
+const OnboardingIncomeRoute = OnboardingIncomeRouteImport.update({
+  id: '/income',
+  path: '/income',
   getParentRoute: () => OnboardingRouteRoute,
 } as any)
-const OnboardingFinanceInterestRoute =
-  OnboardingFinanceInterestRouteImport.update({
-    id: '/finance-interest',
-    path: '/finance-interest',
-    getParentRoute: () => OnboardingRouteRoute,
-  } as any)
-const OnboardingFeaturesRoute = OnboardingFeaturesRouteImport.update({
-  id: '/features',
-  path: '/features',
-  getParentRoute: () => OnboardingRouteRoute,
-} as any)
-const OnboardingCurrencyRoute = OnboardingCurrencyRouteImport.update({
-  id: '/currency',
-  path: '/currency',
-  getParentRoute: () => OnboardingRouteRoute,
-} as any)
-const OnboardingComplexityRoute = OnboardingComplexityRouteImport.update({
-  id: '/complexity',
-  path: '/complexity',
+const OnboardingAccountsRoute = OnboardingAccountsRouteImport.update({
+  id: '/accounts',
+  path: '/accounts',
   getParentRoute: () => OnboardingRouteRoute,
 } as any)
 const DashboardRecordsRoute = DashboardRecordsRouteImport.update({
@@ -269,14 +250,11 @@ export interface FileRoutesByFullPath {
   '/dashboard/home': typeof DashboardHomeRoute
   '/dashboard/inbox': typeof DashboardInboxRoute
   '/dashboard/records': typeof DashboardRecordsRoute
-  '/onboarding/complexity': typeof OnboardingComplexityRoute
-  '/onboarding/currency': typeof OnboardingCurrencyRoute
-  '/onboarding/features': typeof OnboardingFeaturesRoute
-  '/onboarding/finance-interest': typeof OnboardingFinanceInterestRoute
-  '/onboarding/goals': typeof OnboardingGoalsRoute
-  '/onboarding/language': typeof OnboardingLanguageRoute
-  '/onboarding/name': typeof OnboardingNameRoute
-  '/onboarding/social-proof': typeof OnboardingSocialProofRoute
+  '/onboarding/accounts': typeof OnboardingAccountsRoute
+  '/onboarding/income': typeof OnboardingIncomeRoute
+  '/onboarding/profile': typeof OnboardingProfileRoute
+  '/onboarding/snapshot': typeof OnboardingSnapshotRoute
+  '/onboarding/welcome': typeof OnboardingWelcomeRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/onboarding/': typeof OnboardingIndexRoute
   '/dashboard/accounts/$id': typeof DashboardAccountsIdRoute
@@ -306,14 +284,11 @@ export interface FileRoutesByTo {
   '/dashboard/home': typeof DashboardHomeRoute
   '/dashboard/inbox': typeof DashboardInboxRoute
   '/dashboard/records': typeof DashboardRecordsRoute
-  '/onboarding/complexity': typeof OnboardingComplexityRoute
-  '/onboarding/currency': typeof OnboardingCurrencyRoute
-  '/onboarding/features': typeof OnboardingFeaturesRoute
-  '/onboarding/finance-interest': typeof OnboardingFinanceInterestRoute
-  '/onboarding/goals': typeof OnboardingGoalsRoute
-  '/onboarding/language': typeof OnboardingLanguageRoute
-  '/onboarding/name': typeof OnboardingNameRoute
-  '/onboarding/social-proof': typeof OnboardingSocialProofRoute
+  '/onboarding/accounts': typeof OnboardingAccountsRoute
+  '/onboarding/income': typeof OnboardingIncomeRoute
+  '/onboarding/profile': typeof OnboardingProfileRoute
+  '/onboarding/snapshot': typeof OnboardingSnapshotRoute
+  '/onboarding/welcome': typeof OnboardingWelcomeRoute
   '/dashboard': typeof DashboardIndexRoute
   '/onboarding': typeof OnboardingIndexRoute
   '/dashboard/accounts/$id': typeof DashboardAccountsIdRoute
@@ -348,14 +323,11 @@ export interface FileRoutesById {
   '/dashboard/home': typeof DashboardHomeRoute
   '/dashboard/inbox': typeof DashboardInboxRoute
   '/dashboard/records': typeof DashboardRecordsRoute
-  '/onboarding/complexity': typeof OnboardingComplexityRoute
-  '/onboarding/currency': typeof OnboardingCurrencyRoute
-  '/onboarding/features': typeof OnboardingFeaturesRoute
-  '/onboarding/finance-interest': typeof OnboardingFinanceInterestRoute
-  '/onboarding/goals': typeof OnboardingGoalsRoute
-  '/onboarding/language': typeof OnboardingLanguageRoute
-  '/onboarding/name': typeof OnboardingNameRoute
-  '/onboarding/social-proof': typeof OnboardingSocialProofRoute
+  '/onboarding/accounts': typeof OnboardingAccountsRoute
+  '/onboarding/income': typeof OnboardingIncomeRoute
+  '/onboarding/profile': typeof OnboardingProfileRoute
+  '/onboarding/snapshot': typeof OnboardingSnapshotRoute
+  '/onboarding/welcome': typeof OnboardingWelcomeRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/onboarding/': typeof OnboardingIndexRoute
   '/dashboard/accounts/$id': typeof DashboardAccountsIdRoute
@@ -390,14 +362,11 @@ export interface FileRouteTypes {
     | '/dashboard/home'
     | '/dashboard/inbox'
     | '/dashboard/records'
-    | '/onboarding/complexity'
-    | '/onboarding/currency'
-    | '/onboarding/features'
-    | '/onboarding/finance-interest'
-    | '/onboarding/goals'
-    | '/onboarding/language'
-    | '/onboarding/name'
-    | '/onboarding/social-proof'
+    | '/onboarding/accounts'
+    | '/onboarding/income'
+    | '/onboarding/profile'
+    | '/onboarding/snapshot'
+    | '/onboarding/welcome'
     | '/dashboard/'
     | '/onboarding/'
     | '/dashboard/accounts/$id'
@@ -427,14 +396,11 @@ export interface FileRouteTypes {
     | '/dashboard/home'
     | '/dashboard/inbox'
     | '/dashboard/records'
-    | '/onboarding/complexity'
-    | '/onboarding/currency'
-    | '/onboarding/features'
-    | '/onboarding/finance-interest'
-    | '/onboarding/goals'
-    | '/onboarding/language'
-    | '/onboarding/name'
-    | '/onboarding/social-proof'
+    | '/onboarding/accounts'
+    | '/onboarding/income'
+    | '/onboarding/profile'
+    | '/onboarding/snapshot'
+    | '/onboarding/welcome'
     | '/dashboard'
     | '/onboarding'
     | '/dashboard/accounts/$id'
@@ -468,14 +434,11 @@ export interface FileRouteTypes {
     | '/dashboard/home'
     | '/dashboard/inbox'
     | '/dashboard/records'
-    | '/onboarding/complexity'
-    | '/onboarding/currency'
-    | '/onboarding/features'
-    | '/onboarding/finance-interest'
-    | '/onboarding/goals'
-    | '/onboarding/language'
-    | '/onboarding/name'
-    | '/onboarding/social-proof'
+    | '/onboarding/accounts'
+    | '/onboarding/income'
+    | '/onboarding/profile'
+    | '/onboarding/snapshot'
+    | '/onboarding/welcome'
     | '/dashboard/'
     | '/onboarding/'
     | '/dashboard/accounts/$id'
@@ -546,60 +509,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
-    '/onboarding/social-proof': {
-      id: '/onboarding/social-proof'
-      path: '/social-proof'
-      fullPath: '/onboarding/social-proof'
-      preLoaderRoute: typeof OnboardingSocialProofRouteImport
+    '/onboarding/welcome': {
+      id: '/onboarding/welcome'
+      path: '/welcome'
+      fullPath: '/onboarding/welcome'
+      preLoaderRoute: typeof OnboardingWelcomeRouteImport
       parentRoute: typeof OnboardingRouteRoute
     }
-    '/onboarding/name': {
-      id: '/onboarding/name'
-      path: '/name'
-      fullPath: '/onboarding/name'
-      preLoaderRoute: typeof OnboardingNameRouteImport
+    '/onboarding/snapshot': {
+      id: '/onboarding/snapshot'
+      path: '/snapshot'
+      fullPath: '/onboarding/snapshot'
+      preLoaderRoute: typeof OnboardingSnapshotRouteImport
       parentRoute: typeof OnboardingRouteRoute
     }
-    '/onboarding/language': {
-      id: '/onboarding/language'
-      path: '/language'
-      fullPath: '/onboarding/language'
-      preLoaderRoute: typeof OnboardingLanguageRouteImport
+    '/onboarding/profile': {
+      id: '/onboarding/profile'
+      path: '/profile'
+      fullPath: '/onboarding/profile'
+      preLoaderRoute: typeof OnboardingProfileRouteImport
       parentRoute: typeof OnboardingRouteRoute
     }
-    '/onboarding/goals': {
-      id: '/onboarding/goals'
-      path: '/goals'
-      fullPath: '/onboarding/goals'
-      preLoaderRoute: typeof OnboardingGoalsRouteImport
+    '/onboarding/income': {
+      id: '/onboarding/income'
+      path: '/income'
+      fullPath: '/onboarding/income'
+      preLoaderRoute: typeof OnboardingIncomeRouteImport
       parentRoute: typeof OnboardingRouteRoute
     }
-    '/onboarding/finance-interest': {
-      id: '/onboarding/finance-interest'
-      path: '/finance-interest'
-      fullPath: '/onboarding/finance-interest'
-      preLoaderRoute: typeof OnboardingFinanceInterestRouteImport
-      parentRoute: typeof OnboardingRouteRoute
-    }
-    '/onboarding/features': {
-      id: '/onboarding/features'
-      path: '/features'
-      fullPath: '/onboarding/features'
-      preLoaderRoute: typeof OnboardingFeaturesRouteImport
-      parentRoute: typeof OnboardingRouteRoute
-    }
-    '/onboarding/currency': {
-      id: '/onboarding/currency'
-      path: '/currency'
-      fullPath: '/onboarding/currency'
-      preLoaderRoute: typeof OnboardingCurrencyRouteImport
-      parentRoute: typeof OnboardingRouteRoute
-    }
-    '/onboarding/complexity': {
-      id: '/onboarding/complexity'
-      path: '/complexity'
-      fullPath: '/onboarding/complexity'
-      preLoaderRoute: typeof OnboardingComplexityRouteImport
+    '/onboarding/accounts': {
+      id: '/onboarding/accounts'
+      path: '/accounts'
+      fullPath: '/onboarding/accounts'
+      preLoaderRoute: typeof OnboardingAccountsRouteImport
       parentRoute: typeof OnboardingRouteRoute
     }
     '/dashboard/records': {
@@ -834,26 +776,20 @@ const DashboardRouteRouteWithChildren = DashboardRouteRoute._addFileChildren(
 )
 
 interface OnboardingRouteRouteChildren {
-  OnboardingComplexityRoute: typeof OnboardingComplexityRoute
-  OnboardingCurrencyRoute: typeof OnboardingCurrencyRoute
-  OnboardingFeaturesRoute: typeof OnboardingFeaturesRoute
-  OnboardingFinanceInterestRoute: typeof OnboardingFinanceInterestRoute
-  OnboardingGoalsRoute: typeof OnboardingGoalsRoute
-  OnboardingLanguageRoute: typeof OnboardingLanguageRoute
-  OnboardingNameRoute: typeof OnboardingNameRoute
-  OnboardingSocialProofRoute: typeof OnboardingSocialProofRoute
+  OnboardingAccountsRoute: typeof OnboardingAccountsRoute
+  OnboardingIncomeRoute: typeof OnboardingIncomeRoute
+  OnboardingProfileRoute: typeof OnboardingProfileRoute
+  OnboardingSnapshotRoute: typeof OnboardingSnapshotRoute
+  OnboardingWelcomeRoute: typeof OnboardingWelcomeRoute
   OnboardingIndexRoute: typeof OnboardingIndexRoute
 }
 
 const OnboardingRouteRouteChildren: OnboardingRouteRouteChildren = {
-  OnboardingComplexityRoute: OnboardingComplexityRoute,
-  OnboardingCurrencyRoute: OnboardingCurrencyRoute,
-  OnboardingFeaturesRoute: OnboardingFeaturesRoute,
-  OnboardingFinanceInterestRoute: OnboardingFinanceInterestRoute,
-  OnboardingGoalsRoute: OnboardingGoalsRoute,
-  OnboardingLanguageRoute: OnboardingLanguageRoute,
-  OnboardingNameRoute: OnboardingNameRoute,
-  OnboardingSocialProofRoute: OnboardingSocialProofRoute,
+  OnboardingAccountsRoute: OnboardingAccountsRoute,
+  OnboardingIncomeRoute: OnboardingIncomeRoute,
+  OnboardingProfileRoute: OnboardingProfileRoute,
+  OnboardingSnapshotRoute: OnboardingSnapshotRoute,
+  OnboardingWelcomeRoute: OnboardingWelcomeRoute,
   OnboardingIndexRoute: OnboardingIndexRoute,
 }
 

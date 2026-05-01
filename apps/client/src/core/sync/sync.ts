@@ -207,6 +207,11 @@ class SyncService {
     timestamp: Date;
   }> = [];
 
+  // Serializes concurrent persistSyncQueue calls so DELETE+INSERT sequences
+  // never interleave. Each call chains onto the previous one; the last snapshot
+  // always reflects the current in-memory queue.
+  private persistSyncQueuePromise: Promise<void> | null = null;
+
   // Items are added to the queue while pushLocalChanges is running. This flag
   // marks the index boundary so new arrivals during a push cycle are deferred
   // to the next cycle rather than silently dropped or double-processed.
@@ -808,7 +813,14 @@ class SyncService {
   // transactional — all problems for a queue that may contain many large
   // transaction payloads and must survive mid-write crashes cleanly.
 
-  private async persistSyncQueue(): Promise<void> {
+  private persistSyncQueue(): void {
+    // Chain onto any in-flight persist; a late snapshot always wins.
+    this.persistSyncQueuePromise = (this.persistSyncQueuePromise ?? Promise.resolve())
+      .then(() => this._doPersistSyncQueue())
+      .catch(() => {}); // errors are logged inside _doPersistSyncQueue
+  }
+
+  private async _doPersistSyncQueue(): Promise<void> {
     try {
       await db.initialize();
       await db.execute("DELETE FROM sync_queue", []);

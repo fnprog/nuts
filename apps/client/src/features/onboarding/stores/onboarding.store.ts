@@ -1,15 +1,32 @@
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 
+export type FinancialStage = "foundation" | "wealth" | "goal" | "event";
+
+export interface OnboardingAccount {
+  type: string;
+  name: string;
+  balance: number;
+}
+
+export interface OnboardingIncome {
+  type: string;
+  amount: number;
+  frequency: string;
+  lowAmount?: number;
+  highAmount?: number;
+}
+
 export interface OnboardingState {
   currentStep: number;
 
   name: string;
   language: string;
   currency: string;
-  wantsBetterFinance: boolean | null;
-  selectedGoals: string[];
-  feelsComplexFinance: boolean | null;
+  financialStage: FinancialStage | null;
+  accounts: OnboardingAccount[];
+  income: OnboardingIncome | null;
+  healthScore: number;
 
   isCompleted: boolean;
 
@@ -17,9 +34,10 @@ export interface OnboardingState {
   setName: (name: string) => void;
   setLanguage: (language: string) => void;
   setCurrency: (currency: string) => void;
-  setBetterFinance: (wants: boolean | null) => void;
-  setGoals: (goals: string[]) => void;
-  setComplexFinance: (feels: boolean) => void;
+  setFinancialStage: (stage: FinancialStage | null) => void;
+  addAccount: (account: OnboardingAccount) => void;
+  setIncome: (income: OnboardingIncome | null) => void;
+  setHealthScore: (score: number) => void;
   completeOnboarding: () => void;
   resetOnboarding: () => void;
 }
@@ -28,10 +46,11 @@ const initialState = {
   currentStep: 0,
   name: "",
   language: "en-US",
-  currency: "USD",
-  wantsBetterFinance: null,
-  selectedGoals: [],
-  feelsComplexFinance: null,
+  currency: "GHS",
+  financialStage: null,
+  accounts: [],
+  income: null,
+  healthScore: 0,
   isCompleted: false,
 };
 
@@ -49,11 +68,13 @@ export const useOnboardingStore = create<OnboardingState>()(
 
         setCurrency: (currency) => set({ currency }, false, "onboarding/setCurrency"),
 
-        setBetterFinance: (wantsBetterFinance) => set({ wantsBetterFinance }),
+        setFinancialStage: (financialStage) => set({ financialStage }),
 
-        setGoals: (selectedGoals) => set({ selectedGoals }, false, "onboarding/setGoals"),
+        addAccount: (account) => set((state) => ({ accounts: [...state.accounts, account] })),
 
-        setComplexFinance: (feelsComplexFinance) => set({ feelsComplexFinance }, false, "onboarding/setComplexFinance"),
+        setIncome: (income) => set({ income }),
+
+        setHealthScore: (healthScore) => set({ healthScore }),
 
         completeOnboarding: () => set({ isCompleted: true }, false, "onboarding/complete"),
 
@@ -66,9 +87,10 @@ export const useOnboardingStore = create<OnboardingState>()(
           name: state.name,
           language: state.language,
           currency: state.currency,
-          wantsBetterFinance: state.wantsBetterFinance,
-          selectedGoals: state.selectedGoals,
-          feelsComplexFinance: state.feelsComplexFinance,
+          financialStage: state.financialStage,
+          accounts: state.accounts,
+          income: state.income,
+          healthScore: state.healthScore,
           isCompleted: state.isCompleted,
         }),
       }

@@ -49,8 +49,13 @@ export class DatabaseClient {
 
     this.worker = new Worker(new URL("./sqlite.worker.ts", import.meta.url), { type: "module" });
 
+    // Keep a reference to this specific worker instance so we can ignore
+    // late-firing onerror events from a terminated worker on future retries.
+    const currentWorker = this.worker;
+
     // Add error handler
     this.worker.onerror = (error) => {
+      if (this.worker !== currentWorker) return; // stale event from a previous worker
       logger.error("SQLite worker error:", error);
       this.handleWorkerError(error);
     };
@@ -118,15 +123,19 @@ export class DatabaseClient {
     this.migrationRunner = null;
     this.workerAPI = null;
     if (this.worker) {
+      this.worker.onerror = null; // detach before terminate to prevent re-entry
       this.worker.terminate();
       this.worker = null;
     }
     // Create an immediately rejected promise for callers.
-    this.initPromise = Promise.reject(
+    // Attach a no-op catch to prevent unhandled promise rejection warnings.
+    const rejected = Promise.reject(
       new Error(
         `SQLite worker initialization failed: ${error?.message || error?.type || "unknown error"}`
       )
     );
+    rejected.catch(() => {});
+    this.initPromise = rejected;
   }
 
   /**
@@ -205,6 +214,7 @@ export class DatabaseClient {
       await this.workerAPI.close();
     }
     if (this.worker) {
+      this.worker.onerror = null; // detach before terminate to prevent stale events poisoning next retry
       this.worker.terminate();
       this.worker = null;
     }
