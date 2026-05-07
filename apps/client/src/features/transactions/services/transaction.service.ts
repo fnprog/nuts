@@ -364,6 +364,32 @@ export function createTransactionService() {
     return kyselyQueryService.exportTransactions(params);
   };
 
+  const undoTransaction = async (): Promise<Result<void, ServiceError>> => {
+    const initResult = await ensureInitialized();
+    if (initResult.isErr()) return err(initResult.error);
+
+    const didUndo = await crdtService.undo();
+    if (!didUndo) return ok(undefined); // nothing to undo
+
+    const rebuildResult = await rebuildFromCRDT();
+    if (rebuildResult.isErr()) return err(rebuildResult.error);
+
+    return ok(undefined);
+  };
+
+  const redoTransaction = async (): Promise<Result<void, ServiceError>> => {
+    const initResult = await ensureInitialized();
+    if (initResult.isErr()) return err(initResult.error);
+
+    const didRedo = await crdtService.redo();
+    if (!didRedo) return ok(undefined); // nothing to redo
+
+    const rebuildResult = await rebuildFromCRDT();
+    if (rebuildResult.isErr()) return err(rebuildResult.error);
+
+    return ok(undefined);
+  };
+
   return {
     initialize,
     getTransactions,
@@ -375,6 +401,8 @@ export function createTransactionService() {
     bulkUpdateCategories,
     bulkUpdateManualTransactions,
     exportTransactions,
+    undoTransaction,
+    redoTransaction,
   };
 }
 
