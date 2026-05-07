@@ -53,6 +53,9 @@ class CRDTService {
   // doc immediately; only the disk flush is deferred.
   private pendingPersistTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly PERSIST_DEBOUNCE_MS = 300;
+  private undoStack: Array<Automerge.Doc<CRDTDocument>> = [];
+  private redoStack: Array<Automerge.Doc<CRDTDocument>> = [];
+  private readonly MAX_UNDO_DEPTH = 50;
 
 
 
@@ -318,10 +321,23 @@ class CRDTService {
 
     try {
       await previousOperation.catch(() => { }); // drain errors before proceeding
+
+      // Snapshot the current doc before the mutation so it can be restored on undo.
+      // Automerge docs are immutable value types — capturing the reference is safe.
+      if (this.doc !== null) {
+        this.undoStack.push(this.doc);
+        if (this.undoStack.length > this.MAX_UNDO_DEPTH) {
+          this.undoStack.shift(); // drop oldest
+        }
+        this.redoStack = [];
+      }
+
       const result = await fn();
       resolver(result);
       return result;
     } catch (error) {
+      // Mutation failed — pop the snapshot we just pushed so the stacks stay consistent.
+      this.undoStack.pop();
       rejecter(error);
       throw error;
     }
@@ -846,6 +862,50 @@ class CRDTService {
       }
       return ok(undefined);
     });
+  }
+
+  // ─── Undo / Redo ──────────────────────────────────────────────────────────
+
+  /**
+   * Undo the most recent mutation. Returns false when the undo stack is empty.
+   * Callers should call rebuildFromCRDT() (in the transaction service) after this
+   * to re-sync the SQLite query layer.
+   */
+  async undo(): Promise<boolean> {
+    if (this.undoStack.length === 0) return false;
+    const snapshot = this.undoStack.pop()!;
+    if (this.doc !== null) {
+      this.redoStack.push(this.doc);
+    }
+    this.doc = snapshot;
+    this.schedulePersist();
+    return true;
+  }
+
+  /**
+   * Redo the most recently undone mutation. Returns false when the redo stack is empty.
+   * Callers should call rebuildFromCRDT() (in the transaction service) after this.
+   */
+  async redo(): Promise<boolean> {
+    if (this.redoStack.length === 0) return false;
+    const snapshot = this.redoStack.pop()!;
+    if (this.doc !== null) {
+      this.undoStack.push(this.doc);
+      if (this.undoStack.length > this.MAX_UNDO_DEPTH) {
+        this.undoStack.shift();
+      }
+    }
+    this.doc = snapshot;
+    this.schedulePersist();
+    return true;
+  }
+
+  /** How many steps are available for undo/redo (used by the UI to enable buttons). */
+  getUndoRedoDepth(): { canUndo: boolean; canRedo: boolean } {
+    return {
+      canUndo: this.undoStack.length > 0,
+      canRedo: this.redoStack.length > 0,
+    };
   }
 
   // ─── Sync Notification ────────────────────────────────────────────────────
