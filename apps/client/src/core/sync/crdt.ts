@@ -1,5 +1,19 @@
 import { next as Automerge } from "@automerge/automerge";
-import type { CRDTDocument, CRDTTransaction, CRDTAccount, CRDTCategory, CRDTBudget, CRDTTag, CRDTPreference, CRDTRule, CollectionKey, CollectionEntity, CRDTRecurringTransaction, CRDTNotification, CRDTPlugin } from "@nuts/types";
+import type {
+  CRDTDocument,
+  CRDTTransaction,
+  CRDTAccount,
+  CRDTCategory,
+  CRDTBudget,
+  CRDTTag,
+  CRDTPreference,
+  CRDTRule,
+  CollectionKey,
+  CollectionEntity,
+  CRDTRecurringTransaction,
+  CRDTNotification,
+  CRDTPlugin,
+} from "@nuts/types";
 import { anonymousUserService } from "@/features/auth/services/anonymous-user.service";
 import { useAuthStore } from "@/features/auth/stores/auth.store";
 import { Result, ok, err, ResultAsync } from "@/lib/result";
@@ -14,8 +28,6 @@ import { crdtStorage } from "./crdt-storage";
  * This service manages the CRDT document lifecycle and provides APIs for
  * local-first data operations.
  */
-
-
 
 // Initial State
 const makeInitialDocument = (userId: string): CRDTDocument => ({
@@ -38,9 +50,6 @@ const makeInitialDocument = (userId: string): CRDTDocument => ({
   indices: { version: 1 },
 });
 
-
-
-
 class CRDTService {
   private readonly CURRENT_VERSION = "1.0.0";
   private doc: Automerge.Doc<CRDTDocument> | null = null;
@@ -56,8 +65,6 @@ class CRDTService {
   private undoStack: Array<Automerge.Doc<CRDTDocument>> = [];
   private redoStack: Array<Automerge.Doc<CRDTDocument>> = [];
   private readonly MAX_UNDO_DEPTH = 50;
-
-
 
   // lifecycle
 
@@ -118,7 +125,6 @@ class CRDTService {
     );
   }
 
-
   async persist(): Promise<Result<void, ServiceError>> {
     if (!this.doc) return ok(undefined);
     const userId = this.currentUserId || this.getCurrentUserId();
@@ -168,7 +174,6 @@ class CRDTService {
     return this.persist();
   }
 
-
   /**
    * Merge changes from another CRDT document (for sync)
    */
@@ -202,7 +207,6 @@ class CRDTService {
     return Automerge.toJS(this.doc) as CRDTDocument;
   }
 
-
   async clear(): Promise<void> {
     // Cancel any deferred write — the document is being deleted, not saved.
     if (this.pendingPersistTimer !== null) {
@@ -234,7 +238,6 @@ class CRDTService {
         const loadResult = await crdtStorage.loadDocument(newUserId);
         if (loadResult.isErr()) throw loadResult.error;
 
-
         if (loadResult.value) {
           this.doc = Automerge.load(loadResult.value);
           logger.info("Switched to existing CRDT document for user: ", newUserId);
@@ -260,7 +263,6 @@ class CRDTService {
         const loadResult = await crdtStorage.loadDocument(anonymousUserId);
         if (loadResult.isErr()) throw loadResult.error;
 
-
         if (!loadResult.value) {
           logger.info("No anonymous CRDT document to migrate");
           return;
@@ -271,12 +273,9 @@ class CRDTService {
         const authenticatedLoadResult = await crdtStorage.loadDocument(authenticatedUserId);
         if (authenticatedLoadResult.isErr()) throw authenticatedLoadResult.error;
 
-
         let mergedDoc: Automerge.Doc<CRDTDocument> = authenticatedLoadResult.value
           ? Automerge.merge(Automerge.load<CRDTDocument>(authenticatedLoadResult.value), anonymousDoc)
           : anonymousDoc;
-
-
 
         mergedDoc = Automerge.change(mergedDoc, (doc) => {
           doc.user_id = authenticatedUserId;
@@ -302,12 +301,11 @@ class CRDTService {
     );
   }
 
-
   /**
-     * Serialises all mutations through a promise chain so Automerge changes
-     * are never interleaved. The `.catch(() => {})` drains a failed predecessor
-     * without propagating its rejection to the current caller.
-     */
+   * Serialises all mutations through a promise chain so Automerge changes
+   * are never interleaved. The `.catch(() => {})` drains a failed predecessor
+   * without propagating its rejection to the current caller.
+   */
   private async withMutationLock<T>(fn: () => Promise<T>): Promise<T> {
     const previousOperation = this.operationQueue;
 
@@ -320,7 +318,7 @@ class CRDTService {
     });
 
     try {
-      await previousOperation.catch(() => { }); // drain errors before proceeding
+      await previousOperation.catch(() => {}); // drain errors before proceeding
 
       // Snapshot the current doc before the mutation so it can be restored on undo.
       // Automerge docs are immutable value types — capturing the reference is safe.
@@ -342,7 +340,6 @@ class CRDTService {
       throw error;
     }
   }
-
 
   /**
    * Creates an entity in the given collection, assigning the requested
@@ -405,7 +402,6 @@ class CRDTService {
 
         (record as any).updated_at = timestamp;
         doc.updated_at = timestamp;
-
       });
 
       this.schedulePersist();
@@ -423,12 +419,7 @@ class CRDTService {
    * Generic deleteEntity: soft delete by setting `deleted_at` (default),
    * unless `softDeleteField` is not set (for plugin, perform hard delete)
    */
-  private async deleteEntity<K extends CollectionKey>(
-    collection: K,
-    id: string,
-    hard = false,
-    notifyType?: string
-  ): Promise<Result<void, ServiceError>> {
+  private async deleteEntity<K extends CollectionKey>(collection: K, id: string, hard = false, notifyType?: string): Promise<Result<void, ServiceError>> {
     return this.withMutationLock(async () => {
       if (!this.doc) throw new Error("CRDT document not initialized");
       const timestamp = new Date().toISOString();
@@ -452,7 +443,7 @@ class CRDTService {
       if (notifyType) {
         this.notifySyncService("delete", notifyType as any, {
           id,
-          ...(hard ? {} : { deleted_at: timestamp })
+          ...(hard ? {} : { deleted_at: timestamp }),
         });
       }
       return ok(undefined);
@@ -464,10 +455,7 @@ class CRDTService {
    * entities with a deleted_at value are excluded. Set onlyActive=false
    * for entities that lack deleted_at (tags, budgets) or use hard deletion.
    */
-  private getEntities<K extends CollectionKey>(
-    collection: K,
-    onlyActive = true
-  ): Record<string, CollectionEntity<K>> {
+  private getEntities<K extends CollectionKey>(collection: K, onlyActive = true): Record<string, CollectionEntity<K>> {
     if (!this.doc) return {};
 
     const col = this.doc[collection] as Record<string, CollectionEntity<K>>;
@@ -480,11 +468,7 @@ class CRDTService {
     return result;
   }
 
-  private getEntityById<K extends CollectionKey>(
-    collection: K,
-    id: string,
-    onlyActive = true
-  ): CollectionEntity<K> | null {
+  private getEntityById<K extends CollectionKey>(collection: K, id: string, onlyActive = true): CollectionEntity<K> | null {
     if (!this.doc) return null;
 
     const col = this.doc[collection] as Record<string, CollectionEntity<K>>;
@@ -493,13 +477,9 @@ class CRDTService {
     return onlyActive && (entity as any).deleted_at ? null : entity;
   }
 
-
-
   // ─── Transactions ─────────────────────────────────────────────────────────
 
-  async createTransaction(
-    transaction: Omit<CRDTTransaction, "created_at" | "updated_at">
-  ): Promise<Result<string, ServiceError>> {
+  async createTransaction(transaction: Omit<CRDTTransaction, "created_at" | "updated_at">): Promise<Result<string, ServiceError>> {
     return this.createEntity("transactions", transaction as CRDTTransaction, ["created_at", "updated_at"], "transaction");
   }
 
@@ -521,9 +501,7 @@ class CRDTService {
 
   // ─── Accounts ─────────────────────────────────────────────────────────────
 
-  async createAccount(
-    account: Omit<CRDTAccount, "created_at" | "updated_at">
-  ): Promise<Result<string, ServiceError>> {
+  async createAccount(account: Omit<CRDTAccount, "created_at" | "updated_at">): Promise<Result<string, ServiceError>> {
     return this.createEntity("accounts", account as CRDTAccount, ["created_at", "updated_at"], "account");
   }
 
@@ -545,9 +523,7 @@ class CRDTService {
 
   // ─── Categories ───────────────────────────────────────────────────────────
 
-  async createCategory(
-    category: Omit<CRDTCategory, "created_at" | "updated_at">
-  ): Promise<Result<string, ServiceError>> {
+  async createCategory(category: Omit<CRDTCategory, "created_at" | "updated_at">): Promise<Result<string, ServiceError>> {
     return this.createEntity("categories", category as CRDTCategory, ["created_at", "updated_at"], "category");
   }
 
@@ -570,9 +546,7 @@ class CRDTService {
   // ─── Budgets ──────────────────────────────────────────────────────────────
   // CRDTBudget has no deleted_at — use onlyActive=false.
 
-  async createBudget(
-    budget: Omit<CRDTBudget, "created_at" | "updated_at">
-  ): Promise<Result<string, ServiceError>> {
+  async createBudget(budget: Omit<CRDTBudget, "created_at" | "updated_at">): Promise<Result<string, ServiceError>> {
     return this.createEntity("budgets", budget as CRDTBudget, ["created_at", "updated_at"]);
   }
 
@@ -609,9 +583,7 @@ class CRDTService {
 
   // ─── Preferences ──────────────────────────────────────────────────────────
 
-  async createPreference(
-    preference: Omit<CRDTPreference, "created_at" | "updated_at">
-  ): Promise<Result<string, ServiceError>> {
+  async createPreference(preference: Omit<CRDTPreference, "created_at" | "updated_at">): Promise<Result<string, ServiceError>> {
     return this.createEntity("preferences", preference as CRDTPreference, ["created_at", "updated_at"]);
   }
 
@@ -629,9 +601,7 @@ class CRDTService {
 
   // ─── Rules ────────────────────────────────────────────────────────────────
 
-  async createRule(
-    rule: Omit<CRDTRule, "created_at" | "updated_at">
-  ): Promise<Result<string, ServiceError>> {
+  async createRule(rule: Omit<CRDTRule, "created_at" | "updated_at">): Promise<Result<string, ServiceError>> {
     return this.createEntity("rules", rule as CRDTRule, ["created_at", "updated_at"], "rule");
   }
 
@@ -653,21 +623,11 @@ class CRDTService {
 
   // ─── Recurring Transactions ───────────────────────────────────────────────
 
-  async createRecurringTransaction(
-    recurring: Omit<CRDTRecurringTransaction, "created_at" | "updated_at">
-  ): Promise<Result<string, ServiceError>> {
-    return this.createEntity(
-      "recurring_transactions",
-      recurring as CRDTRecurringTransaction,
-      ["created_at", "updated_at"],
-      "transaction"
-    );
+  async createRecurringTransaction(recurring: Omit<CRDTRecurringTransaction, "created_at" | "updated_at">): Promise<Result<string, ServiceError>> {
+    return this.createEntity("recurring_transactions", recurring as CRDTRecurringTransaction, ["created_at", "updated_at"], "transaction");
   }
 
-  async updateRecurringTransaction(
-    id: string,
-    updates: Partial<CRDTRecurringTransaction>
-  ): Promise<Result<void, ServiceError>> {
+  async updateRecurringTransaction(id: string, updates: Partial<CRDTRecurringTransaction>): Promise<Result<void, ServiceError>> {
     return this.updateEntity("recurring_transactions", id, updates, "transaction");
   }
 
@@ -686,9 +646,7 @@ class CRDTService {
   // ─── Notifications ────────────────────────────────────────────────────────
   // CRDTNotification only stamps created_at on creation.
 
-  async createNotification(
-    notification: Omit<CRDTNotification, "created_at">
-  ): Promise<Result<string, ServiceError>> {
+  async createNotification(notification: Omit<CRDTNotification, "created_at">): Promise<Result<string, ServiceError>> {
     return this.createEntity("notifications", notification as CRDTNotification, ["created_at"]);
   }
 
@@ -713,9 +671,7 @@ class CRDTService {
   // deletion must also sweep plugin_data and plugin_migrations — too
   // multi-collection for the generic deleteEntity.
 
-  async createPlugin(
-    plugin: Omit<CRDTPlugin, "installed_at" | "updated_at">
-  ): Promise<Result<string, ServiceError>> {
+  async createPlugin(plugin: Omit<CRDTPlugin, "installed_at" | "updated_at">): Promise<Result<string, ServiceError>> {
     return this.createEntity("plugins", plugin as CRDTPlugin, ["installed_at", "updated_at"]);
   }
 
@@ -764,11 +720,7 @@ class CRDTService {
     return JSON.parse(JSON.stringify(pluginData[collection] || {}));
   }
 
-  async setPluginData<T = unknown>(
-    pluginId: string,
-    collection: string,
-    data: Record<string, T>
-  ): Promise<Result<void, ServiceError>> {
+  async setPluginData<T = unknown>(pluginId: string, collection: string, data: Record<string, T>): Promise<Result<void, ServiceError>> {
     return this.withMutationLock(async () => {
       if (!this.doc) throw new Error("CRDT document not initialized");
 
@@ -791,23 +743,13 @@ class CRDTService {
     });
   }
 
-  async createPluginRecord<T = unknown>(
-    pluginId: string,
-    collection: string,
-    id: string,
-    record: T
-  ): Promise<Result<void, ServiceError>> {
+  async createPluginRecord<T = unknown>(pluginId: string, collection: string, id: string, record: T): Promise<Result<void, ServiceError>> {
     const col = this.getPluginData<T>(pluginId, collection);
     col[id] = record;
     return this.setPluginData(pluginId, collection, col);
   }
 
-  async updatePluginRecord<T = unknown>(
-    pluginId: string,
-    collection: string,
-    id: string,
-    updates: Partial<T>
-  ): Promise<Result<void, ServiceError>> {
+  async updatePluginRecord<T = unknown>(pluginId: string, collection: string, id: string, updates: Partial<T>): Promise<Result<void, ServiceError>> {
     const col = this.getPluginData<T>(pluginId, collection);
     const existing = col[id];
     if (!existing) return err(ServiceError.notFound("plugin record", id));
@@ -815,11 +757,7 @@ class CRDTService {
     return this.setPluginData(pluginId, collection, col);
   }
 
-  async deletePluginRecord(
-    pluginId: string,
-    collection: string,
-    id: string
-  ): Promise<Result<void, ServiceError>> {
+  async deletePluginRecord(pluginId: string, collection: string, id: string): Promise<Result<void, ServiceError>> {
     const col = this.getPluginData(pluginId, collection);
     delete col[id];
     return this.setPluginData(pluginId, collection, col);
@@ -915,11 +853,7 @@ class CRDTService {
    * If the import fails, changes are persisted locally but won't be queued
    * for server sync until the service restarts.
    */
-  private notifySyncService(
-    operation: "create" | "update" | "delete",
-    type: "transaction" | "account" | "category" | "rule",
-    data: any
-  ): void {
+  private notifySyncService(operation: "create" | "update" | "delete", type: "transaction" | "account" | "category" | "rule", data: any): void {
     import("./sync")
       .then(({ syncService }) => syncService.addToSyncQueue({ operation, type, data }))
       .catch((error) => logger.error("[CRDT] Failed to notify sync service:", error));

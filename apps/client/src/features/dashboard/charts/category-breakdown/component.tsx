@@ -1,5 +1,5 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import NumberFlow from '@number-flow/react';
+import NumberFlow from "@number-flow/react";
 
 import type { DashboardChartComponentProps } from "../types";
 import { config } from "./index";
@@ -53,7 +53,11 @@ function CategoryBreakdownChartComponent({ id, size, isLocked, hasAccounts }: Da
           <ChartCardHeader>
             <div className="flex-1">
               <ChartCardTitle className="text-muted-foreground">{config.title}</ChartCardTitle>
-              <NumberFlow className="mt-1 text-2xl font-bold" value={total} format={{ style: 'currency', currency: 'USD', trailingZeroDisplay: 'stripIfInteger' }} />
+              <NumberFlow
+                className="mt-1 text-2xl font-bold"
+                value={total}
+                format={{ style: "currency", currency: "USD", trailingZeroDisplay: "stripIfInteger" }}
+              />
             </div>
           </ChartCardHeader>
           <ChartCardContent className="mt-2">

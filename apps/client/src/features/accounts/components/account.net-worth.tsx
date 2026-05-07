@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { NumberFlow } from '@number-flow/react';
+import NumberFlow from "@number-flow/react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
 import { GlobeIcon } from "lucide-react";

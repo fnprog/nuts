@@ -87,10 +87,12 @@ export const bulkCreateTransactions = async (params: {
   accountId: string;
   transactions: RecordCreateSchema[];
 }): Promise<{ created_count: number; error_count: number; total_requested: number; errors?: string[] }> => {
-  return await api.post(`${BASEURI}/bulk`, {
-    json: {
-      account_id: params.accountId,
-      transactions: params.transactions,
-    },
-  }).json<{ created_count: number; error_count: number; total_requested: number; errors?: string[] }>();
+  return await api
+    .post(`${BASEURI}/bulk`, {
+      json: {
+        account_id: params.accountId,
+        transactions: params.transactions,
+      },
+    })
+    .json<{ created_count: number; error_count: number; total_requested: number; errors?: string[] }>();
 };

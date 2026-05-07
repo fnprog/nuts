@@ -272,14 +272,8 @@ class DataMigrationService {
         const finalState = await this.loadMigrationState(anonymousUser.id);
         if (!finalState) throw new Error("Migration state lost after upload");
 
-        const totalMigrated =
-          finalState.migrated_categories +
-          finalState.migrated_accounts +
-          finalState.migrated_transactions;
-        const totalFailed =
-          finalState.failed_categories +
-          finalState.failed_accounts +
-          finalState.failed_transactions;
+        const totalMigrated = finalState.migrated_categories + finalState.migrated_accounts + finalState.migrated_transactions;
+        const totalFailed = finalState.failed_categories + finalState.failed_accounts + finalState.failed_transactions;
 
         result.migratedCategories = finalState.migrated_categories;
         result.migratedAccounts = finalState.migrated_accounts;
@@ -348,11 +342,7 @@ class DataMigrationService {
    * account_id_missing=true so the server can handle or reject it explicitly
    * rather than silently assigning to whatever account has the same name.
    */
-  private serializeItems(
-    categories: CRDTCategory[],
-    accounts: CRDTAccount[],
-    transactions: CRDTTransaction[]
-  ): ChunkRequest["items"] {
+  private serializeItems(categories: CRDTCategory[], accounts: CRDTAccount[], transactions: CRDTTransaction[]): ChunkRequest["items"] {
     const accountMap = new Map(accounts.map((a) => [a.id, a.name]));
     const categoryMap = new Map(categories.map((c) => [c.id, c.name]));
 
@@ -399,11 +389,7 @@ class DataMigrationService {
 
   // ─── Upload ───────────────────────────────────────────────────────────────────
 
-  private async migrateSingleChunk(
-    state: MigrationState,
-    items: MigrationItems,
-    maxRetries: number
-  ): Promise<void> {
+  private async migrateSingleChunk(state: MigrationState, items: MigrationItems, maxRetries: number): Promise<void> {
     this.notifyProgress({ stage: "uploading", progress: 30 });
 
     const request: ChunkRequest = {
@@ -412,11 +398,7 @@ class DataMigrationService {
       items: this.serializeItems(items.categories, items.accounts, items.transactions),
     };
 
-    const response = await this.executeWithRetry<MigrateApiResponse>(
-      () => api.post("migrate", { json: request }).then((r) => r.json()),
-      maxRetries,
-      state
-    );
+    const response = await this.executeWithRetry<MigrateApiResponse>(() => api.post("migrate", { json: request }).then((r) => r.json()), maxRetries, state);
 
     this.notifyProgress({ stage: "uploading", progress: 90 });
 
@@ -433,12 +415,7 @@ class DataMigrationService {
     await this.saveMigrationState(state);
   }
 
-  private async migrateInChunks(
-    state: MigrationState,
-    items: MigrationItems,
-    chunkSize: number,
-    maxRetries: number
-  ): Promise<void> {
+  private async migrateInChunks(state: MigrationState, items: MigrationItems, chunkSize: number, maxRetries: number): Promise<void> {
     // Chunk each entity type independently — no flat-merging of different types
     // into one array, which was previously O(n²) and semantically fragile.
     const categoryChunks = chunkArray(items.categories, chunkSize);
@@ -447,11 +424,7 @@ class DataMigrationService {
 
     // Align into parallel chunk slots. Empty arrays fill slots where one entity
     // type has fewer chunks than the others.
-    const totalChunks = Math.max(
-      categoryChunks.length,
-      accountChunks.length,
-      transactionChunks.length
-    );
+    const totalChunks = Math.max(categoryChunks.length, accountChunks.length, transactionChunks.length);
 
     // Update state with the recalculated chunk count (may differ from initial
     // estimate if items changed between state creation and now).
@@ -480,11 +453,7 @@ class DataMigrationService {
       });
 
       try {
-        const response = await this.executeWithRetry<MigrateApiResponse>(
-          () => api.post("migrate", { json: request }).then((r) => r.json()),
-          maxRetries,
-          state
-        );
+        const response = await this.executeWithRetry<MigrateApiResponse>(() => api.post("migrate", { json: request }).then((r) => r.json()), maxRetries, state);
 
         state.migrated_categories += response.categories_migrated;
         state.migrated_accounts += response.accounts_migrated;
@@ -514,11 +483,7 @@ class DataMigrationService {
 
   // ─── Retry ───────────────────────────────────────────────────────────────────
 
-  private async executeWithRetry<T>(
-    fn: () => Promise<T>,
-    maxRetries: number,
-    state: MigrationState
-  ): Promise<T> {
+  private async executeWithRetry<T>(fn: () => Promise<T>, maxRetries: number, state: MigrationState): Promise<T> {
     let lastError: Error | null = null;
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -529,10 +494,7 @@ class DataMigrationService {
         logger.warn(`Attempt ${attempt + 1}/${maxRetries + 1} failed:`, lastError.message);
 
         if (attempt < maxRetries) {
-          const delay = Math.min(
-            INITIAL_RETRY_DELAY_MS * Math.pow(2, attempt),
-            MAX_RETRY_DELAY_MS
-          );
+          const delay = Math.min(INITIAL_RETRY_DELAY_MS * Math.pow(2, attempt), MAX_RETRY_DELAY_MS);
           logger.info(`Retrying in ${delay}ms`);
           await new Promise((resolve) => setTimeout(resolve, delay));
           state.retry_count++;
@@ -568,9 +530,7 @@ class DataMigrationService {
     const accountIds = new Set(accounts.map((a) => a.id));
     const categoryIds = new Set(categories.map((c) => c.id));
 
-    const orphanedTransactions = transactions.filter(
-      (t) => !accountIds.has(t.account_id) || (t.category_id && !categoryIds.has(t.category_id))
-    );
+    const orphanedTransactions = transactions.filter((t) => !accountIds.has(t.account_id) || (t.category_id && !categoryIds.has(t.category_id)));
     if (orphanedTransactions.length > 0) {
       errors.push(`${orphanedTransactions.length} transactions reference unknown accounts or categories`);
     }
@@ -643,11 +603,8 @@ class DataMigrationService {
   private async loadMigrationState(anonymousUserId: string): Promise<MigrationState | null> {
     try {
       await this.ensureInitialized();
-      const result = await db.execute(
-        "SELECT * FROM migration_state WHERE anonymous_user_id = ? ORDER BY created_at DESC LIMIT 1",
-        [anonymousUserId]
-      );
-      return result.results?.[0] as MigrationState ?? null;
+      const result = await db.execute("SELECT * FROM migration_state WHERE anonymous_user_id = ? ORDER BY created_at DESC LIMIT 1", [anonymousUserId]);
+      return (result.results?.[0] as MigrationState) ?? null;
     } catch (error) {
       logger.error("Failed to load migration state:", error);
       return null;
@@ -679,10 +636,7 @@ class DataMigrationService {
     const timestamp = new Date().toISOString();
 
     // Pass Uint8Array directly — driver accepts it without Array.from() conversion.
-    await db.execute(
-      "INSERT INTO crdt_backups (backup_id, document_binary, created_at) VALUES (?, ?, ?)",
-      [backupId, doc, timestamp]
-    );
+    await db.execute("INSERT INTO crdt_backups (backup_id, document_binary, created_at) VALUES (?, ?, ?)", [backupId, doc, timestamp]);
 
     logger.info(`Created CRDT backup: ${backupId}`);
     return backupId;
@@ -691,10 +645,7 @@ class DataMigrationService {
   private async restoreBackup(backupId: string): Promise<void> {
     await this.ensureInitialized();
 
-    const result = await db.execute(
-      "SELECT document_binary FROM crdt_backups WHERE backup_id = ?",
-      [backupId]
-    );
+    const result = await db.execute("SELECT document_binary FROM crdt_backups WHERE backup_id = ?", [backupId]);
 
     if (!result.results?.length) {
       throw new Error(`Backup ${backupId} not found — cannot restore`);
@@ -706,10 +657,11 @@ class DataMigrationService {
     const anonymousUser = anonymousUserService.getAnonymousUser();
     if (!anonymousUser) throw new Error("Cannot restore backup: no anonymous user found");
 
-    await db.execute(
-      "UPDATE crdt_documents SET document_binary = ?, updated_at = ? WHERE user_id = ?",
-      [documentBinary, new Date().toISOString(), anonymousUser.id]
-    );
+    await db.execute("UPDATE crdt_documents SET document_binary = ?, updated_at = ? WHERE user_id = ?", [
+      documentBinary,
+      new Date().toISOString(),
+      anonymousUser.id,
+    ]);
 
     logger.info(`Restored CRDT backup: ${backupId}`);
   }

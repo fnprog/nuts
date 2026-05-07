@@ -1,4 +1,4 @@
-import { HTTPError } from 'ky';
+import { HTTPError } from "ky";
 
 export class ServiceError extends Error {
   constructor(
@@ -63,31 +63,35 @@ export class ServiceError extends Error {
   static fromKyError(error: unknown): ServiceError {
     if (error instanceof HTTPError) {
       const status = error.response.status;
-      return error.response.clone().json().then((data: any) => {
-        const message = data?.message || error.message || "Network request failed";
-        if (status === 404) {
-          return new ServiceError(message, "NOT_FOUND", error);
-        }
-        if (status === 401 || status === 403) {
-          return new ServiceError(message, "UNAUTHORIZED", error);
-        }
-        if (status && status >= 500) {
-          return new ServiceError(message, "SERVER_ERROR", error);
-        }
-        return new ServiceError(message, "NETWORK_ERROR", error);
-      }).catch(() => {
-        // If response can't be parsed as JSON, fall back to generic message
-        if (status === 404) {
-          return new ServiceError("Not found", "NOT_FOUND", error);
-        }
-        if (status === 401 || status === 403) {
-          return new ServiceError("Unauthorized", "UNAUTHORIZED", error);
-        }
-        if (status && status >= 500) {
-          return new ServiceError("Server error", "SERVER_ERROR", error);
-        }
-        return new ServiceError("Network error", "NETWORK_ERROR", error);
-      });
+      return error.response
+        .clone()
+        .json()
+        .then((data: any) => {
+          const message = data?.message || error.message || "Network request failed";
+          if (status === 404) {
+            return new ServiceError(message, "NOT_FOUND", error);
+          }
+          if (status === 401 || status === 403) {
+            return new ServiceError(message, "UNAUTHORIZED", error);
+          }
+          if (status && status >= 500) {
+            return new ServiceError(message, "SERVER_ERROR", error);
+          }
+          return new ServiceError(message, "NETWORK_ERROR", error);
+        })
+        .catch(() => {
+          // If response can't be parsed as JSON, fall back to generic message
+          if (status === 404) {
+            return new ServiceError("Not found", "NOT_FOUND", error);
+          }
+          if (status === 401 || status === 403) {
+            return new ServiceError("Unauthorized", "UNAUTHORIZED", error);
+          }
+          if (status && status >= 500) {
+            return new ServiceError("Server error", "SERVER_ERROR", error);
+          }
+          return new ServiceError("Network error", "NETWORK_ERROR", error);
+        });
     }
     if (error instanceof Error) {
       return Promise.resolve(new ServiceError(error.message, "UNKNOWN_ERROR", error));

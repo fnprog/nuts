@@ -23,17 +23,7 @@ import { db } from "../storage/client";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type ServiceName =
-  | "anonymous-user"
-  | "auth"
-  | "crdt"
-  | "kysely"
-  | "default-categories"
-  | "transaction"
-  | "account"
-  | "category"
-  | "preferences"
-  | "sync";
+type ServiceName = "anonymous-user" | "auth" | "crdt" | "kysely" | "default-categories" | "transaction" | "account" | "category" | "preferences" | "sync";
 
 export interface InitStatus {
   isInitialized: boolean;
@@ -77,16 +67,11 @@ class OfflineFirstInitService {
   }
 
   getStatus(): InitStatus {
-    const all: ServiceName[] = [
-      "anonymous-user", "auth", "crdt", "kysely", "default-categories",
-      "transaction", "account", "category", "preferences", "sync",
-    ];
+    const all: ServiceName[] = ["anonymous-user", "auth", "crdt", "kysely", "default-categories", "transaction", "account", "category", "preferences", "sync"];
     return {
       isInitialized: this.isInitialized,
       syncEnabled: featureFlagsService.isSyncEnabled(),
-      services: Object.fromEntries(
-        all.map((s) => [s, this.initializedServices.has(s)])
-      ) as Record<ServiceName, boolean>,
+      services: Object.fromEntries(all.map((s) => [s, this.initializedServices.has(s)])) as Record<ServiceName, boolean>,
     };
   }
 
@@ -150,13 +135,16 @@ class OfflineFirstInitService {
 
   private withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
     return new Promise<T>((resolve, reject) => {
-      const timer = setTimeout(
-        () => reject(new Error(`Initialization timed out after ${ms}ms`)),
-        ms
-      );
+      const timer = setTimeout(() => reject(new Error(`Initialization timed out after ${ms}ms`)), ms);
       promise.then(
-        (value) => { clearTimeout(timer); resolve(value); },
-        (error) => { clearTimeout(timer); reject(error); }
+        (value) => {
+          clearTimeout(timer);
+          resolve(value);
+        },
+        (error) => {
+          clearTimeout(timer);
+          reject(error);
+        }
       );
     });
   }
@@ -293,12 +281,7 @@ class OfflineFirstInitService {
    * Throws on error so the init sequence fails cleanly.
    */
   private async loadDefaultCategoriesIntoCRDT(): Promise<boolean> {
-    const defaults = await db.db
-      .selectFrom("categories")
-      .selectAll()
-      .where("is_default", "=", 1)
-      .where("created_by", "=", "system")
-      .execute();
+    const defaults = await db.db.selectFrom("categories").selectAll().where("is_default", "=", 1).where("created_by", "=", "system").execute();
 
     if (defaults.length === 0) {
       logger.info("No default categories found in SQLite");
@@ -342,8 +325,16 @@ class OfflineFirstInitService {
     logger.info("Cleaning up partially initialized services…");
 
     const teardownOrder: ServiceName[] = [
-      "sync", "preferences", "category", "account",
-      "transaction", "default-categories", "crdt", "kysely", "auth", "anonymous-user",
+      "sync",
+      "preferences",
+      "category",
+      "account",
+      "transaction",
+      "default-categories",
+      "crdt",
+      "kysely",
+      "auth",
+      "anonymous-user",
     ];
 
     for (const service of teardownOrder) {

@@ -1,10 +1,4 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { transactionService } from "./transaction.service";
@@ -89,11 +83,7 @@ export function UndoRedoProvider({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("keydown", handler);
   }, [undo, redo]);
 
-  return (
-    <UndoRedoContext.Provider value={{ canUndo, canRedo, undo, redo }}>
-      {children}
-    </UndoRedoContext.Provider>
-  );
+  return <UndoRedoContext.Provider value={{ canUndo, canRedo, undo, redo }}>{children}</UndoRedoContext.Provider>;
 }
 
 export const useUndoRedo = () => useContext(UndoRedoContext);

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NumberFlow } from '@number-flow/react';
+import NumberFlow from "@number-flow/react";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 // Mock data for the chart
@@ -42,7 +42,7 @@ export default function NetWorthChart() {
         <XAxis dataKey="month" />
         <YAxis tickFormatter={(value) => `$${value / 1000}k`} />
         <Tooltip
-          formatter={(value) => [<NumberFlow value={value} format={{ style: 'currency', currency: 'USD', trailingZeroDisplay: 'stripIfInteger' }} />, ""]}
+          formatter={(value) => [<NumberFlow value={value} format={{ style: "currency", currency: "USD" }} />, ""]}
           contentStyle={{
             backgroundColor: "hsl(var(--popover))",
             borderColor: "hsl(var(--border))",

@@ -3,7 +3,7 @@ import { tanstackRouter } from "@tanstack/router-plugin/vite";
 
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-import tsConfigPaths from 'vite-tsconfig-paths'
+import tsConfigPaths from "vite-tsconfig-paths";
 import wasm from "vite-plugin-wasm";
 
 const ReactCompilerConfig = {};
@@ -23,70 +23,64 @@ export default defineConfig({
     tsConfigPaths(),
   ],
   build: {
-    target: 'esnext',
-    minify: 'esbuild',
+    target: "esnext",
+    minify: "esbuild",
     cssMinify: true,
     rollupOptions: {
       output: {
         // Improved chunk splitting for better caching and loading
         manualChunks: {
           // Core framework chunks
-          'react-vendor': ['react', 'react-dom'],
-          'query-vendor': ['@tanstack/react-query'],
-          'router-vendor': ['@tanstack/react-router'],
+          "react-vendor": ["react", "react-dom"],
+          "query-vendor": ["@tanstack/react-query"],
+          "router-vendor": ["@tanstack/react-router"],
 
           // UI vendor chunks (split by category)
-          'ui-radix': [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-select',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-alert-dialog',
-            '@radix-ui/react-popover',
-            '@radix-ui/react-tooltip'
+          "ui-radix": [
+            "@radix-ui/react-dialog",
+            "@radix-ui/react-dropdown-menu",
+            "@radix-ui/react-select",
+            "@radix-ui/react-tabs",
+            "@radix-ui/react-alert-dialog",
+            "@radix-ui/react-popover",
+            "@radix-ui/react-tooltip",
           ],
-          'ui-components': ['lucide-react', '@remixicon/react'],
+          "ui-components": ["lucide-react", "@remixicon/react"],
 
           // Chart and data visualization
-          'chart-vendor': ['recharts'],
+          "chart-vendor": ["recharts"],
 
           // Form handling
-          'form-vendor': ['react-hook-form', '@hookform/resolvers', 'zod'],
+          "form-vendor": ["react-hook-form", "@hookform/resolvers", "zod"],
 
           // Utilities (keep these separate for better caching)
-          'date-utils': ['date-fns'],
-          'style-utils': ['clsx', 'tailwind-merge', 'class-variance-authority'],
+          "date-utils": ["date-fns"],
+          "style-utils": ["clsx", "tailwind-merge", "class-variance-authority"],
 
           // Financial/business logic
-          'finance-vendor': ['currency-symbol-map', 'papaparse'],
+          "finance-vendor": ["currency-symbol-map", "papaparse"],
 
           // Animation and interactions
-          'motion-vendor': ['motion', '@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities'],
+          "motion-vendor": ["motion", "@dnd-kit/core", "@dnd-kit/sortable", "@dnd-kit/utilities"],
 
           // Internationalization
-          'i18n-vendor': ['i18next', 'i18next-http-backend', 'react-i18next'],
+          "i18n-vendor": ["i18next", "i18next-http-backend", "react-i18next"],
 
           // Third-party integrations (these can be lazy loaded)
-          'integrations': ['react-plaid-link', 'teller-connect-react', '@mono.co/connect.js'],
+          integrations: ["react-plaid-link", "teller-connect-react", "@mono.co/connect.js"],
         },
 
         // Optimize chunk file names for better caching
         chunkFileNames: (chunkInfo) => {
-          if (chunkInfo.name === 'vendor') {
-            return 'assets/vendor-[hash].js';
+          if (chunkInfo.name === "vendor") {
+            return "assets/vendor-[hash].js";
           }
-          return 'assets/[name]-[hash].js';
+          return "assets/[name]-[hash].js";
         },
-        assetFileNames: 'assets/[name]-[hash].[ext]',
-        entryFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: "assets/[name]-[hash].[ext]",
+        entryFileNames: "assets/[name]-[hash].js",
       },
     },
-
-    // Increase chunk size warning limit since we're optimizing
-    chunkSizeWarningLimit: 800,
-
-    // Enable source maps for production debugging (optional)
-    sourcemap: false,
   },
 
   // Optimize dev server
@@ -99,18 +93,18 @@ export default defineConfig({
   // Optimize dependencies
   optimizeDeps: {
     include: [
-      'react',
-      'react-dom',
-      '@tanstack/react-query',
-      '@tanstack/react-router',
-      'zustand',
-      'date-fns',
-      'clsx',
-      'tailwind-merge',
-      'react-plaid-link',
-      'teller-connect-react',
-      '@mono.co/connect.js'
+      "react",
+      "react-dom",
+      "@tanstack/react-query",
+      "@tanstack/react-router",
+      "zustand",
+      "date-fns",
+      "clsx",
+      "tailwind-merge",
+      "react-plaid-link",
+      "teller-connect-react",
+      "@mono.co/connect.js",
     ],
-    exclude: ['wa-sqlite']
+    exclude: ["wa-sqlite"],
   },
 });

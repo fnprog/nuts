@@ -1,5 +1,6 @@
 @import "@fontsource-variable/geist-mono";
 @import "@fontsource-variable/geist";
+@import "@fontsource/instrument-serif";
 
 @import "tailwindcss";
 
@@ -7,82 +8,82 @@
 @import "tw-animate-css";
 
 :root {
-  --background: oklch(0.98 0.002 286);         /* Primary background - soft warm white */
+  --background: oklch(0.98 0.002 286); /* Primary background - soft warm white */
   --background-secondary: oklch(0.96 0.003 286); /* Secondary background - slightly darker */
-  --background-tertiary: oklch(0.94 0.004 286);  /* Tertiary background - more depth */
- 
-  --foreground: oklch(0.25 0.01 286);          /* Primary text - soft dark gray (not black) */
+  --background-tertiary: oklch(0.94 0.004 286); /* Tertiary background - more depth */
+
+  --foreground: oklch(0.25 0.01 286); /* Primary text - soft dark gray (not black) */
   --foreground-secondary: oklch(0.45 0.008 286); /* Secondary text - medium gray */
-  --foreground-tertiary: oklch(0.60 0.006 286);  /* Tertiary text - light gray */
+  --foreground-tertiary: oklch(0.6 0.006 286); /* Tertiary text - light gray */
 
-  --card: oklch(0.995 0.001 286);              /* Card background - slightly elevated */
-  --card-foreground: oklch(0.25 0.01 286);     /* Card text */
- 
-  --surface: oklch(0.985 0.002 286);           /* Surface layer */
-  --surface-foreground: oklch(0.25 0.01 286);  /* Surface text */
- 
-  --popover: oklch(1 0 0);                     /* Popover - pure white for highest elevation */
-  --popover-foreground: oklch(0.25 0.01 286);  /* Popover text */
+  --card: oklch(0.995 0.001 286); /* Card background - slightly elevated */
+  --card-foreground: oklch(0.25 0.01 286); /* Card text */
 
-  --default: oklch(0.96 0.003 286);            /* Default button/element background */
-  --default-foreground: oklch(0.25 0.01 286);  /* Default element text */
+  --surface: oklch(0.985 0.002 286); /* Surface layer */
+  --surface-foreground: oklch(0.25 0.01 286); /* Surface text */
 
-  --primary: oklch(0.55 0.10 250);             /* Primary action - muted blue-purple */
-  --primary-foreground: oklch(0.99 0 0);       /* Primary text - off-white */
+  --popover: oklch(1 0 0); /* Popover - pure white for highest elevation */
+  --popover-foreground: oklch(0.25 0.01 286); /* Popover text */
 
-  --secondary: oklch(0.92 0.008 286);          /* Secondary action - subtle gray */
-  --secondary-foreground: oklch(0.30 0.01 286); /* Secondary text */
+  --default: oklch(0.96 0.003 286); /* Default button/element background */
+  --default-foreground: oklch(0.25 0.01 286); /* Default element text */
 
-  --muted: oklch(0.90 0.006 286);              /* Muted background */
-  --muted-foreground: oklch(0.50 0.008 286);   /* Muted text */
+  --primary: oklch(0.62 0.13 163); /* Primary action - muted blue-purple */
+  --primary-foreground: oklch(0.99 0 0); /* Primary text - off-white */
 
-  --accent: oklch(0.96 0.004 286);             /* Accent - subtle highlight (for dropdowns, hover states) */
-  --accent-foreground: oklch(0.25 0.01 286);   /* Accent text */
+  --secondary: oklch(0.92 0.008 286); /* Secondary action - subtle gray */
+  --secondary-foreground: oklch(0.3 0.01 286); /* Secondary text */
 
-  --success: oklch(0.60 0.12 160);             /* Success - muted green */
-  --success-foreground: oklch(0.99 0 0);       /* Success text */
+  --muted: oklch(0.9 0.006 286); /* Muted background */
+  --muted-foreground: oklch(0.5 0.008 286); /* Muted text */
 
-  --info: oklch(0.58 0.10 240);                /* Info - muted blue */
-  --info-foreground: oklch(0.99 0 0);          /* Info text */
+  --accent: oklch(0.96 0.004 286); /* Accent - subtle highlight (for dropdowns, hover states) */
+  --accent-foreground: oklch(0.25 0.01 286); /* Accent text */
 
-  --warning: oklch(0.70 0.12 70);              /* Warning - muted orange */
-  --warning-foreground: oklch(0.25 0.01 286);  /* Warning text - dark for contrast */
+  --success: oklch(0.6 0.12 160); /* Success - muted green */
+  --success-foreground: oklch(0.99 0 0); /* Success text */
 
-  --error: oklch(0.58 0.14 25);                /* Error - muted red */
-  --error-foreground: oklch(0.99 0 0);         /* Error text */
- 
-  --destructive: oklch(0.58 0.14 25);          /* Destructive - same as error */
-  --destructive-foreground: oklch(0.99 0 0);   /* Destructive text */
+  --info: oklch(0.58 0.1 240); /* Info - muted blue */
+  --info-foreground: oklch(0.99 0 0); /* Info text */
 
-  --border: oklch(0.25 0.01 286 / 0.08);       /* Subtle border - 8% opacity */
+  --warning: oklch(0.7 0.12 70); /* Warning - muted orange */
+  --warning-foreground: oklch(0.25 0.01 286); /* Warning text - dark for contrast */
+
+  --error: oklch(0.58 0.14 25); /* Error - muted red */
+  --error-foreground: oklch(0.99 0 0); /* Error text */
+
+  --destructive: oklch(0.58 0.14 25); /* Destructive - same as error */
+  --destructive-foreground: oklch(0.99 0 0); /* Destructive text */
+
+  --border: oklch(0.25 0.01 286 / 0.08); /* Subtle border - 8% opacity */
   --border-strong: oklch(0.25 0.01 286 / 0.12); /* Stronger border - 12% opacity */
-  --divider: oklch(0.25 0.01 286 / 0.06);      /* Divider - 6% opacity */
+  --divider: oklch(0.25 0.01 286 / 0.06); /* Divider - 6% opacity */
 
-  --input: oklch(0.97 0.003 286);              /* Input background */
-  --input-border: oklch(0.25 0.01 286 / 0.10); /* Input border - 10% opacity */
- 
-  --ring: oklch(0.55 0.10 250 / 0.50);         /* Focus ring - 50% opacity */
+  --input: oklch(0.97 0.003 286); /* Input background */
+  --input-border: oklch(0.25 0.01 286 / 0.1); /* Input border - 10% opacity */
 
-  --chart-1: oklch(0.60 0.12 240);             /* Blue */
-  --chart-2: oklch(0.62 0.14 300);             /* Purple */
-  --chart-3: oklch(0.58 0.12 160);             /* Green */
-  --chart-4: oklch(0.68 0.13 70);              /* Orange */
-  --chart-5: oklch(0.60 0.11 200);             /* Cyan */
+  --ring: oklch(0.55 0.1 250 / 0.5); /* Focus ring - 50% opacity */
+
+  --chart-1: oklch(0.6 0.12 240); /* Blue */
+  --chart-2: oklch(0.62 0.14 300); /* Purple */
+  --chart-3: oklch(0.58 0.12 160); /* Green */
+  --chart-4: oklch(0.68 0.13 70); /* Orange */
+  --chart-5: oklch(0.6 0.11 200); /* Cyan */
 
   --sidebar: oklch(0.98 0.002 286);
   --sidebar-foreground: oklch(0.25 0.01 286);
-  --sidebar-primary: oklch(0.55 0.10 250);
+  --sidebar-primary: oklch(0.55 0.1 250);
   --sidebar-primary-foreground: oklch(0.99 0 0);
   --sidebar-accent: oklch(0.96 0.004 286);
   --sidebar-accent-foreground: oklch(0.25 0.01 286);
   --sidebar-border: oklch(0.25 0.01 286 / 0.08);
-  --sidebar-ring: oklch(0.55 0.10 250 / 0.50);
+  --sidebar-ring: oklch(0.55 0.1 250 / 0.5);
 
   --radius: 0.5rem;
- 
+
   /* Fonts */
   --font-sans: "Geist Variable", sans-serif;
-  --font-serif: "BespokeSerif-Variable", var(--font-serif);
+  --font-serif: "Instrument Serif", Georgia;
   --font-mono: "Geist Mono Variable", monospace;
 
   /* Shadows - subtle depth */
@@ -93,7 +94,6 @@
 
   --scrollbar: oklch(0.25 0.01 286 / 0.15);
 }
-
 
 .dark {
   --background: oklch(0.1867 0 0);
@@ -111,14 +111,13 @@
   --popover: oklch(0.2178 0 0);
   --popover-foreground: oklch(0.9219 0 0);
 
-  --primary: oklch(0.60 0.10 250);             /* Muted blue-purple - easier on eyes */
+  --primary: oklch(0.6 0.1 250); /* Muted blue-purple - easier on eyes */
   --primary-foreground: oklch(0.99 0 0);
 
   --secondary: oklch(0.2739 0.0055 286.0326);
   --secondary-foreground: oklch(0.9842 0.0034 247.8575);
 
   --muted: oklch(0.1543 0 0);
-  --muted: oklch(70.5% 0.015 286.067);
   --muted-foreground: oklch(0.7252 0 0);
 
   --accent: oklch(0.72 0.15 160);
@@ -163,7 +162,6 @@
   --segment: oklch(0.3964 0.01 285.93);
   --segment-foreground: var(--foreground);
 
-  --border: oklch(1 0 0 / 0%);
   --divider: oklch(0.22 0.006 286.03);
   --focus: var(--accent);
   --link: var(--foreground);
@@ -216,46 +214,44 @@
   --color-secondary-950: oklch(0.04 0.015 264);
 
   /** Typography **/
-            --font-weight-normal: 400;
-            --font-weight-medium: 500;
-            --font-weight-semibold: 600;
-            --font-weight-bold: 700;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
 
-            --text-xs: 0.75rem;      /* 12px */
-            --text-sm: 0.875rem;     /* 14px */
-            --text-base: 1rem;       /* 16px */
-            --text-lg: 1.125rem;     /* 18px */
-            --text-xl: 1.25rem;      /* 20px */
-            --text-2xl: 1.5rem;      /* 24px */
-            --text-3xl: 1.875rem;    /* 30px */
-            --text-4xl: 2.25rem;     /* 36px */
-            --text-5xl: 2.5rem;      /* 40px - reduced from 48px */
-            --text-6xl: 3rem;        /* 48px - reduced from 60px */
-            --text-7xl: 3.5rem;      /* 56px - reduced from 72px */
+  --text-xs: 0.75rem; /* 12px */
+  --text-sm: 0.875rem; /* 14px */
+  --text-base: 1rem; /* 16px */
+  --text-lg: 1.125rem; /* 18px */
+  --text-xl: 1.25rem; /* 20px */
+  --text-2xl: 1.5rem; /* 24px */
+  --text-3xl: 1.875rem; /* 30px */
+  --text-4xl: 2.25rem; /* 36px */
+  --text-5xl: 2.5rem; /* 40px - reduced from 48px */
+  --text-6xl: 3rem; /* 48px - reduced from 60px */
+  --text-7xl: 3.5rem; /* 56px - reduced from 72px */
 
+  --leading-tight: 1.2;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+  --leading-loose: 2;
 
-            --leading-tight: 1.2;
-            --leading-snug: 1.375;
-            --leading-normal: 1.5;
-            --leading-relaxed: 1.625;
-            --leading-loose: 2;
+  /* Letter Spacing */
+  --tracking-tighter: -0.05em;
+  --tracking-tight: -0.025em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.025em;
+  --tracking-wider: 0.05em;
 
-
-            /* Letter Spacing */
-            --tracking-tighter: -0.05em;
-            --tracking-tight: -0.025em;
-            --tracking-normal: 0;
-            --tracking-wide: 0.025em;
-            --tracking-wider: 0.05em;
-            
-            /* Paragraph Spacing */
-            --paragraph-spacing: 1.5rem;
-
+  /* Paragraph Spacing */
+  --paragraph-spacing: 1.5rem;
 }
 
 @theme inline {
   --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   --font-mono: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-serif: var(--font-serif), Georgia ui-serif;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -410,14 +406,16 @@
   }
 
   @keyframes caret-blink {
-    0%, 70%, 100% {
+    0%,
+    70%,
+    100% {
       opacity: 1;
     }
-    20%, 50% {
+    20%,
+    50% {
       opacity: 0;
     }
   }
-  
 
   @keyframes caret-blink {
     0%,
@@ -508,8 +506,8 @@
   body {
     @apply bg-background text-foreground font-sans leading-normal;
 
-            font-weight: var(--font-weight-normal);
-            font-size: var(--text-base);
+    font-weight: var(--font-weight-normal);
+    font-size: var(--text-base);
   }
 
   ::selection {
@@ -525,7 +523,7 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply rounded-full bg-muted-foreground;
+    @apply bg-muted-foreground rounded-full;
   }
 
   * {
@@ -550,20 +548,20 @@
   }
 
   .nuts-grid {
-  display: -webkit-box; /* Not needed if autoprefixing */
-  display: -ms-flexbox; /* Not needed if autoprefixing */
-  display: flex;
-  margin-left: -15px; /* gutter size offset */
-  width: auto;
-}
-.nuts-grid_column {
-  padding-left: 15px; /* gutter size */
-  background-clip: padding-box;
-}
+    display: -webkit-box; /* Not needed if autoprefixing */
+    display: -ms-flexbox; /* Not needed if autoprefixing */
+    display: flex;
+    margin-left: -15px; /* gutter size offset */
+    width: auto;
+  }
+  .nuts-grid_column {
+    padding-left: 15px; /* gutter size */
+    background-clip: padding-box;
+  }
 
-/* Style your items */
-.nuts-grid_column > div { /* change div to reference your elements you put in <Masonry> */
-  margin-bottom: 15px;
-}
-
+  /* Style your items */
+  .nuts-grid_column > div {
+    /* change div to reference your elements you put in <Masonry> */
+    margin-bottom: 15px;
+  }
 }

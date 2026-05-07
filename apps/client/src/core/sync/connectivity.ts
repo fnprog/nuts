@@ -20,8 +20,6 @@ const SERVER_CHECK_TIMEOUT_MS = 5_000;
 // they are auth or routing concerns, not connectivity concerns.
 const SERVER_REACHABLE = (status: number): boolean => status < 500;
 
-
-
 /**
  * Connectivity Detection Service
  *
@@ -109,7 +107,6 @@ class ConnectivityService {
     this.listeners.clear();
   }
 
-
   // Browser event handlers
 
   private handleBrowserOnline(): void {
@@ -123,7 +120,6 @@ class ConnectivityService {
   }
 
   // Scheduling
-
 
   /**
    * Runs a single connectivity check then schedules the next one.
@@ -206,14 +202,8 @@ class ConnectivityService {
 
   private recordFailure(): void {
     this.consecutiveFailures++;
-    this.currentIntervalMs = Math.min(
-      CHECK_INTERVAL_BASE_MS * Math.pow(CHECK_INTERVAL_BACKOFF_FACTOR, this.consecutiveFailures),
-      CHECK_INTERVAL_MAX_MS
-    );
-    logger.warn(
-      `Server check failed (attempt ${this.consecutiveFailures}), ` +
-      `next check in ${this.currentIntervalMs / 1000}s`
-    );
+    this.currentIntervalMs = Math.min(CHECK_INTERVAL_BASE_MS * Math.pow(CHECK_INTERVAL_BACKOFF_FACTOR, this.consecutiveFailures), CHECK_INTERVAL_MAX_MS);
+    logger.warn(`Server check failed (attempt ${this.consecutiveFailures}), ` + `next check in ${this.currentIntervalMs / 1000}s`);
   }
 
   private updateState(updates: Partial<ConnectivityState>): void {

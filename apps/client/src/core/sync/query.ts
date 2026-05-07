@@ -1,10 +1,5 @@
 import { db } from "@/core/storage/client";
-import type {
-  CRDTTransaction,
-  CRDTAccount,
-  CRDTCategory,
-  CRDTRule,
-} from "@nuts/types";
+import type { CRDTTransaction, CRDTAccount, CRDTCategory, CRDTRule } from "@nuts/types";
 import type { Database } from "@nuts/types/storage";
 import { Kysely, sql } from "kysely";
 import { Result, ok, err } from "@/lib/result";
@@ -123,15 +118,9 @@ function parseJsonSafe<T>(value: unknown, fallback: T): T {
   }
 }
 
-async function insertBatched<T extends object>(
-  database: Kysely<Database>,
-  table: keyof Database & string,
-  rows: T[]
-): Promise<void> {
+async function insertBatched<T extends object>(database: Kysely<Database>, table: keyof Database & string, rows: T[]): Promise<void> {
   for (let i = 0; i < rows.length; i += BATCH_SIZE) {
-    await (database.insertInto(table as any) as any)
-      .values(rows.slice(i, i + BATCH_SIZE))
-      .execute();
+    await (database.insertInto(table as any) as any).values(rows.slice(i, i + BATCH_SIZE)).execute();
   }
 }
 
@@ -203,8 +192,8 @@ class KyselyQueryService {
 
     logger.info(
       `[KYSELY] Rebuilding from CRDT: ${accountsArray.length} accounts, ` +
-      `${transactionsArray.length} transactions, ${categoriesArray.length} categories, ` +
-      `${rulesArray.length} rules`
+        `${transactionsArray.length} transactions, ${categoriesArray.length} categories, ` +
+        `${rulesArray.length} rules`
     );
 
     try {
@@ -310,8 +299,8 @@ class KyselyQueryService {
       const duration = ((performance.now() - startTime) / 1000).toFixed(2);
       logger.info(
         `[KYSELY] Rebuild complete in ${duration}s — ` +
-        `${accountsArray.length} accounts, ${transactionsArray.length} transactions, ` +
-        `${categoriesArray.length} categories, ${rulesArray.length} rules`
+          `${accountsArray.length} accounts, ${transactionsArray.length} transactions, ` +
+          `${categoriesArray.length} categories, ${rulesArray.length} rules`
       );
 
       return ok(undefined);
@@ -329,16 +318,7 @@ class KyselyQueryService {
 
     try {
       const database = db.db;
-      const {
-        page = 1,
-        limit = 50,
-        q: search,
-        account_id: accountId,
-        category_id: categoryId,
-        type,
-        start_date: startDate,
-        end_date: endDate,
-      } = params;
+      const { page = 1, limit = 50, q: search, account_id: accountId, category_id: categoryId, type, start_date: startDate, end_date: endDate } = params;
 
       const offset = (page - 1) * limit;
 
@@ -376,18 +356,11 @@ class KyselyQueryService {
       if (startDate) query = query.where(sql`DATE(t.transaction_datetime / 1000, 'unixepoch')`, ">=", startDate);
       if (endDate) query = query.where(sql`DATE(t.transaction_datetime / 1000, 'unixepoch')`, "<=", endDate);
 
-      const countResult = await query
-        .clearSelect()
-        .select(database.fn.countAll<number>().as("total"))
-        .executeTakeFirst();
+      const countResult = await query.clearSelect().select(database.fn.countAll<number>().as("total")).executeTakeFirst();
 
       const totalCount = Number(countResult?.total ?? 0);
 
-      const rows = await query
-        .orderBy("t.transaction_datetime", "desc")
-        .limit(limit)
-        .offset(offset)
-        .execute();
+      const rows = await query.orderBy("t.transaction_datetime", "desc").limit(limit).offset(offset).execute();
 
       const data: TransactionRow[] = rows.map((tx: any) => ({
         id: tx.id,
@@ -419,22 +392,13 @@ class KyselyQueryService {
     }
   }
 
-  async exportTransactions(
-    params: Omit<GetTransactionsParams, "page" | "limit">
-  ): Promise<Result<TransactionRow[], ServiceError>> {
+  async exportTransactions(params: Omit<GetTransactionsParams, "page" | "limit">): Promise<Result<TransactionRow[], ServiceError>> {
     const initResult = await this.ensureInitialized();
     if (initResult.isErr()) return err(initResult.error);
 
     try {
       const database = db.db;
-      const {
-        q: search,
-        account_id: accountId,
-        category_id: categoryId,
-        type,
-        start_date: startDate,
-        end_date: endDate,
-      } = params;
+      const { q: search, account_id: accountId, category_id: categoryId, type, start_date: startDate, end_date: endDate } = params;
 
       let query = database
         .selectFrom("transactions as t")
@@ -470,9 +434,7 @@ class KyselyQueryService {
       if (startDate) query = query.where(sql`DATE(t.transaction_datetime / 1000, 'unixepoch')`, ">=", startDate);
       if (endDate) query = query.where(sql`DATE(t.transaction_datetime / 1000, 'unixepoch')`, "<=", endDate);
 
-      const rows = await query
-        .orderBy("t.transaction_datetime", "desc")
-        .execute();
+      const rows = await query.orderBy("t.transaction_datetime", "desc").execute();
 
       const data: TransactionRow[] = rows.map((tx: any) => ({
         id: tx.id,
@@ -509,12 +471,7 @@ class KyselyQueryService {
     if (initResult.isErr()) return err(initResult.error);
 
     try {
-      const rows = await db.db
-        .selectFrom("accounts")
-        .selectAll()
-        .where("deleted_at", "is", null)
-        .orderBy("name", "asc")
-        .execute();
+      const rows = await db.db.selectFrom("accounts").selectAll().where("deleted_at", "is", null).orderBy("name", "asc").execute();
 
       return ok(
         rows.map((acc: any) => ({
@@ -548,12 +505,7 @@ class KyselyQueryService {
     if (initResult.isErr()) return err(initResult.error);
 
     try {
-      const rows = await db.db
-        .selectFrom("categories")
-        .selectAll()
-        .where("deleted_at", "is", null)
-        .orderBy("name", "asc")
-        .execute();
+      const rows = await db.db.selectFrom("categories").selectAll().where("deleted_at", "is", null).orderBy("name", "asc").execute();
 
       return ok(
         rows.map((cat: any) => ({
@@ -581,13 +533,7 @@ class KyselyQueryService {
     if (initResult.isErr()) return err(initResult.error);
 
     try {
-      const rows = await db.db
-        .selectFrom("rules")
-        .selectAll()
-        .where("deleted_at", "is", null)
-        .orderBy("priority", "desc")
-        .orderBy("name", "asc")
-        .execute();
+      const rows = await db.db.selectFrom("rules").selectAll().where("deleted_at", "is", null).orderBy("priority", "desc").orderBy("name", "asc").execute();
 
       return ok(
         rows.map((rule: any) => ({

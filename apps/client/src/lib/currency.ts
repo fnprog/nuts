@@ -30,10 +30,7 @@ export function getExchangeRate(fromCurrency: string, toCurrency: string, date?:
     params.append("date", date);
   }
 
-  return ResultAsync.fromPromise(
-    api.get(`/exchange-rates?${params.toString()}`).json<ExchangeRate>(),
-    ServiceError.fromKyError
-  );
+  return ResultAsync.fromPromise(api.get(`/exchange-rates?${params.toString()}`).json<ExchangeRate>(), ServiceError.fromKyError);
 }
 
 export async function convertCurrency(amount: number, fromCurrency: string, toCurrency: string, date?: string): Promise<ConversionResult | null> {
@@ -87,10 +84,7 @@ export async function convertMultipleCurrencies(
 }
 
 export function getLatestExchangeRates(baseCurrency: string) {
-  return ResultAsync.fromPromise(
-    api.get(`/exchange-rates/latest?base=${baseCurrency}`).json<ExchangeRate[]>(),
-    ServiceError.fromKyError
-  );
+  return ResultAsync.fromPromise(api.get(`/exchange-rates/latest?base=${baseCurrency}`).json<ExchangeRate[]>(), ServiceError.fromKyError);
 }
 
 /**

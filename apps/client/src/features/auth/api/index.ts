@@ -5,17 +5,11 @@ import { InitMFASchema, LoginFormValues, LoginResponse, RefreshAuthRes, SessionS
 const BASEURI = "/auth";
 
 const signup = (credentials: SignupFormValues) => {
-  return ResultAsync.fromPromise(
-    api.post(`${BASEURI}/signup`, { json: credentials }).json<unknown>(),
-    ServiceError.fromKyError
-  );
+  return ResultAsync.fromPromise(api.post(`${BASEURI}/signup`, { json: credentials }).json<unknown>(), ServiceError.fromKyError);
 };
 
 const login = (credentials: LoginFormValues): ResultAsync<LoginResponse, ServiceError> => {
-  return ResultAsync.fromPromise(
-    api.post(`${BASEURI}/login`, { json: credentials }).json<LoginResponse>(),
-    ServiceError.fromKyError
-  );
+  return ResultAsync.fromPromise(api.post(`${BASEURI}/login`, { json: credentials }).json<LoginResponse>(), ServiceError.fromKyError);
 };
 
 const logout = () => {
@@ -26,17 +20,11 @@ const logout = () => {
 };
 
 const refresh = () => {
-  return ResultAsync.fromPromise(
-    api.post(`${BASEURI}/refresh`).json<RefreshAuthRes>(),
-    ServiceError.fromKyError
-  );
+  return ResultAsync.fromPromise(api.post(`${BASEURI}/refresh`).json<RefreshAuthRes>(), ServiceError.fromKyError);
 };
 
 const initiateMfaSetup = () => {
-  return ResultAsync.fromPromise(
-    api.post(`${BASEURI}/mfa/generate`).json<InitMFASchema>(),
-    ServiceError.fromKyError
-  );
+  return ResultAsync.fromPromise(api.post(`${BASEURI}/mfa/generate`).json<InitMFASchema>(), ServiceError.fromKyError);
 };
 
 const verifyMfaSetup = (code: string) => {
@@ -54,10 +42,7 @@ const disableMfa = () => {
 };
 
 const getSessions = () => {
-  return ResultAsync.fromPromise(
-    api.get(`${BASEURI}/sessions`).json<SessionSchema[]>(),
-    ServiceError.fromKyError
-  );
+  return ResultAsync.fromPromise(api.get(`${BASEURI}/sessions`).json<SessionSchema[]>(), ServiceError.fromKyError);
 };
 
 const revokeSession = (sessionId: string) => {

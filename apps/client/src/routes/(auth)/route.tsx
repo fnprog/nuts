@@ -18,16 +18,16 @@ export const Route = createFileRoute("/(auth)")({
 function RouteComponent() {
   return (
     <div className="flex min-h-screen">
-      <div className="relative hidden w-3/6 overflow-hidden bg-linear-to-t from-black via-gray-800 to-white lg:flex lg:flex-col lg:justify-between lg:p-12">
+      <div className="via-primary-nuts-800 relative hidden w-3/6 overflow-hidden bg-linear-to-t from-black to-white lg:flex lg:flex-col lg:justify-between lg:p-12 dark:from-white dark:to-black">
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
           <div className="flex items-center gap-2">
-            <Nuts className="h-8 w-8" fill="var(--color-gray-800)" />
-            <span className="text-2xl font-bold text-gray-800">Nuts</span>
+            <Nuts className="size-8" fill="var(--color-primary-nuts-800)" />
+            <span className="text-primary-nuts-800 text-2xl font-bold">Nuts</span>
           </div>
         </motion.div>
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3, duration: 0.8 }} className="max-w-md">
-          <h2 className="text-5xl leading-tight font-bold text-white">Your personal finance & wealth workspace</h2>
+          <h2 className="font-serif text-5xl leading-tight font-bold text-white">Your personal finance & wealth workspace</h2>
         </motion.div>
 
         <Noise />

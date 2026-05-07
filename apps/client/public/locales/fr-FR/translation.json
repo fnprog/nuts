@@ -48,7 +48,7 @@
     "transactionSetup": "Configuration des transactions",
     "about": "À propos",
     "profile": "Profil",
-    "security": "Sécurité", 
+    "security": "Sécurité",
     "appearance": "Apparence",
     "localization": "Localisation",
     "features": "Fonctionnalités",
@@ -115,7 +115,7 @@
     "destinationAccount": "Compte de destination",
     "types": {
       "income": "Revenu",
-      "expense": "Dépense", 
+      "expense": "Dépense",
       "transfer": "Transfert"
     }
   },

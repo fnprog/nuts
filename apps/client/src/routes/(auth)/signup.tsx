@@ -19,7 +19,6 @@ import { Button } from "@/core/components/ui/button";
 import { Input } from "@/core/components/ui/input";
 import { Nuts } from "@/core/components/icons/Logo";
 import { Google } from "@/core/components/icons/google";
-import { Apple } from "@/core/components/icons/apple";
 import { parseApiError } from "@/lib/error";
 
 import { H1, Muted } from "@/core/components/ui/typography";
@@ -125,29 +124,22 @@ function RouteComponent() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="w-full max-w-md">
-      <div className="mb-8 lg:hidden">
-        <div className="flex items-center gap-2">
-          <Nuts className="h-8 w-8" fill="black" />
-          <span className="text-2xl font-bold">Nuts</span>
-        </div>
-      </div>
-
       <main className="w-full">
-        <div className="mb-8">
-          <H1 className="mb-2 text-3xl font-bold">Create an account</H1>
+        <div className="mb-8 flex items-center justify-between">
+          <div className="lg:hidden">
+            <div className="flex items-center gap-2">
+              <Nuts className="size-8" fill="black" />
+              <span className="text-2xl font-bold">Nuts</span>
+            </div>
+          </div>
+          <H1 className="text-2xl lg:text-3xl">Create an account</H1>
         </div>
 
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={form.handleSubmit(onSubmit)}>
           <FieldGroup>
             <FieldSet>
               <FieldGroup>
                 <Field>
-                  <Button type="button" variant="outline" className="w-full gap-3" asChild>
-                    <a href={`${config.VITE_API_BASE_URL}/auth/oauth/apple`}>
-                      <Apple className="size-5" fill="#000" />
-                      <span>Login with Apple</span>
-                    </a>
-                  </Button>
                   <Button type="button" variant="outline" className="w-full gap-3" asChild>
                     <a href={`${config.VITE_API_BASE_URL}/auth/oauth/google`}>
                       <Google className="size-5" />
@@ -161,7 +153,7 @@ function RouteComponent() {
                 <div className="absolute inset-0 flex items-center">
                   <Separator className="w-full" />
                 </div>
-                <div className="relative flex justify-center text-sm">
+                <div className="relative flex justify-center">
                   <Muted className="bg-white px-4">or</Muted>
                 </div>
               </div>

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import NumberFlow from '@number-flow/react';
+import NumberFlow from "@number-flow/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/core/components/ui/card";
 import { Button } from "@/core/components/ui/button";
 import { Badge } from "@/core/components/ui/badge";
@@ -110,7 +110,9 @@ export const PropertyCard = React.memo(({ property }: PropertyCardProps) => {
                       <div className="grid gap-2">
                         <div className="flex items-center justify-between">
                           <span className="text-muted-foreground">Purchase Price:</span>
-                          <span className="font-medium"><NumberFlow value={property.purchasePrice} format={{ style: 'currency', currency: 'USD', trailingZeroDisplay: 'stripIfInteger' }} /></span>
+                          <span className="font-medium">
+                            <NumberFlow value={property.purchasePrice} format={{ style: "currency", currency: "USD", trailingZeroDisplay: "stripIfInteger" }} />
+                          </span>
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-muted-foreground">Current Value:</span>
@@ -119,8 +121,12 @@ export const PropertyCard = React.memo(({ property }: PropertyCardProps) => {
                         <div className="flex items-center justify-between">
                           <span className="text-muted-foreground">Appreciation:</span>
                           <span className="font-medium text-green-500">
-                            +<NumberFlow value={property.currentValue - property.purchasePrice} format={{ style: 'currency', currency: 'USD', signDisplay: 'always', trailingZeroDisplay: 'stripIfInteger' }} />(
-                            {((property.currentValue / property.purchasePrice - 1) * 100).toFixed(1)}%)
+                            +
+                            <NumberFlow
+                              value={property.currentValue - property.purchasePrice}
+                              format={{ style: "currency", currency: "USD", signDisplay: "always", trailingZeroDisplay: "stripIfInteger" }}
+                            />
+                            ({((property.currentValue / property.purchasePrice - 1) * 100).toFixed(1)}%)
                           </span>
                         </div>
                       </div>
@@ -130,7 +136,12 @@ export const PropertyCard = React.memo(({ property }: PropertyCardProps) => {
                       <div className="grid gap-2">
                         <div className="flex items-center justify-between">
                           <span className="text-muted-foreground">Loan Amount:</span>
-                          <span className="font-medium"><NumberFlow value={property.mortgage?.loanAmount} format={{ style: 'currency', currency: 'USD', trailingZeroDisplay: 'stripIfInteger' }} /></span>
+                          <span className="font-medium">
+                            <NumberFlow
+                              value={property.mortgage?.loanAmount}
+                              format={{ style: "currency", currency: "USD", trailingZeroDisplay: "stripIfInteger" }}
+                            />
+                          </span>
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-muted-foreground">Interest Rate:</span>
@@ -154,7 +165,12 @@ export const PropertyCard = React.memo(({ property }: PropertyCardProps) => {
                           </div>
                           <div className="flex items-center justify-between">
                             <span className="text-muted-foreground">Annual Income:</span>
-                            <span className="font-medium"><NumberFlow value={(property.rental?.monthlyRent ?? 0) * 12} format={{ style: 'currency', currency: 'USD', trailingZeroDisplay: 'stripIfInteger' }} /></span>
+                            <span className="font-medium">
+                              <NumberFlow
+                                value={(property.rental?.monthlyRent ?? 0) * 12}
+                                format={{ style: "currency", currency: "USD", trailingZeroDisplay: "stripIfInteger" }}
+                              />
+                            </span>
                           </div>
                         </div>
                         <div className="grid gap-2">
@@ -165,7 +181,11 @@ export const PropertyCard = React.memo(({ property }: PropertyCardProps) => {
                           <div className="flex items-center justify-between">
                             <span className="text-muted-foreground">Cash Flow:</span>
                             <span className="font-medium text-green-500">
-                              <NumberFlow value={(property.rental?.monthlyRent ?? 0) - (property.mortgage?.monthlyPayment ?? 0)} format={{ style: 'currency', currency: 'USD', trailingZeroDisplay: 'stripIfInteger' }} suffix="/mo" />
+                              <NumberFlow
+                                value={(property.rental?.monthlyRent ?? 0) - (property.mortgage?.monthlyPayment ?? 0)}
+                                format={{ style: "currency", currency: "USD", trailingZeroDisplay: "stripIfInteger" }}
+                                suffix="/mo"
+                              />
                             </span>
                           </div>
                         </div>
@@ -237,17 +257,27 @@ export const PropertyCard = React.memo(({ property }: PropertyCardProps) => {
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
             <div className="text-muted-foreground text-sm">Value</div>
-            <div className="font-semibold"><NumberFlow value={property.currentValue} format={{ style: 'currency', currency: 'USD', trailingZeroDisplay: 'stripIfInteger' }} /></div>
+            <div className="font-semibold">
+              <NumberFlow value={property.currentValue} format={{ style: "currency", currency: "USD", trailingZeroDisplay: "stripIfInteger" }} />
+            </div>
           </div>
           {property.type === "rental" ? (
             <div className="space-y-1">
               <div className="text-muted-foreground text-sm">Monthly Rent</div>
-              <div className="font-semibold"><NumberFlow value={property.rental?.monthlyRent ?? 0} format={{ style: 'currency', currency: 'USD', trailingZeroDisplay: 'stripIfInteger' }} /></div>
+              <div className="font-semibold">
+                <NumberFlow value={property.rental?.monthlyRent ?? 0} format={{ style: "currency", currency: "USD", trailingZeroDisplay: "stripIfInteger" }} />
+              </div>
             </div>
           ) : (
             <div className="space-y-1">
               <div className="text-muted-foreground text-sm">Mortgage</div>
-              <div className="font-semibold"><NumberFlow value={property.mortgage?.monthlyPayment} format={{ style: 'currency', currency: 'USD', trailingZeroDisplay: 'stripIfInteger' }} suffix="/mo" /></div>
+              <div className="font-semibold">
+                <NumberFlow
+                  value={property.mortgage?.monthlyPayment}
+                  format={{ style: "currency", currency: "USD", trailingZeroDisplay: "stripIfInteger" }}
+                  suffix="/mo"
+                />
+              </div>
             </div>
           )}
         </div>

@@ -1,5 +1,5 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { NumberFlow } from '@number-flow/react';
+import NumberFlow from "@number-flow/react";
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, YAxis, Dot } from "recharts";
 import { getAllAccountsBalanceTimeline } from "../services/account.queries";
 
@@ -15,7 +15,6 @@ const DUMMY_DATA = [
 export function AccountBalanceChart({ hasAccounts }: { hasAccounts?: boolean }) {
   const { data: realData, isError } = useSuspenseQuery({
     ...getAllAccountsBalanceTimeline(),
-    enabled: hasAccounts === true,
   });
 
   const data = hasAccounts ? realData : DUMMY_DATA;
@@ -98,7 +97,9 @@ export function AccountBalanceChart({ hasAccounts }: { hasAccounts?: boolean }) 
                     <div className="flex flex-col">
                       <span className="text-muted-foreground text-[0.70rem] uppercase">Balance</span>
                       {/* 5. Conditional coloring in the tooltip */}
-                      <span className={`text-sm font-bold ${balanceColor}`}><NumberFlow value={balance} format={{ style: 'currency', currency: 'USD', trailingZeroDisplay: 'stripIfInteger' }} /></span>
+                      <span className={`text-sm font-bold ${balanceColor}`}>
+                        <NumberFlow value={balance} format={{ style: "currency", currency: "USD" }} />
+                      </span>
                     </div>
                   </div>
                 </div>

@@ -25,7 +25,6 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 function RootComponent() {
   return (
     <ErrorBoundary fallback={RouteErrorFallback}>
-      {/* Skip links for accessibility */}
       <div className="bg-primary text-primary-foreground sr-only z-50 p-2 focus:not-sr-only focus:absolute focus:top-0 focus:left-0">
         <a
           href="#main-content"
@@ -42,14 +41,12 @@ function RootComponent() {
       <ThemeProvider defaultTheme="light" storageKey="finance-theme">
         <AuthInterceptor>
           <PreferencesProvider>
-            {/* Main content wrapper with semantic structure */}
             <div id="main-content" tabIndex={-1} className="focus:outline-none">
               <Outlet />
             </div>
           </PreferencesProvider>
         </AuthInterceptor>
 
-        {/* Toast notifications with accessibility */}
         <Toaster
           position="top-right"
           toastOptions={{

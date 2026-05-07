@@ -18,7 +18,7 @@ export interface WaSqliteDialectConfig {
 }
 
 export class WaSqliteDialect implements Dialect {
-  constructor(private config: WaSqliteDialectConfig) { }
+  constructor(private config: WaSqliteDialectConfig) {}
 
   createAdapter() {
     return new SqliteAdapter();
@@ -40,13 +40,15 @@ export class WaSqliteDialect implements Dialect {
 class WaSqliteDriver implements Driver {
   private connection: WaSqliteConnection | null = null;
   private connectionInUse: boolean = false;
-  constructor(private config: WaSqliteDialectConfig) { }
+  constructor(private config: WaSqliteDialectConfig) {}
 
-  async init(): Promise<void> { }
+  async init(): Promise<void> {}
 
   async acquireConnection(): Promise<DatabaseConnection> {
     if (this.connectionInUse) {
-      throw new Error("Multiple concurrent transactions are not supported with wa-sqlite in-browser storage. Only one connection/transaction can be active at a time.");
+      throw new Error(
+        "Multiple concurrent transactions are not supported with wa-sqlite in-browser storage. Only one connection/transaction can be active at a time."
+      );
     }
     if (!this.connection) {
       this.connection = new WaSqliteConnection(this.config);
@@ -79,7 +81,7 @@ class WaSqliteDriver implements Driver {
 }
 
 class WaSqliteConnection implements DatabaseConnection {
-  constructor(private config: WaSqliteDialectConfig) { }
+  constructor(private config: WaSqliteDialectConfig) {}
 
   async executeQuery(compiledQuery: any): Promise<any> {
     const { sql, parameters } = compiledQuery;

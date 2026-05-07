@@ -1,5 +1,3 @@
-Extra
-
 - Advanced Rules Engine: Automatically categorize and organize transactions with custom rules
 - Bank Connectivity: Connect banks worldwide through multiple providers
   - **North America**: Plaid, Teller

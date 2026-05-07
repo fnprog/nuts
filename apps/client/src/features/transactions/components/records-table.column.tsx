@@ -123,7 +123,11 @@ const CategoryCell = memo(({ transaction }: { transaction: TableRecordSchema }) 
 });
 
 const AmountCell = memo(({ amount }: { amount: number }) => {
-  return <div className="pr-4 text-right font-medium"><NumberFlow value={amount} format={{ style: 'currency', currency: 'USD', trailingZeroDisplay: 'stripIfInteger' }} /></div>;
+  return (
+    <div className="pr-4 text-right font-medium">
+      <NumberFlow value={amount} format={{ style: "currency", currency: "USD", trailingZeroDisplay: "stripIfInteger" }} />
+    </div>
+  );
 });
 
 export const getRecordsTableColumns = ({ onEdit }: ActionColumnHandlers): ColumnDef<TransactionRowData>[] => [

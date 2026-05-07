@@ -1,7 +1,5 @@
 {
-  "plugins": [
-    "prettier-plugin-tailwindcss"
-  ],
+  "sortTailwindcss": {},
   "arrowParens": "always",
   "bracketSpacing": true,
   "embeddedLanguageFormatting": "auto",
@@ -14,5 +12,7 @@
   "singleQuote": false,
   "tabWidth": 2,
   "trailingComma": "es5",
-  "useTabs": false
+  "useTabs": false,
+  "sortPackageJson": true,
+  "ignorePatterns": []
 }

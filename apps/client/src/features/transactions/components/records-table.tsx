@@ -201,13 +201,7 @@ function UndoRedoButtons() {
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={undo}
-            disabled={!canUndo}
-            aria-label="Undo"
-          >
+          <Button variant="outline" size="icon" onClick={undo} disabled={!canUndo} aria-label="Undo">
             <Undo2 className="h-4 w-4" />
           </Button>
         </TooltipTrigger>
@@ -215,13 +209,7 @@ function UndoRedoButtons() {
       </Tooltip>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={redo}
-            disabled={!canRedo}
-            aria-label="Redo"
-          >
+          <Button variant="outline" size="icon" onClick={redo} disabled={!canRedo} aria-label="Redo">
             <Redo2 className="h-4 w-4" />
           </Button>
         </TooltipTrigger>
@@ -303,8 +291,7 @@ export const RecordsTable = ({ initialPage, onPageChange, hasAccounts }: Records
   const defaultParams = { page: 1, q: "", group_by: "date" };
   const defaultKey = ["transactions", "list", defaultParams];
 
-  const usingDefaultParams =
-    JSON.stringify(queryParams) === JSON.stringify(defaultParams);
+  const usingDefaultParams = JSON.stringify(queryParams) === JSON.stringify(defaultParams);
 
   const defaultCachedData = usingDefaultParams ? queryClient.getQueryData(defaultKey) : undefined;
 
@@ -475,243 +462,234 @@ export const RecordsTable = ({ initialPage, onPageChange, hasAccounts }: Records
 
   return (
     <UndoRedoProvider>
-    <div className="space-y-4">
-      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-        <div className="flex flex-1 items-center space-x-2">
-          <div className="relative">
-            <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
-            <Input
-              placeholder="Search transactions..."
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              className="bg-card max-w-full pl-10 md:max-w-full"
-            />
-            {isFetching && <Loader2 className="text-muted-foreground absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 transform animate-spin" />}
+      <div className="space-y-4">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-1 items-center space-x-2">
+            <div className="relative">
+              <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
+              <Input
+                placeholder="Search transactions..."
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                className="bg-card max-w-full pl-10 md:max-w-full"
+              />
+              {isFetching && <Loader2 className="text-muted-foreground absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 transform animate-spin" />}
+            </div>
+            <TransactionFilterDropdown filters={filters} onFiltersChange={handleFiltersChange} onClearAll={handleClearAllFilters} />
+            <Button variant="outline" size="sm" onClick={() => setIsExportDialogOpen(true)}>
+              <Download className="mr-2 h-4 w-4" />
+              Export
+            </Button>
+            <UndoRedoButtons />
           </div>
-          <TransactionFilterDropdown filters={filters} onFiltersChange={handleFiltersChange} onClearAll={handleClearAllFilters} />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsExportDialogOpen(true)}
-          >
-            <Download className="mr-2 h-4 w-4" />
-            Export
-          </Button>
-          <UndoRedoButtons />
         </div>
-      </div>
 
-      {/* Table Content */}
-      <div>
-        {/* Mobile View */}
-        {isMobile ? (
-          <div className="space-y-4">
-            {groups.map((group) => (
-              <div key={group.id} className="overflow-hidden rounded-md border">
-                <div className="bg-muted/50 flex cursor-pointer items-center justify-between p-3" onClick={() => toggleGroup(group.id)}>
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      checked={group.transactions.every((t) => {
-                        const row = findRowByTransactionId(t.id);
-                        return row?.getIsSelected() ?? false;
-                      })}
-                      onCheckedChange={(value) => {
-                        group.transactions.forEach((t) => {
+        {/* Table Content */}
+        <div>
+          {/* Mobile View */}
+          {isMobile ? (
+            <div className="space-y-4">
+              {groups.map((group) => (
+                <div key={group.id} className="overflow-hidden rounded-md border">
+                  <div className="bg-muted/50 flex cursor-pointer items-center justify-between p-3" onClick={() => toggleGroup(group.id)}>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        checked={group.transactions.every((t) => {
                           const row = findRowByTransactionId(t.id);
-                          if (row) {
-                            row.toggleSelected(!!value);
-                          }
-                        });
-                      }}
-                      aria-label={`Select group ${group.id}`}
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                    <div className="font-medium">{formatDate(group.date)}</div>
+                          return row?.getIsSelected() ?? false;
+                        })}
+                        onCheckedChange={(value) => {
+                          group.transactions.forEach((t) => {
+                            const row = findRowByTransactionId(t.id);
+                            if (row) {
+                              row.toggleSelected(!!value);
+                            }
+                          });
+                        }}
+                        aria-label={`Select group ${group.id}`}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <div className="font-medium">{formatDate(group.date)}</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="font-medium">{formatCurrency(group.total)}</div>
+                      {openGroups.has(group.id) ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="font-medium">{formatCurrency(group.total)}</div>
-                    {openGroups.has(group.id) ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-                  </div>
-                </div>
 
-                {openGroups.has(group.id) && (
-                  <div className="space-y-2 p-2">
-                    {group.transactions.map((transaction) => {
-                      const row = findRowByTransactionId(transaction.id);
-                      if (!row) return null;
-
-                      return (
-                        <MemoizedTransactionCard
-                          onEdit={handleOpenEditSheet}
-                          key={transaction.id}
-                          transaction={transaction}
-                          row={row}
-                          formatCurrency={formatCurrency}
-                        />
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        ) : (
-          /* Desktop View */
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    <TableHead className="w-10">
-                      <div className="flex items-center space-x-1">
-                        <Checkbox
-                          checked={table.getIsAllPageRowsSelected()}
-                          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                          aria-label="Select all"
-                        />
-                        <button onClick={toggleAllGroups} className="p-1">
-                          {openGroups.size === groups.length ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                        </button>
-                      </div>
-                    </TableHead>
-                    {headerGroup.headers.slice(1).map((header) => (
-                      <TableHead
-                        key={header.id}
-                        style={{ width: header.getSize() }}
-                        className={header.column.getCanSort() ? "cursor-pointer select-none" : ""}
-                        onClick={header.column.getToggleSortingHandler()}
-                      >
-                        <div className={`flex items-center ${header.id === "amount" ? "justify-end" : ""}`}>
-                          {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                          {header.column.getCanSort() && (
-                            <span className="ml-1">
-                              {{
-                                asc: " ↑",
-                                desc: " ↓",
-                              }[header.column.getIsSorted() as string] ?? ""}
-                            </span>
-                          )}
-                        </div>
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {groups.map((group) => (
-                  <Fragment key={`group-${group.id}`}>
-                    <TableRow className="bg-muted/50 hover:bg-muted/50">
-                      <TableCell colSpan={table.getVisibleLeafColumns().length}>
-                        <div className="flex items-center py-1">
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              checked={group.transactions.every((t) => {
-                                const row = findRowByTransactionId(t.id);
-                                return row?.getIsSelected() ?? false;
-                              })}
-                              onCheckedChange={(value) =>
-                                group.transactions.forEach((t) => {
-                                  const row = findRowByTransactionId(t.id);
-                                  if (row) {
-                                    row.toggleSelected(!!value);
-                                  }
-                                })
-                              }
-                              aria-label={`Select group ${group.id}`}
-                            />
-                            <button onClick={() => toggleGroup(group.id)} className="flex items-center space-x-2 font-medium">
-                              {openGroups.has(group.id) ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                              <span>{formatDate(group.date)}</span>
-                            </button>
-                          </div>
-                          <div className="ml-auto font-medium">{formatCurrency(group.total)}</div>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-
-                    {openGroups.has(group.id) &&
-                      group.transactions.map((transaction) => {
+                  {openGroups.has(group.id) && (
+                    <div className="space-y-2 p-2">
+                      {group.transactions.map((transaction) => {
                         const row = findRowByTransactionId(transaction.id);
                         if (!row) return null;
 
                         return (
-                          <TableRow key={`transaction-row-${transaction.id}`} data-state={row.getIsSelected() && "selected"}>
-                            {row.getVisibleCells().map((cell) => (
-                              <TableCell key={`cell-${cell.id}`} style={{ width: cell.column.getSize() }}>
-                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                              </TableCell>
-                            ))}
-                          </TableRow>
+                          <MemoizedTransactionCard
+                            onEdit={handleOpenEditSheet}
+                            key={transaction.id}
+                            transaction={transaction}
+                            row={row}
+                            formatCurrency={formatCurrency}
+                          />
                         );
                       })}
-                  </Fragment>
-                ))}
-                {groups.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={columns.length} className="h-24 text-center">
-                      No results.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            /* Desktop View */
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      <TableHead className="w-10">
+                        <div className="flex items-center space-x-1">
+                          <Checkbox
+                            checked={table.getIsAllPageRowsSelected()}
+                            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+                            aria-label="Select all"
+                          />
+                          <button onClick={toggleAllGroups} className="p-1">
+                            {openGroups.size === groups.length ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                          </button>
+                        </div>
+                      </TableHead>
+                      {headerGroup.headers.slice(1).map((header) => (
+                        <TableHead
+                          key={header.id}
+                          style={{ width: header.getSize() }}
+                          className={header.column.getCanSort() ? "cursor-pointer select-none" : ""}
+                          onClick={header.column.getToggleSortingHandler()}
+                        >
+                          <div className={`flex items-center ${header.id === "amount" ? "justify-end" : ""}`}>
+                            {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                            {header.column.getCanSort() && (
+                              <span className="ml-1">
+                                {{
+                                  asc: " ↑",
+                                  desc: " ↓",
+                                }[header.column.getIsSorted() as string] ?? ""}
+                              </span>
+                            )}
+                          </div>
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {groups.map((group) => (
+                    <Fragment key={`group-${group.id}`}>
+                      <TableRow className="bg-muted/50 hover:bg-muted/50">
+                        <TableCell colSpan={table.getVisibleLeafColumns().length}>
+                          <div className="flex items-center py-1">
+                            <div className="flex items-center space-x-2">
+                              <Checkbox
+                                checked={group.transactions.every((t) => {
+                                  const row = findRowByTransactionId(t.id);
+                                  return row?.getIsSelected() ?? false;
+                                })}
+                                onCheckedChange={(value) =>
+                                  group.transactions.forEach((t) => {
+                                    const row = findRowByTransactionId(t.id);
+                                    if (row) {
+                                      row.toggleSelected(!!value);
+                                    }
+                                  })
+                                }
+                                aria-label={`Select group ${group.id}`}
+                              />
+                              <button onClick={() => toggleGroup(group.id)} className="flex items-center space-x-2 font-medium">
+                                {openGroups.has(group.id) ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                                <span>{formatDate(group.date)}</span>
+                              </button>
+                            </div>
+                            <div className="ml-auto font-medium">{formatCurrency(group.total)}</div>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+
+                      {openGroups.has(group.id) &&
+                        group.transactions.map((transaction) => {
+                          const row = findRowByTransactionId(transaction.id);
+                          if (!row) return null;
+
+                          return (
+                            <TableRow key={`transaction-row-${transaction.id}`} data-state={row.getIsSelected() && "selected"}>
+                              {row.getVisibleCells().map((cell) => (
+                                <TableCell key={`cell-${cell.id}`} style={{ width: cell.column.getSize() }}>
+                                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                </TableCell>
+                              ))}
+                            </TableRow>
+                          );
+                        })}
+                    </Fragment>
+                  ))}
+                  {groups.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={columns.length} className="h-24 text-center">
+                        No results.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-end">
+          <div className="text-muted-foreground order-2 text-sm sm:order-1 sm:flex-1">
+            {table.getFilteredSelectedRowModel().rows.length} of {transactions?.pagination.total_items} row(s) selected.
           </div>
-        )}
-      </div>
-
-      <div className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-end">
-        <div className="text-muted-foreground order-2 text-sm sm:order-1 sm:flex-1">
-          {table.getFilteredSelectedRowModel().rows.length} of {transactions?.pagination.total_items} row(s) selected.
+          <div className="order-1 flex justify-between space-x-2 sm:order-2 sm:justify-end">
+            <Button variant="outline" size="sm" onClick={() => onPageChange(page - 1)} disabled={!canPreviousPage || isFetching}>
+              Previous
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => onPageChange(page + 1)} disabled={!canNextPage || isFetching}>
+              Next
+            </Button>
+          </div>
         </div>
-        <div className="order-1 flex justify-between space-x-2 sm:order-2 sm:justify-end">
-          <Button variant="outline" size="sm" onClick={() => onPageChange(page - 1)} disabled={!canPreviousPage || isFetching}>
-            Previous
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => onPageChange(page + 1)} disabled={!canNextPage || isFetching}>
-            Next
-          </Button>
-        </div>
+
+        <DeleteTransactionDialog
+          isOpen={isDeleteDialogOpen}
+          onClose={() => {
+            setIsDeleteDialogOpen(false);
+            setDeletingTransactionId(null);
+          }}
+          transactionId={deletingTransactionId}
+        />
+
+        <FloatingActionBar
+          selectedCount={selectedRows.length}
+          onEdit={handleEditSelectedRows}
+          onDelete={handleDeleteSelectedRows}
+          onClear={handleClearSelection}
+          isDeleting={bulkDeleteMutation.isPending}
+        />
+
+        <BulkEditDialog
+          isOpen={isBulkEditDialogOpen}
+          onClose={() => setIsBulkEditDialogOpen(false)}
+          selectedTransactions={selectedRows.map((row) => row.original)}
+        />
+
+        <ExportTransactionsDialog isOpen={isExportDialogOpen} onClose={() => setIsExportDialogOpen(false)} filters={filters} search={search} />
+
+        <EditTransactionSheet
+          isOpen={isEditSheetOpen}
+          onClose={() => {
+            setIsEditSheetOpen(false);
+            setEditingTransactionId(null);
+          }}
+          transactionId={editingTransactionId}
+        />
       </div>
-
-      <DeleteTransactionDialog
-        isOpen={isDeleteDialogOpen}
-        onClose={() => {
-          setIsDeleteDialogOpen(false);
-          setDeletingTransactionId(null);
-        }}
-        transactionId={deletingTransactionId}
-      />
-
-      <FloatingActionBar
-        selectedCount={selectedRows.length}
-        onEdit={handleEditSelectedRows}
-        onDelete={handleDeleteSelectedRows}
-        onClear={handleClearSelection}
-        isDeleting={bulkDeleteMutation.isPending}
-      />
-
-      <BulkEditDialog
-        isOpen={isBulkEditDialogOpen}
-        onClose={() => setIsBulkEditDialogOpen(false)}
-        selectedTransactions={selectedRows.map((row) => row.original)}
-      />
-
-      <ExportTransactionsDialog
-        isOpen={isExportDialogOpen}
-        onClose={() => setIsExportDialogOpen(false)}
-        filters={filters}
-        search={search}
-      />
-
-      <EditTransactionSheet
-        isOpen={isEditSheetOpen}
-        onClose={() => {
-          setIsEditSheetOpen(false);
-          setEditingTransactionId(null);
-        }}
-        transactionId={editingTransactionId}
-      />
-    </div>
     </UndoRedoProvider>
   );
 };

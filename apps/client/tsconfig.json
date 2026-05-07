@@ -2,11 +2,7 @@
   "compilerOptions": {
     "target": "ES2022",
     "useDefineForClassFields": true,
-    "lib": [
-      "ES2022",
-      "DOM",
-      "DOM.Iterable"
-    ],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
     "moduleResolution": "Bundler",
@@ -22,16 +18,8 @@
     "noUncheckedSideEffectImports": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     }
   },
-  "include": [
-    "vite.env.d.ts",
-    "**/*.ts",
-    "src/**/*.d.ts",
-    "**/*.tsx",
-    ".prettierrc.js"
-  ],
+  "include": ["vite.env.d.ts", "**/*.ts", "src/**/*.d.ts", "**/*.tsx", ".prettierrc.js"]
 }

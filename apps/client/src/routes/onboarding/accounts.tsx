@@ -25,15 +25,15 @@ function AccountsStep() {
   }, [setStep]);
 
   const accountTypes = [
-    { id: "mtn", label: "MTN MoMo", icon: RiSmartphoneLine, color: "bg-yellow-400/10 text-yellow-600 border-yellow-400/20" },
-    { id: "telecel", label: "Vodafone Cash", icon: RiSmartphoneLine, color: "bg-red-500/10 text-red-600 border-red-500/20" },
-    { id: "bank", label: "Bank Account", icon: RiBankLine, color: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
-    { id: "cash", label: "Cash", icon: RiCoinsLine, color: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" },
+    { id: "mtn", label: "MTN MoMo", icon: RiSmartphoneLine, color: "bg-yellow-400/10 text-yellow-600 border-yellow-400/25" },
+    { id: "telecel", label: "Vodafone Cash", icon: RiSmartphoneLine, color: "bg-red-500/10 text-red-600 border-red-500/25" },
+    { id: "bank", label: "Bank Account", icon: RiBankLine, color: "bg-blue-500/10 text-blue-600 border-blue-500/25" },
+    { id: "cash", label: "Cash", icon: RiCoinsLine, color: "bg-emerald-500/10 text-emerald-600 border-emerald-500/25" },
   ];
 
   const handleAdd = () => {
     if (selectedType && balance) {
-      const typeLabel = accountTypes.find(t => t.id === selectedType)?.label || "Other";
+      const typeLabel = accountTypes.find((t) => t.id === selectedType)?.label || "Other";
       addAccount({
         type: selectedType,
         name: accountName || typeLabel,
@@ -46,140 +46,130 @@ function AccountsStep() {
     }
   };
 
-  const handleNext = () => {
-    navigate({ to: "/onboarding/income" });
-  };
-
   return (
-    <motion.div 
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      className="max-w-md w-full py-6 flex flex-col gap-8"
-    >
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Where does your money live?</h1>
-        <p className="text-muted-foreground leading-relaxed">
-          {accounts.length === 0 
-            ? "Let's start with your main account. You can add more in a moment."
-            : "Great start! Your net worth is taking shape."}
+    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="flex w-full flex-col gap-5 pt-4 pb-2">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Where does your money live?</h1>
+        <p className="text-muted-foreground mt-1 text-sm">
+          {accounts.length === 0 ? "Let's start with your main account. You can add more in a moment." : "Great start! Your net worth is taking shape."}
         </p>
       </div>
 
       <AnimatePresence mode="wait">
         {isAdding ? (
-          <motion.div 
-            key="form"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="space-y-8"
-          >
+          <motion.div key="form" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-4">
             {!selectedType ? (
-               <div className="grid grid-cols-2 gap-4">
-                  {accountTypes.map((type) => (
-                     <button
-                       key={type.id}
-                       onClick={() => setSelectedType(type.id)}
-                       className={cn(
-                         "flex flex-col items-center gap-3 p-6 rounded-2xl border bg-card transition-all duration-300 hover:scale-[1.02] hover:shadow-lg group",
-                         type.color
-                       )}
-                     >
-                        <type.icon size={32} />
-                        <span className="font-semibold text-xs tracking-wide">{type.label}</span>
-                     </button>
-                  ))}
-                  <button 
-                    onClick={() => setSelectedType("other")}
-                    className="col-span-2 p-4 rounded-xl border border-dashed border-border/50 hover:border-primary/50 hover:bg-primary/5 transition-colors text-xs font-medium text-muted-foreground"
+              <div className="grid grid-cols-2 gap-2">
+                {accountTypes.map((type) => (
+                  <button
+                    key={type.id}
+                    onClick={() => setSelectedType(type.id)}
+                    className={cn(
+                      "flex items-center gap-3 p-3 rounded-xl border transition-all duration-200 hover:scale-[1.01] hover:shadow-md text-left",
+                      type.color
+                    )}
                   >
-                     + Other account type
+                    <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-current/10">
+                      <type.icon size={16} />
+                    </div>
+                    <span className="text-xs font-semibold">{type.label}</span>
                   </button>
-               </div>
+                ))}
+                <button
+                  onClick={() => setSelectedType("other")}
+                  className="border-border/50 hover:border-primary/50 hover:bg-primary/5 text-muted-foreground col-span-2 w-full rounded-xl border border-dashed p-2.5 text-xs font-medium transition-colors"
+                >
+                  + Other account type
+                </button>
+              </div>
             ) : (
-               <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-                  <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 border border-border/50">
-                     <div className={cn("size-10 rounded-lg flex items-center justify-center", accountTypes.find(t => t.id === selectedType)?.color)}>
-                        {accountTypes.find(t => t.id === selectedType)?.icon ? <RiCheckLine /> : <RiCheckLine />}
-                     </div>
-                     <div className="flex flex-col">
-                        <span className="text-xs text-muted-foreground">Adding</span>
-                        <span className="font-bold">{accountTypes.find(t => t.id === selectedType)?.label || "Other Account"}</span>
-                     </div>
-                     <Button variant="ghost" size="sm" onClick={() => setSelectedType(null)} className="ml-auto text-xs">Change</Button>
+              <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
+                <div className="bg-muted/30 border-border/50 flex items-center gap-3 rounded-xl border p-3">
+                  <div className={cn("size-8 rounded-lg flex items-center justify-center", accountTypes.find((t) => t.id === selectedType)?.color)}>
+                    {(() => {
+                      const T = accountTypes.find((t) => t.id === selectedType);
+                      return T ? <T.icon size={16} /> : null;
+                    })()}
                   </div>
-
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                       <Label htmlFor="acc-name">Account name (optional)</Label>
-                       <Input 
-                         id="acc-name" 
-                         placeholder="e.g. My MoMo" 
-                         value={accountName}
-                         onChange={(e) => setAccountName(e.target.value)}
-                         className="h-12 rounded-xl"
-                       />
-                    </div>
-                    <div className="space-y-2">
-                       <Label htmlFor="balance">Current balance (estimate is fine)</Label>
-                       <div className="relative">
-                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-semibold">{currency}</span>
-                          <Input 
-                            id="balance" 
-                            type="number"
-                            placeholder="0.00" 
-                            value={balance}
-                            onChange={(e) => setBalance(e.target.value)}
-                            className="h-12 pl-14 text-xl font-bold rounded-xl"
-                          />
-                       </div>
-                    </div>
+                  <div>
+                    <span className="text-muted-foreground/50 text-[10px]">Adding</span>
+                    <p className="font-semibold">{accountTypes.find((t) => t.id === selectedType)?.label || "Other Account"}</p>
                   </div>
-
-                  <Button onClick={handleAdd} disabled={!balance} className="w-full h-14 rounded-xl text-lg gap-2 shadow-xl shadow-primary/20">
-                     Add account
-                     <RiAddLine size={20} />
+                  <Button variant="ghost" size="sm" onClick={() => setSelectedType(null)} className="text-muted-foreground ml-auto h-7 gap-1 text-xs">
+                    Change
                   </Button>
-               </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="acc-name" className="text-xs">
+                      Account name (optional)
+                    </Label>
+                    <Input
+                      id="acc-name"
+                      placeholder="e.g. My MoMo"
+                      value={accountName}
+                      onChange={(e) => setAccountName(e.target.value)}
+                      className="h-10 rounded-lg"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="balance" className="text-xs">
+                      Current balance (estimate is fine)
+                    </Label>
+                    <div className="relative">
+                      <span className="text-muted-foreground absolute top-1/2 left-3.5 -translate-y-1/2 text-xs font-semibold">{currency}</span>
+                      <Input
+                        id="balance"
+                        type="number"
+                        placeholder="0.00"
+                        value={balance}
+                        onChange={(e) => setBalance(e.target.value)}
+                        className="h-11 rounded-lg pl-12 text-lg font-bold"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <Button onClick={handleAdd} disabled={!balance} className="shadow-primary/15 h-11 w-full gap-2 rounded-xl shadow-lg">
+                  Add account
+                  <RiAddLine size={16} />
+                </Button>
+              </motion.div>
             )}
           </motion.div>
         ) : (
-          <motion.div 
-            key="list"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="space-y-6"
-          >
-             <div className="space-y-3">
-                {accounts.map((acc, idx) => (
-                   <div key={idx} className="flex items-center justify-between p-4 rounded-xl bg-primary/5 border border-primary/10">
-                      <div className="flex items-center gap-3">
-                         <RiCheckLine className="text-primary size-5" />
-                         <span className="font-medium text-sm">{acc.name}</span>
-                      </div>
-                      <span className="font-bold">{currency} {acc.balance.toLocaleString()}</span>
-                   </div>
-                ))}
-             </div>
-
-             <div className="py-4 space-y-4">
-                <p className="text-center text-xs text-muted-foreground font-medium">Do you have other accounts?</p>
-                <div className="grid grid-cols-2 gap-3">
-                   <Button variant="outline" onClick={() => setIsAdding(true)} className="h-12 rounded-xl text-xs gap-2 border-dashed">
-                      <RiBankLine size={16} /> Add Bank
-                   </Button>
-                   <Button variant="outline" onClick={() => setIsAdding(true)} className="h-12 rounded-xl text-xs gap-2 border-dashed">
-                      <RiSmartphoneLine size={16} /> Add Wallet
-                   </Button>
+          <motion.div key="list" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-4">
+            <div className="space-y-2">
+              {accounts.map((acc, idx) => (
+                <div key={idx} className="bg-primary/5 border-primary/10 flex items-center justify-between rounded-xl border px-3.5 py-2.5">
+                  <div className="flex items-center gap-2.5">
+                    <RiCheckLine className="text-primary size-4 shrink-0" />
+                    <span className="text-sm font-medium">{acc.name}</span>
+                  </div>
+                  <span className="text-sm font-bold">
+                    {currency} {acc.balance.toLocaleString()}
+                  </span>
                 </div>
-             </div>
+              ))}
+            </div>
 
-             <Button onClick={handleNext} variant="secondary" className="w-full h-14 rounded-xl text-lg gap-2 group">
-                I'll add more later
-                <RiArrowRightLine size={20} className="transition-transform group-hover:translate-x-1" />
-             </Button>
+            <div className="space-y-2.5">
+              <p className="text-muted-foreground text-center text-[11px] font-medium">Do you have other accounts?</p>
+              <div className="grid grid-cols-2 gap-2">
+                <Button variant="outline" onClick={() => setIsAdding(true)} className="h-10 gap-1.5 rounded-xl border-dashed text-xs">
+                  <RiBankLine size={14} /> Add Bank
+                </Button>
+                <Button variant="outline" onClick={() => setIsAdding(true)} className="h-10 gap-1.5 rounded-xl border-dashed text-xs">
+                  <RiSmartphoneLine size={14} /> Add Wallet
+                </Button>
+              </div>
+            </div>
+
+            <Button onClick={() => navigate({ to: "/onboarding/income" })} variant="secondary" className="group h-14 w-full gap-2 rounded-xl text-lg">
+              I'll add more later
+              <RiArrowRightLine size={20} className="transition-transform group-hover:translate-x-1" />
+            </Button>
           </motion.div>
         )}
       </AnimatePresence>

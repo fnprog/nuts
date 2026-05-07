@@ -9,14 +9,7 @@ import { logger } from "@/lib/logger";
 import { ResourceType, SyncConflict, SyncState } from "@nuts/types";
 import { Result, ok, err } from "@/lib/result";
 import { ServiceError } from "@/lib/service-error";
-import type {
-  CRDTTransaction,
-  CRDTAccount,
-  CRDTCategory,
-  CRDTBudget,
-  CRDTTag,
-  CRDTPreference,
-} from "@nuts/types";
+import type { CRDTTransaction, CRDTAccount, CRDTCategory, CRDTBudget, CRDTTag, CRDTPreference } from "@nuts/types";
 
 /**
  * Synchronization Service for Offline-First Architecture
@@ -186,10 +179,7 @@ function extractHttpStatus(error: unknown): number | null {
   return e?.response?.status ?? e?.status ?? null;
 }
 
-
-
 class SyncService {
-
   private syncState: SyncState = {
     status: "offline",
     lastSyncAt: null,
@@ -217,7 +207,6 @@ class SyncService {
   // to the next cycle rather than silently dropped or double-processed.
   private pushCursorIndex = 0;
 
-
   private conflicts: SyncConflict[] = [];
   private syncTimeout: ReturnType<typeof setTimeout> | null = null;
   private currentBackoffMs = SYNC_INTERVAL_BASE_MS;
@@ -228,7 +217,6 @@ class SyncService {
   private lastSyncHeads: Map<string, Automerge.Heads> = new Map();
 
   private listeners: Set<(state: SyncState) => void> = new Set();
-
 
   constructor() {
     this.setupOnlineStatusListener();
@@ -262,9 +250,7 @@ class SyncService {
       status: "offline",
       isOnline: hasConnectivity,
       hasValidAuth: hasAuth,
-      error: !hasConnectivity
-        ? "No server connectivity - sync will resume when online"
-        : "No valid authentication - sync requires valid auth tokens",
+      error: !hasConnectivity ? "No server connectivity - sync will resume when online" : "No valid authentication - sync requires valid auth tokens",
     });
     return ok(undefined);
   }
@@ -285,7 +271,6 @@ class SyncService {
       this.syncTimeout = null;
     }
   }
-
 
   async performSync(): Promise<Result<void, ServiceError>> {
     if (this.syncState.status === "syncing") return ok(undefined);
@@ -341,11 +326,7 @@ class SyncService {
     return ok(undefined);
   }
 
-  addToSyncQueue(operation: {
-    operation: "create" | "update" | "delete";
-    type: "transaction" | "account" | "category" | "rule";
-    data: any;
-  }): void {
+  addToSyncQueue(operation: { operation: "create" | "update" | "delete"; type: "transaction" | "account" | "category" | "rule"; data: any }): void {
     const queueItem = {
       ...operation,
       id: `${operation.type}_${operation.data.id}_${Date.now()}`,
@@ -361,10 +342,7 @@ class SyncService {
     }
   }
 
-  async resolveConflict(
-    conflictId: string,
-    resolution: "local" | "server" | "merge"
-  ): Promise<Result<void, ServiceError>> {
+  async resolveConflict(conflictId: string, resolution: "local" | "server" | "merge"): Promise<Result<void, ServiceError>> {
     const conflict = this.conflicts.find((c) => c.id === conflictId);
     if (!conflict) return err(ServiceError.notFound("Conflict", conflictId));
 
@@ -464,10 +442,7 @@ class SyncService {
 
   private handleSyncError(error: ServiceError): void {
     this.consecutiveFailures++;
-    this.currentBackoffMs = Math.min(
-      SYNC_INTERVAL_BASE_MS * Math.pow(SYNC_INTERVAL_BACKOFF_FACTOR, this.consecutiveFailures),
-      SYNC_INTERVAL_MAX_MS
-    );
+    this.currentBackoffMs = Math.min(SYNC_INTERVAL_BASE_MS * Math.pow(SYNC_INTERVAL_BACKOFF_FACTOR, this.consecutiveFailures), SYNC_INTERVAL_MAX_MS);
 
     const httpStatus = extractHttpStatus(error.cause);
     if (httpStatus === 401 || httpStatus === 403) {
@@ -483,12 +458,8 @@ class SyncService {
       });
     }
 
-    logger.warn(
-      `Sync failed (attempt ${this.consecutiveFailures}), next retry in ${this.currentBackoffMs}ms:`,
-      error
-    );
+    logger.warn(`Sync failed (attempt ${this.consecutiveFailures}), next retry in ${this.currentBackoffMs}ms:`, error);
   }
-
 
   // ─── Push ────────────────────────────────────────────────────────────────────
 
@@ -714,10 +685,7 @@ class SyncService {
         continue;
       }
 
-      const serverNewer =
-        normalized.updated_at &&
-        localItem.updated_at &&
-        new Date(normalized.updated_at) > new Date(localItem.updated_at);
+      const serverNewer = normalized.updated_at && localItem.updated_at && new Date(normalized.updated_at) > new Date(localItem.updated_at);
 
       if (!serverNewer) continue;
 
@@ -764,10 +732,7 @@ class SyncService {
     const currentHeads = Automerge.getHeads(liveDoc);
 
     // If heads are identical, no changes have been made since last sync.
-    if (
-      currentHeads.length === savedHeads.length &&
-      currentHeads.every((h, i) => h === savedHeads[i])
-    ) {
+    if (currentHeads.length === savedHeads.length && currentHeads.every((h, i) => h === savedHeads[i])) {
       return false;
     }
 
@@ -795,11 +760,7 @@ class SyncService {
 
     // We snapshot at document level — same heads for all entities in this doc.
     // Per-entity granularity would require separate Automerge docs per entity.
-    const allIds = [
-      ...Object.keys(crdtService.getTransactions()),
-      ...Object.keys(crdtService.getAccounts()),
-      ...Object.keys(crdtService.getCategories()),
-    ];
+    const allIds = [...Object.keys(crdtService.getTransactions()), ...Object.keys(crdtService.getAccounts()), ...Object.keys(crdtService.getCategories())];
 
     for (const id of allIds) {
       this.lastSyncHeads.set(id, heads);
@@ -815,9 +776,7 @@ class SyncService {
 
   private persistSyncQueue(): void {
     // Chain onto any in-flight persist; a late snapshot always wins.
-    this.persistSyncQueuePromise = (this.persistSyncQueuePromise ?? Promise.resolve())
-      .then(() => this._doPersistSyncQueue())
-      .catch(() => {}); // errors are logged inside _doPersistSyncQueue
+    this.persistSyncQueuePromise = (this.persistSyncQueuePromise ?? Promise.resolve()).then(() => this._doPersistSyncQueue()).catch(() => {}); // errors are logged inside _doPersistSyncQueue
   }
 
   private async _doPersistSyncQueue(): Promise<void> {
@@ -825,10 +784,13 @@ class SyncService {
       await db.initialize();
       await db.execute("DELETE FROM sync_queue", []);
       for (const item of this.syncQueue) {
-        await db.execute(
-          "INSERT INTO sync_queue (id, operation, type, data, timestamp) VALUES (?, ?, ?, ?, ?)",
-          [item.id, item.operation, item.type, JSON.stringify(item.data), item.timestamp.toISOString()]
-        );
+        await db.execute("INSERT INTO sync_queue (id, operation, type, data, timestamp) VALUES (?, ?, ?, ?, ?)", [
+          item.id,
+          item.operation,
+          item.type,
+          JSON.stringify(item.data),
+          item.timestamp.toISOString(),
+        ]);
       }
     } catch (error) {
       logger.error("Failed to persist sync queue:", error);
@@ -858,16 +820,13 @@ class SyncService {
       await db.initialize();
       await db.execute("DELETE FROM sync_conflicts", []);
       for (const conflict of this.conflicts) {
-        await db.execute(
-          "INSERT INTO sync_conflicts (id, type, local_version, server_version, timestamp) VALUES (?, ?, ?, ?, ?)",
-          [
-            conflict.id,
-            conflict.type,
-            JSON.stringify(conflict.localVersion),
-            JSON.stringify(conflict.serverVersion),
-            conflict.timestamp.toISOString(),
-          ]
-        );
+        await db.execute("INSERT INTO sync_conflicts (id, type, local_version, server_version, timestamp) VALUES (?, ?, ?, ?, ?)", [
+          conflict.id,
+          conflict.type,
+          JSON.stringify(conflict.localVersion),
+          JSON.stringify(conflict.serverVersion),
+          conflict.timestamp.toISOString(),
+        ]);
       }
     } catch (error) {
       logger.error("Failed to persist conflicts:", error);

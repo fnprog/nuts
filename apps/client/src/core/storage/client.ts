@@ -28,19 +28,18 @@ export class DatabaseClient {
     if (this.initPromise) return this.initPromise;
     if (this.lastWorkerError) throw new Error(`Previous SQLite worker error: ${this.lastWorkerError.message || this.lastWorkerError.type}`);
 
-    this.initPromise = this.performInitialization()
-      .catch((err) => {
-        // Defensive: if initialization fails, clear references and state for future retries
-        this.isInitialized = false;
-        this._db = null;
-        this.migrationRunner = null;
-        this.workerAPI = null;
-        if (this.worker) {
-          this.worker.terminate();
-          this.worker = null;
-        }
-        throw err;
-      });
+    this.initPromise = this.performInitialization().catch((err) => {
+      // Defensive: if initialization fails, clear references and state for future retries
+      this.isInitialized = false;
+      this._db = null;
+      this.migrationRunner = null;
+      this.workerAPI = null;
+      if (this.worker) {
+        this.worker.terminate();
+        this.worker = null;
+      }
+      throw err;
+    });
     await this.initPromise;
   }
 
@@ -129,11 +128,7 @@ export class DatabaseClient {
     }
     // Create an immediately rejected promise for callers.
     // Attach a no-op catch to prevent unhandled promise rejection warnings.
-    const rejected = Promise.reject(
-      new Error(
-        `SQLite worker initialization failed: ${error?.message || error?.type || "unknown error"}`
-      )
-    );
+    const rejected = Promise.reject(new Error(`SQLite worker initialization failed: ${error?.message || error?.type || "unknown error"}`));
     rejected.catch(() => {});
     this.initPromise = rejected;
   }
@@ -225,7 +220,6 @@ export class DatabaseClient {
     this.initPromise = null;
     this.lastWorkerError = null;
   }
-
 
   async getMigrationInfo() {
     if (!this.migrationRunner) {

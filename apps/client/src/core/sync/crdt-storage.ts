@@ -12,16 +12,12 @@ export class CRDTStorageService {
     this.initialized = true;
   }
 
-
   async loadDocument(userId: string): Promise<Result<Uint8Array | null, ServiceError>> {
     return ResultAsync.fromPromise(
       (async () => {
         await this.ensureInitialized();
 
-        const result = await db.execute(
-          "SELECT document_binary FROM crdt_documents WHERE user_id = ?",
-          [userId]
-        );
+        const result = await db.execute("SELECT document_binary FROM crdt_documents WHERE user_id = ?", [userId]);
 
         if (!result.results || result.results.length === 0) return null;
 

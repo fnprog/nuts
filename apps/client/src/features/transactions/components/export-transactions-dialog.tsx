@@ -2,14 +2,7 @@ import { useState } from "react";
 import Papa from "papaparse";
 import { Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/core/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/core/components/ui/dialog";
 import { Button } from "@/core/components/ui/button";
 import { Checkbox } from "@/core/components/ui/checkbox";
 import { Label } from "@/core/components/ui/label";
@@ -52,12 +45,7 @@ interface ExportTransactionsDialogProps {
   search: string;
 }
 
-export function ExportTransactionsDialog({
-  isOpen,
-  onClose,
-  filters,
-  search,
-}: ExportTransactionsDialogProps) {
+export function ExportTransactionsDialog({ isOpen, onClose, filters, search }: ExportTransactionsDialogProps) {
   const [selectedColumns, setSelectedColumns] = useState<Set<string>>(new Set(DEFAULT_SELECTED));
   const [isExporting, setIsExporting] = useState(false);
 
@@ -130,19 +118,14 @@ export function ExportTransactionsDialog({
         <DialogHeader>
           <DialogTitle>Export Transactions</DialogTitle>
           <DialogDescription>
-            Choose which columns to include in your CSV export. The export will
-            include all transactions matching your current filters.
+            Choose which columns to include in your CSV export. The export will include all transactions matching your current filters.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3 py-2">
           {AVAILABLE_COLUMNS.map((col) => (
             <div key={col.key} className="flex items-center gap-2">
-              <Checkbox
-                id={`col-${col.key}`}
-                checked={selectedColumns.has(col.key)}
-                onCheckedChange={() => toggleColumn(col.key)}
-              />
+              <Checkbox id={`col-${col.key}`} checked={selectedColumns.has(col.key)} onCheckedChange={() => toggleColumn(col.key)} />
               <Label htmlFor={`col-${col.key}`} className="cursor-pointer">
                 {col.label}
               </Label>

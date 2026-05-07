@@ -83,7 +83,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: client
+        working-directory: apps/client
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -99,10 +99,13 @@ jobs:
         with:
           node-version: '20'
           cache: 'pnpm'
-          cache-dependency-path: client/pnpm-lock.yaml
+          cache-dependency-path: apps/client/pnpm-lock.yaml
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Check formatting
+        run: pnpm run format:check
 
       - name: Lint client
         run: npm run lint

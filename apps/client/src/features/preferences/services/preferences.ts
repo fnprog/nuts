@@ -16,26 +16,17 @@ export interface PreferencesResponse {
 }
 
 const getPreferences = () => {
-  return ResultAsync.fromPromise(
-    api.get(PREFERENCES_ENDPOINT).json<PreferencesResponse>(),
-    ServiceError.fromKyError
-  );
+  return ResultAsync.fromPromise(api.get(PREFERENCES_ENDPOINT).json<PreferencesResponse>(), ServiceError.fromKyError);
 };
 
 const updatePreferences = (preferences: Partial<PreferencesResponse>) => {
-  return ResultAsync.fromPromise(
-    api.put(PREFERENCES_ENDPOINT, { json: preferences }).json<PreferencesResponse>(),
-    ServiceError.fromKyError
-  );
+  return ResultAsync.fromPromise(api.put(PREFERENCES_ENDPOINT, { json: preferences }).json<PreferencesResponse>(), ServiceError.fromKyError);
 };
 
 const PREFBASEURI = "/meta";
 
 const getLangs = () => {
-  return ResultAsync.fromPromise(
-    api.get(`${PREFBASEURI}/lang`).json<unknown>(),
-    ServiceError.fromKyError
-  );
+  return ResultAsync.fromPromise(api.get(`${PREFBASEURI}/lang`).json<unknown>(), ServiceError.fromKyError);
 };
 
 export const preferencesService = {

@@ -17,7 +17,6 @@ import { Input } from "@/core/components/ui/input";
 import { Separator } from "@/core/components/ui/separator";
 import { Nuts } from "@/core/components/icons/Logo";
 import { Google } from "@/core/components/icons/google";
-import { Apple } from "@/core/components/icons/apple";
 import { useLogin } from "@/features/auth/services/auth.mutations";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/core/components/ui/input-otp";
 import { useState } from "react";
@@ -30,9 +29,6 @@ import { Field, FieldGroup, FieldError, FieldLabel, FieldDescription, FieldSet }
 const searchSchema = type({
   "redirect?": "string",
 });
-
-//TODO: Change the button components to match the style here
-//TODO: Change the Signup and Change password page to match the design
 
 export const Route = createFileRoute("/(auth)/login")({
   validateSearch: (search) => {
@@ -153,36 +149,30 @@ function RouteComponent() {
 
     setAnonymous(true);
     await router.invalidate();
-    await navigate({ to: "/onboarding/name" });
+    await navigate({ to: "/onboarding/welcome" });
   }
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="w-full max-w-md">
-      <div className="mb-8 lg:hidden">
-        <div className="flex items-center gap-2">
-          <Nuts className="h-8 w-8" fill="black" />
-          <span className="text-2xl font-bold">Nuts</span>
-        </div>
-      </div>
-
       <main className="w-full">
-        <div className="mb-8">
-          <H1 className="mb-2 text-3xl font-bold">{isTwoFactorStep ? "Enter 2FA Code" : "Login"}</H1>
+        <div className="mb-8 flex items-center justify-between">
+          <div className="lg:hidden">
+            <div className="flex items-center gap-2">
+              <Nuts className="size-8" fill="black" />
+              <span className="text-2xl font-bold">Nuts</span>
+            </div>
+          </div>
+
+          <H1 className="text-2xl lg:text-3xl">{isTwoFactorStep ? "Enter 2FA Code" : "Login"}</H1>
         </div>
 
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={form.handleSubmit(onSubmit)}>
           <FieldGroup>
             <FieldSet>
               {!isTwoFactorStep ? (
                 <>
                   <FieldGroup>
                     <Field>
-                      <Button type="button" variant="outline" className="w-full gap-3" asChild>
-                        <a href={`${config.VITE_API_BASE_URL}/auth/oauth/apple`}>
-                          <Apple className="size-5" fill="#000" />
-                          <span>Login with Apple</span>
-                        </a>
-                      </Button>
                       <Button type="button" variant="outline" className="w-full gap-3" asChild>
                         <a href={`${config.VITE_API_BASE_URL}/auth/oauth/google`}>
                           <Google className="size-5" />
@@ -196,7 +186,7 @@ function RouteComponent() {
                     <div className="absolute inset-0 flex items-center">
                       <Separator className="w-full" />
                     </div>
-                    <div className="relative flex justify-center text-sm">
+                    <div className="relative flex justify-center">
                       <Muted className="bg-white px-4">or</Muted>
                     </div>
                   </div>
@@ -229,19 +219,19 @@ function RouteComponent() {
                       </Field>
                     </motion.div>
 
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="space-y-3 pt-4 text-center">
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="pt-4 text-center">
                       <Field>
                         <FieldDescription>
                           {"Don't have an account? "}
-                          <Link to="/signup" className="font-medium text-black hover:underline">
+                          <Link to="/signup" className="text-foreground font-medium hover:underline">
                             Sign up
                           </Link>
                         </FieldDescription>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-foreground text-sm">
                           {"or "}
-                          <button type="button" onClick={onLoginLater} className="font-medium text-black hover:underline">
+                          <Button variant="link" size="auto" onClick={onLoginLater} className="text-foreground font-medium">
                             Continue Without Account
-                          </button>
+                          </Button>
                         </p>
                       </Field>
                     </motion.div>

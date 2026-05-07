@@ -5,8 +5,8 @@ import { type } from "@nuts/validation";
 import { Button } from "@/core/components/ui/button";
 import { Input } from "@/core/components/ui/input";
 import { Label } from "@/core/components/ui/label";
-import { H1, P, Small } from "@/core/components/ui/typography";
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { H1, P } from "@/core/components/ui/typography";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Nuts } from "@/core/components/icons/Logo";
 
 const searchSchema = type({
@@ -37,17 +37,18 @@ function RouteComponent() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="w-full max-w-md">
-      <div className="mb-8 lg:hidden">
-        <div className="flex items-center gap-2">
-          <Nuts className="h-8 w-8" fill="black" />
-          <span className="text-2xl font-bold">Nuts</span>
-        </div>
-      </div>
-
       <main className="w-full">
         <div className="mb-8">
-          <H1 className="mb-2 text-3xl font-bold">Reset password</H1>
-          <P className="text-gray-600">Enter your email address and we'll send you a link to reset your password</P>
+          <div className="mb-2 flex items-center justify-between">
+            <div className="lg:hidden">
+              <div className="flex items-center gap-2">
+                <Nuts className="size-8" fill="black" />
+                <span className="text-2xl font-bold">Nuts</span>
+              </div>
+            </div>
+            <H1 className="text-2xl lg:text-3xl">Reset password</H1>
+          </div>
+          <P>Enter your email address and we'll send you a link to reset your password</P>
         </div>
 
         {!isSubmitted ? (

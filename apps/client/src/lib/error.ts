@@ -1,4 +1,4 @@
-import { HTTPError } from 'ky';
+import { HTTPError } from "ky";
 
 interface ValidationFieldError {
   field: string;
@@ -43,43 +43,46 @@ export function parseApiError(error: unknown): ParsedApiError {
       // Attempt to parse structured error JSON
       // .clone() because .json() consumes the stream
       const clonedResponse = error.response.clone();
-      return clonedResponse.json().then((apiResponseData: ApiRawErrorResponse) => {
-        // Prioritize specific validation errors if present
-        if (Array.isArray(apiResponseData.error) && apiResponseData.error.length > 0) {
-          type = "validation";
-          validationErrors = apiResponseData.error;
-          userMessage = apiResponseData.error.map((e) => e.message).join("\n");
-          if (userMessage.length === 0 && typeof apiResponseData.message === "string") {
-            userMessage = apiResponseData.message;
-          } else if (userMessage.length === 0) {
-            userMessage = "Validation failed with no specific error messages provided.";
+      return clonedResponse
+        .json()
+        .then((apiResponseData: ApiRawErrorResponse) => {
+          // Prioritize specific validation errors if present
+          if (Array.isArray(apiResponseData.error) && apiResponseData.error.length > 0) {
+            type = "validation";
+            validationErrors = apiResponseData.error;
+            userMessage = apiResponseData.error.map((e) => e.message).join("\n");
+            if (userMessage.length === 0 && typeof apiResponseData.message === "string") {
+              userMessage = apiResponseData.message;
+            } else if (userMessage.length === 0) {
+              userMessage = "Validation failed with no specific error messages provided.";
+            }
           }
-        }
-        // Fallback to message
-        else if (typeof apiResponseData.message === "string" && apiResponseData.message.length > 0) {
-          type = "common";
-          userMessage = apiResponseData.message;
-        }
-        // Structure did not match expectation
-        else {
-          type = "unknown";
-          userMessage = apiResponseData.message || `An unknown API error occurred with status ${statusCode}.`;
-        }
-        return {
-          userMessage,
+          // Fallback to message
+          else if (typeof apiResponseData.message === "string" && apiResponseData.message.length > 0) {
+            type = "common";
+            userMessage = apiResponseData.message;
+          }
+          // Structure did not match expectation
+          else {
+            type = "unknown";
+            userMessage = apiResponseData.message || `An unknown API error occurred with status ${statusCode}.`;
+          }
+          return {
+            userMessage,
+            type,
+            validationErrors,
+            originalError: error,
+            statusCode,
+            axiosErrorCode: undefined,
+          };
+        })
+        .catch(() => ({
+          userMessage: `API error with status ${statusCode}`,
           type,
-          validationErrors,
           originalError: error,
           statusCode,
           axiosErrorCode: undefined,
-        };
-      }).catch(() => ({
-        userMessage: `API error with status ${statusCode}`,
-        type,
-        originalError: error,
-        statusCode,
-        axiosErrorCode: undefined,
-      }));
+        }));
     } catch {
       userMessage = `API error with status ${statusCode}`;
       type = "common";
