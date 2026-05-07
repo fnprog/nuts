@@ -11,8 +11,10 @@ import {
 } from "@tanstack/react-table";
 import { Link } from "@tanstack/react-router";
 
-import { ChevronDown, ChevronRight, Plus, Minus, Search, Loader2, Download } from "lucide-react";
+import { ChevronDown, ChevronRight, Plus, Minus, Search, Loader2, Download, Undo2, Redo2 } from "lucide-react";
 import { Button } from "@/core/components/ui/button";
+import { UndoRedoProvider, useUndoRedo } from "../services/transaction.history";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/core/components/ui/tooltip";
 import { Checkbox } from "@/core/components/ui/checkbox";
 import { Input } from "@/core/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/core/components/ui/table";
@@ -191,6 +193,43 @@ const MemoizedTransactionCard = memo(
     );
   }
 );
+
+function UndoRedoButtons() {
+  const { canUndo, canRedo, undo, redo } = useUndoRedo();
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={undo}
+            disabled={!canUndo}
+            aria-label="Undo"
+          >
+            <Undo2 className="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Undo (Ctrl+Z)</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={redo}
+            disabled={!canRedo}
+            aria-label="Redo"
+          >
+            <Redo2 className="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Redo (Ctrl+Shift+Z)</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
 
 export const RecordsTable = ({ initialPage, onPageChange, hasAccounts }: RecordsTableProps) => {
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -435,6 +474,7 @@ export const RecordsTable = ({ initialPage, onPageChange, hasAccounts }: Records
   const selectedRows = table.getFilteredSelectedRowModel().rows;
 
   return (
+    <UndoRedoProvider>
     <div className="space-y-4">
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-1 items-center space-x-2">
@@ -457,6 +497,7 @@ export const RecordsTable = ({ initialPage, onPageChange, hasAccounts }: Records
             <Download className="mr-2 h-4 w-4" />
             Export
           </Button>
+          <UndoRedoButtons />
         </div>
       </div>
 
@@ -671,6 +712,7 @@ export const RecordsTable = ({ initialPage, onPageChange, hasAccounts }: Records
         transactionId={editingTransactionId}
       />
     </div>
+    </UndoRedoProvider>
   );
 };
 
