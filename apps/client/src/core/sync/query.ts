@@ -419,6 +419,91 @@ class KyselyQueryService {
     }
   }
 
+  async exportTransactions(
+    params: Omit<GetTransactionsParams, "page" | "limit">
+  ): Promise<Result<TransactionRow[], ServiceError>> {
+    const initResult = await this.ensureInitialized();
+    if (initResult.isErr()) return err(initResult.error);
+
+    try {
+      const database = db.db;
+      const {
+        q: search,
+        account_id: accountId,
+        category_id: categoryId,
+        type,
+        start_date: startDate,
+        end_date: endDate,
+      } = params;
+
+      let query = database
+        .selectFrom("transactions as t")
+        .leftJoin("accounts as a", "a.id", "t.account_id")
+        .leftJoin("categories as c", "c.id", "t.category_id")
+        .where("t.deleted_at", "is", null)
+        .select([
+          "t.id",
+          "t.amount",
+          "t.type",
+          "t.account_id",
+          "t.category_id",
+          "t.destination_account_id",
+          "t.transaction_datetime",
+          "t.description",
+          "t.details",
+          "t.is_external",
+          "t.provider_transaction_id",
+          "t.created_at",
+          "t.updated_at",
+          "a.name as account_name",
+          "a.type as account_type",
+          "a.currency as account_currency",
+          "c.name as category_name",
+          "c.icon as category_icon",
+          "c.color as category_color",
+        ]);
+
+      if (search) query = query.where("t.description", "like", `%${search}%`);
+      if (accountId) query = query.where("t.account_id", "=", accountId);
+      if (categoryId) query = query.where("t.category_id", "=", categoryId);
+      if (type) query = query.where("t.type", "=", type as any);
+      if (startDate) query = query.where(sql`DATE(t.transaction_datetime / 1000, 'unixepoch')`, ">=", startDate);
+      if (endDate) query = query.where(sql`DATE(t.transaction_datetime / 1000, 'unixepoch')`, "<=", endDate);
+
+      const rows = await query
+        .orderBy("t.transaction_datetime", "desc")
+        .execute();
+
+      const data: TransactionRow[] = rows.map((tx: any) => ({
+        id: tx.id,
+        amount: tx.amount,
+        type: tx.type,
+        account_id: tx.account_id,
+        category_id: tx.category_id,
+        destination_account_id: tx.destination_account_id,
+        transaction_datetime: tx.transaction_datetime,
+        description: tx.description,
+        details: parseJsonSafe<Record<string, unknown>>(tx.details, {}),
+        is_external: Boolean(tx.is_external),
+        provider_transaction_id: tx.provider_transaction_id,
+        created_at: tx.created_at,
+        updated_at: tx.updated_at,
+        date_only: new Date(tx.transaction_datetime).toISOString().split("T")[0],
+        account_name: tx.account_name,
+        account_type: tx.account_type,
+        account_currency: tx.account_currency,
+        category_name: tx.category_name,
+        category_icon: tx.category_icon,
+        category_color: tx.category_color,
+      }));
+
+      return ok(data);
+    } catch (error) {
+      logger.error("[KYSELY] exportTransactions failed:", error);
+      return err(ServiceError.database("Failed to export transactions", error));
+    }
+  }
+
   async getAccounts(): Promise<Result<AccountRow[], ServiceError>> {
     const initResult = await this.ensureInitialized();
     if (initResult.isErr()) return err(initResult.error);

@@ -356,6 +356,14 @@ export function createTransactionService() {
     return ok(undefined);
   };
 
+  const exportTransactions = async (
+    params: Omit<GetTransactionsParams, "page" | "limit">
+  ): Promise<Result<import("@/core/sync/query").TransactionRow[], ServiceError>> => {
+    const initResult = await ensureInitialized();
+    if (initResult.isErr()) return err(initResult.error);
+    return kyselyQueryService.exportTransactions(params);
+  };
+
   return {
     initialize,
     getTransactions,
@@ -366,6 +374,7 @@ export function createTransactionService() {
     bulkDeleteTransactions,
     bulkUpdateCategories,
     bulkUpdateManualTransactions,
+    exportTransactions,
   };
 }
 
