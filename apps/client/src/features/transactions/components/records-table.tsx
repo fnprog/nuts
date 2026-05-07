@@ -11,7 +11,7 @@ import {
 } from "@tanstack/react-table";
 import { Link } from "@tanstack/react-router";
 
-import { ChevronDown, ChevronRight, Plus, Minus, Search, Loader2 } from "lucide-react";
+import { ChevronDown, ChevronRight, Plus, Minus, Search, Loader2, Download } from "lucide-react";
 import { Button } from "@/core/components/ui/button";
 import { Checkbox } from "@/core/components/ui/checkbox";
 import { Input } from "@/core/components/ui/input";
@@ -36,6 +36,7 @@ import { logger } from "@/lib/logger";
 import { toast } from "sonner";
 import { TransactionFilterDropdown, type TransactionFilterState } from "./transaction-filter-dropdown";
 import { getTransactionStatus, getTransactionStyles } from "../utils/transaction-status";
+import { ExportTransactionsDialog } from "./export-transactions-dialog";
 
 interface RecordsTableProps {
   initialPage: number;
@@ -201,6 +202,7 @@ export const RecordsTable = ({ initialPage, onPageChange, hasAccounts }: Records
   const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [isBulkEditDialogOpen, setIsBulkEditDialogOpen] = useState(false);
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
 
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 500);
@@ -447,6 +449,14 @@ export const RecordsTable = ({ initialPage, onPageChange, hasAccounts }: Records
             {isFetching && <Loader2 className="text-muted-foreground absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 transform animate-spin" />}
           </div>
           <TransactionFilterDropdown filters={filters} onFiltersChange={handleFiltersChange} onClearAll={handleClearAllFilters} />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsExportDialogOpen(true)}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Export
+          </Button>
         </div>
       </div>
 
@@ -643,6 +653,13 @@ export const RecordsTable = ({ initialPage, onPageChange, hasAccounts }: Records
         isOpen={isBulkEditDialogOpen}
         onClose={() => setIsBulkEditDialogOpen(false)}
         selectedTransactions={selectedRows.map((row) => row.original)}
+      />
+
+      <ExportTransactionsDialog
+        isOpen={isExportDialogOpen}
+        onClose={() => setIsExportDialogOpen(false)}
+        filters={filters}
+        search={search}
       />
 
       <EditTransactionSheet
