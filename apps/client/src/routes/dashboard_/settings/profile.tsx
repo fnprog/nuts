@@ -14,7 +14,7 @@ import {
   AlertDialogTrigger,
 } from "@/core/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/core/components/ui/avatar";
-import { P, Small, Muted } from "@/core/components/ui/typography";
+import { Small, Muted } from "@/core/components/ui/typography";
 import { userService } from "@/features/users/services/user.service";
 import { useState, useRef } from "react";
 import { type } from "@nuts/validation";

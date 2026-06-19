@@ -29,8 +29,6 @@ const (
 	refresh_token_name     = "refresh_token"
 )
 
-var roles = []string{"user"}
-
 type Handler struct {
 	service   service.Auth
 	config    *config.Config
@@ -59,7 +57,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		Str("remote_addr", r.RemoteAddr).
 		Msg("Login attempt started")
 
-	valErr, err := h.validator.ParseAndValidate(ctx, r, &req)
+	valErr, err := h.validator.ParseAndValidate(r, &req)
 	if err != nil {
 		logger.Error().
 			Err(err).
@@ -230,7 +228,7 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 		metrics.End(http.StatusOK) // Default status, will be overridden if there's an error
 	}()
 
-	valErr, err := h.validator.ParseAndValidate(ctx, r, &req)
+	valErr, err := h.validator.ParseAndValidate(r, &req)
 	if err != nil {
 		telemetry.RecordError(ctx, "validation_parse_error", "auth.Signup")
 		metrics.End(http.StatusBadRequest)
@@ -679,7 +677,7 @@ func (h *Handler) VerifyMfaSetup(w http.ResponseWriter, r *http.Request) {
 
 	var req auth.VerifyMfaRequest
 
-	valErr, err := h.validator.ParseAndValidate(ctx, r, &req)
+	valErr, err := h.validator.ParseAndValidate(r, &req)
 	if err != nil {
 		respond.Error(respond.ErrorOptions{
 			W:          w,

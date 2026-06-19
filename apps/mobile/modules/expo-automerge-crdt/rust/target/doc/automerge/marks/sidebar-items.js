@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = { enum: ['ExpandMark'], struct: ['Mark', 'MarkData', 'MarkSet'] };

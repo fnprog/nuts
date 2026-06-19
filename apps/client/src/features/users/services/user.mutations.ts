@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { userService } from "./user.service";
 import { useAuthStore } from "@/features/auth/stores/auth.store";
 import { AuthNullable } from "@/features/auth/services/auth.types";
+import type * as userApi from "@/features/users/api/user";
 
 export const useUpdateAvatar = (user: AuthNullable) => {
   const queryClient = useQueryClient();
@@ -33,7 +34,7 @@ export const useUpdateUserInfo = () => {
   const setUser = useAuthStore((s) => s.setUser);
 
   return useMutation({
-    mutationFn: async (info: any) => {
+    mutationFn: async (info: Partial<userApi.UserInfo>) => {
       const result = await userService.updateMe(info);
       if (result.isErr()) throw result.error;
       return result.value;

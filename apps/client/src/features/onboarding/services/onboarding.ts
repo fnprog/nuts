@@ -1,5 +1,4 @@
 import { UserInfo } from "@/features/users/services/user.service";
-import { logger } from "@/lib/logger";
 import { useOnboardingStore } from "../stores/onboarding.store";
 
 /**
@@ -29,7 +28,7 @@ export const shouldSkipNameStep = (user: UserInfo | null): boolean => {
 /**
  * Gets the appropriate onboarding entry point based on user status
  */
-export const getOnboardingEntryPoint = (user: UserInfo | null): string => {
+export const getOnboardingEntryPoint = (_user: UserInfo | null): string => {
   return "/onboarding/welcome";
 };
 

@@ -12,6 +12,8 @@ import { CRDTAccount } from "@nuts/types";
 import { Account, AccountCreate, AccountWTrend, AccountBalanceTimeline } from "@/features/accounts/services/account.types";
 import { uuidV7 } from "@nuts/utils";
 import { Result, ok, err, ServiceError } from "@/lib/result";
+import type { ExpressionBuilder } from "kysely";
+import type { Database } from "@nuts/types/storage";
 
 export function createAccountService() {
   let isInitialized = false;
@@ -80,7 +82,7 @@ export function createAccountService() {
       const transactions = await db
         .selectFrom("transactions")
         .selectAll()
-        .where((eb: any) => eb.or([eb("transactions.account_id", "=", accountId), eb("transactions.destination_account_id", "=", accountId)]))
+        .where((eb: ExpressionBuilder<Database, "transactions">) => eb.or([eb("transactions.account_id", "=", accountId), eb("transactions.destination_account_id", "=", accountId)]))
         .where("transactions.transaction_datetime", ">=", startDate)
         .where("transactions.transaction_datetime", "<=", endDate)
         .where("transactions.deleted_at", "is", null)
@@ -143,7 +145,7 @@ export function createAccountService() {
         const transactions = await db
           .selectFrom("transactions")
           .selectAll()
-          .where((eb: any) => eb.or([eb("transactions.account_id", "=", account.id), eb("transactions.destination_account_id", "=", account.id)]))
+          .where((eb: ExpressionBuilder<Database, "transactions">) => eb.or([eb("transactions.account_id", "=", account.id), eb("transactions.destination_account_id", "=", account.id)]))
           .where("transactions.transaction_datetime", ">=", startMonth)
           .where("transactions.deleted_at", "is", null)
           .orderBy("transactions.transaction_datetime", "asc")
@@ -286,11 +288,11 @@ export function createAccountService() {
     return ok(undefined);
   };
 
-  const linkTellerAccount = async (_payload: any): Promise<Result<void, ServiceError>> => {
+  const linkTellerAccount = async (_payload: unknown): Promise<Result<void, ServiceError>> => {
     return err(ServiceError.unavailable("External account linking"));
   };
 
-  const linkMonoAccount = async (_payload: any): Promise<Result<void, ServiceError>> => {
+  const linkMonoAccount = async (_payload: unknown): Promise<Result<void, ServiceError>> => {
     return err(ServiceError.unavailable("External account linking"));
   };
 
@@ -301,7 +303,7 @@ export function createAccountService() {
     return {
       id: crdtAccount.id,
       name: crdtAccount.name,
-      type: crdtAccount.type as any,
+      type: crdtAccount.type as Account["type"],
       balance: crdtAccount.balance,
       currency: crdtAccount.currency,
       is_external: crdtAccount.is_external,
@@ -313,7 +315,7 @@ export function createAccountService() {
   /**
    * Convert API account format to CRDT format
    */
-  const convertToCRDTFormat = (account: any): CRDTAccount => {
+  const convertToCRDTFormat = (account: Account): CRDTAccount => {
     return {
       id: account.id,
       name: account.name,

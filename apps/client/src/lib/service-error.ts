@@ -66,7 +66,7 @@ export class ServiceError extends Error {
       return error.response
         .clone()
         .json()
-        .then((data: any) => {
+        .then((data: { message?: string }) => {
           const message = data?.message || error.message || "Network request failed";
           if (status === 404) {
             return new ServiceError(message, "NOT_FOUND", error);

@@ -109,14 +109,14 @@ function useStreaming(tokens: string[], autoStart: boolean, onComplete?: () => v
     };
   }, [tokens, isPaused, isComplete, onComplete]);
 
-  const pause = () => {
+  const _pause = () => {
     setIsPaused(true);
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
   };
 
-  const resume = () => {
+  const _resume = () => {
     if (isComplete) return;
     setIsPaused(false);
   };

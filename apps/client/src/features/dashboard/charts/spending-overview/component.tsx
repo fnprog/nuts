@@ -57,7 +57,8 @@ const buildChartConfig = (data: any[]): ChartConfig => {
 };
 
 function SpendingOverviewChartComponent({ id, size, isLocked, hasAccounts }: DashboardChartComponentProps) {
-  const chartData = hasAccounts ? useSpendingData(true).data : DUMMY_DATA;
+  const { data: fetchedData } = useSpendingData(!!hasAccounts);
+  const chartData = hasAccounts ? fetchedData : DUMMY_DATA;
   const chartConfig = buildChartConfig(chartData);
 
   const latestMonth = chartData[chartData.length - 1];
@@ -88,7 +89,7 @@ function SpendingOverviewChartComponent({ id, size, isLocked, hasAccounts }: Das
                   <YAxis hide />
                   <ChartTooltip cursor={{ fill: "rgba(0, 0, 0, 0.05)" }} content={<ChartTooltipContent />} />
                   <Legend verticalAlign="bottom" height={36} iconType="circle" iconSize={8} wrapperStyle={{ fontSize: "14px", paddingTop: "8px" }} />
-                  {categoryKeys.map((key, index) => (
+                  {categoryKeys.map((key, _index) => (
                     <Bar
                       key={key}
                       dataKey={key}

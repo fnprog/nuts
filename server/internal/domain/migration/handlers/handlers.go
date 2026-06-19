@@ -46,7 +46,7 @@ func (h *Handler) MigrateData(w http.ResponseWriter, r *http.Request) {
 
 	var req migration.MigrateDataRequest
 
-	valErr, err := h.validator.ParseAndValidate(ctx, r, &req)
+	valErr, err := h.validator.ParseAndValidate(r, &req)
 	if err != nil {
 		respond.Error(respond.ErrorOptions{
 			W:          w,

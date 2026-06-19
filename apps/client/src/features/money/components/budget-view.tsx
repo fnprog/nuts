@@ -108,8 +108,8 @@ function EnvelopeRow({ name, icon, limit, spent }: { name: string; icon: string;
 // ── Budget view ────────────────────────────────────────────────────────────────
 export function BudgetView() {
   const [month, setMonth] = useState(new Date());
-  const monthStart = startOfMonth(month);
-  const monthEnd = endOfMonth(month);
+  const _monthStart = startOfMonth(month);
+  const _monthEnd = endOfMonth(month);
 
   const { data, isLoading } = useQuery({
     queryKey: ["budget-view", format(month, "yyyy-MM")],

@@ -43,7 +43,8 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 function SavingsGoalsChartComponent({ id, size, isLocked, hasAccounts }: DashboardChartComponentProps) {
-  const chartData = hasAccounts ? useSavingsGoalsData(true).data : DUMMY_DATA;
+  const { data: fetchedData } = useSavingsGoalsData(!!hasAccounts);
+  const chartData = hasAccounts ? fetchedData : DUMMY_DATA;
 
   const totalCurrent = chartData.reduce((sum, item) => sum + item.current, 0);
 

@@ -218,3 +218,6 @@ func (h *Handler) Sync(w http.ResponseWriter, r *http.Request) {
 
 	respond.Json(w, http.StatusOK, response, h.logger)
 }
+
+func (h *Handler) Push(w http.ResponseWriter, r *http.Request) {
+}

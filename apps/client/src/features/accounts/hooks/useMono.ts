@@ -54,7 +54,7 @@ export function useMono({ key, customer, onSuccess, onLoad, onClose, onEvent }: 
   const monoInstance = React.useMemo(() => {
     if (!key) return null;
 
-    const config: any = {
+    const config: Record<string, unknown> = {
       key: key,
       onSuccess: (payload: { code: string }) => {
         setIsWidgetLoading(false);

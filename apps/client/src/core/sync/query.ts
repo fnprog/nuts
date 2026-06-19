@@ -120,7 +120,7 @@ function parseJsonSafe<T>(value: unknown, fallback: T): T {
 
 async function insertBatched<T extends object>(database: Kysely<Database>, table: keyof Database & string, rows: T[]): Promise<void> {
   for (let i = 0; i < rows.length; i += BATCH_SIZE) {
-    await (database.insertInto(table as any) as any).values(rows.slice(i, i + BATCH_SIZE)).execute();
+    await (database.insertInto(table as keyof Database) as unknown as { values: (r: T[]) => { execute: () => Promise<void> } }).values(rows.slice(i, i + BATCH_SIZE)).execute();
   }
 }
 
@@ -267,7 +267,7 @@ class KyselyQueryService {
               deleted_at: toUnixMs(t.deleted_at),
             }));
 
-            await (trx.insertInto("transactions") as any).values(batch).execute();
+            await trx.insertInto("transactions").values(batch).execute();
 
             if (total > 1000 && i % 1000 === 0) {
               logger.info(`[KYSELY] Rebuild progress: ${i}/${total} transactions`);
@@ -352,7 +352,7 @@ class KyselyQueryService {
       if (search) query = query.where("t.description", "like", `%${search}%`);
       if (accountId) query = query.where("t.account_id", "=", accountId);
       if (categoryId) query = query.where("t.category_id", "=", categoryId);
-      if (type) query = query.where("t.type", "=", type as any);
+      if (type) query = query.where("t.type", "=", type as string);
       if (startDate) query = query.where(sql`DATE(t.transaction_datetime / 1000, 'unixepoch')`, ">=", startDate);
       if (endDate) query = query.where(sql`DATE(t.transaction_datetime / 1000, 'unixepoch')`, "<=", endDate);
 
@@ -362,7 +362,7 @@ class KyselyQueryService {
 
       const rows = await query.orderBy("t.transaction_datetime", "desc").limit(limit).offset(offset).execute();
 
-      const data: TransactionRow[] = rows.map((tx: any) => ({
+      const data: TransactionRow[] = rows.map((tx: Record<string, unknown>) => ({
         id: tx.id,
         amount: tx.amount,
         type: tx.type,
@@ -430,13 +430,13 @@ class KyselyQueryService {
       if (search) query = query.where("t.description", "like", `%${search}%`);
       if (accountId) query = query.where("t.account_id", "=", accountId);
       if (categoryId) query = query.where("t.category_id", "=", categoryId);
-      if (type) query = query.where("t.type", "=", type as any);
+      if (type) query = query.where("t.type", "=", type as string);
       if (startDate) query = query.where(sql`DATE(t.transaction_datetime / 1000, 'unixepoch')`, ">=", startDate);
       if (endDate) query = query.where(sql`DATE(t.transaction_datetime / 1000, 'unixepoch')`, "<=", endDate);
 
       const rows = await query.orderBy("t.transaction_datetime", "desc").execute();
 
-      const data: TransactionRow[] = rows.map((tx: any) => ({
+      const data: TransactionRow[] = rows.map((tx: Record<string, unknown>) => ({
         id: tx.id,
         amount: tx.amount,
         type: tx.type,
@@ -474,7 +474,7 @@ class KyselyQueryService {
       const rows = await db.db.selectFrom("accounts").selectAll().where("deleted_at", "is", null).orderBy("name", "asc").execute();
 
       return ok(
-        rows.map((acc: any) => ({
+        rows.map((acc: Record<string, unknown>) => ({
           id: acc.id,
           name: acc.name,
           type: acc.type,
@@ -508,7 +508,7 @@ class KyselyQueryService {
       const rows = await db.db.selectFrom("categories").selectAll().where("deleted_at", "is", null).orderBy("name", "asc").execute();
 
       return ok(
-        rows.map((cat: any) => ({
+        rows.map((cat: Record<string, unknown>) => ({
           id: cat.id,
           name: cat.name,
           parent_id: cat.parent_id,
@@ -536,7 +536,7 @@ class KyselyQueryService {
       const rows = await db.db.selectFrom("rules").selectAll().where("deleted_at", "is", null).orderBy("priority", "desc").orderBy("name", "asc").execute();
 
       return ok(
-        rows.map((rule: any) => ({
+        rows.map((rule: Record<string, unknown>) => ({
           id: rule.id,
           name: rule.name,
           is_active: Boolean(rule.is_active),

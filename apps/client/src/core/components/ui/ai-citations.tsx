@@ -90,7 +90,7 @@ interface SourcePreviewProps {
   onSourceClick?: (source: CitationSource) => void;
 }
 
-function SourcePreview({ source, citationNumber, onSourceClick }: SourcePreviewProps) {
+function SourcePreview({ source, citationNumber, onSourceClick: _onSourceClick }: SourcePreviewProps) {
   const domain = source.domain || formatDomain(source.url);
   const IconComponent = SOURCE_ICONS[source.type || "other"] || SOURCE_ICONS.web;
 
@@ -209,7 +209,7 @@ function InlineCitation({ number, onClick }: InlineCitationProps) {
   return <CitationNumber className="relative -top-0.5 mx-0.5" number={number} onClick={onClick} />;
 }
 
-export default function AICitations({ citations, className, defaultExpanded = false, showInlineNumbers = false, onSourceClick }: AICitationsProps) {
+export default function AICitations({ citations, className, defaultExpanded: _defaultExpanded = false, showInlineNumbers: _showInlineNumbers = false, onSourceClick }: AICitationsProps) {
   if (!citations || citations.length === 0) {
     return null;
   }

@@ -3,7 +3,6 @@ import { devtools } from "zustand/middleware";
 import { preferencesService } from "../services/preferences.service";
 import { PreferencesResponse } from "../api/preferences";
 import i18n from "@/core/i18n/config.ts";
-import { ResultAsync } from "neverthrow";
 import { logger } from "@/lib/logger";
 import { parseApiError } from "@/lib/error";
 

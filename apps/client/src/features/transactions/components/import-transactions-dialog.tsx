@@ -249,6 +249,15 @@ export function ImportTransactionsDialog({ children }: React.PropsWithChildren) 
     [parseTransactions]
   );
 
+  const resetState = useCallback(() => {
+    setStep("upload");
+    setCsvData([]);
+    setCsvHeaders([]);
+    setParsedTransactions([]);
+    setImportProgress(0);
+    form.reset();
+  }, [form]);
+
   const handleImport = useCallback(async () => {
     if (!accounts?.length) {
       toast.error("No accounts available. Please add an account first.");
@@ -298,16 +307,7 @@ export function ImportTransactionsDialog({ children }: React.PropsWithChildren) 
     toast.success(`Successfully imported ${completed} of ${total} transactions`);
     setIsOpen(false);
     resetState();
-  }, [parsedTransactions, accounts, categories, createMutation]);
-
-  const resetState = () => {
-    setStep("upload");
-    setCsvData([]);
-    setCsvHeaders([]);
-    setParsedTransactions([]);
-    setImportProgress(0);
-    form.reset();
-  };
+  }, [parsedTransactions, accounts, categories, createMutation, resetState]);
 
   const validTransactions = useMemo(() => parsedTransactions.filter((t) => t.isValid).length, [parsedTransactions]);
 

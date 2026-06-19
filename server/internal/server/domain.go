@@ -11,14 +11,11 @@ import (
 	"github.com/Fantasy-Programming/nuts/server/internal/domain/mail"
 
 	syncHandler "github.com/Fantasy-Programming/nuts/server/internal/domain/sync/handlers"
-	"github.com/Fantasy-Programming/nuts/server/internal/domain/tags"
 	"github.com/Fantasy-Programming/nuts/server/internal/domain/webhooks"
 
 	accService "github.com/Fantasy-Programming/nuts/server/internal/domain/accounts/service"
 
-	ctgHandler "github.com/Fantasy-Programming/nuts/server/internal/domain/categories/handlers"
 	ctgRepo "github.com/Fantasy-Programming/nuts/server/internal/domain/categories/repository"
-	ctgService "github.com/Fantasy-Programming/nuts/server/internal/domain/categories/service"
 	migHandler "github.com/Fantasy-Programming/nuts/server/internal/domain/migration/handlers"
 	migRepo "github.com/Fantasy-Programming/nuts/server/internal/domain/migration/repository"
 	migService "github.com/Fantasy-Programming/nuts/server/internal/domain/migration/service"
@@ -40,11 +37,8 @@ func (s *Server) RegisterDomain() {
 	s.initUser()
 	s.initAccount()
 	s.initTransaction()
-	s.initCategory()
-	s.initTags()
 	s.initSync()
 	s.initMigration()
-	s.initMeta()
 	s.initWebHooks()
 	s.initMail()
 	s.initVersion()
@@ -106,13 +100,6 @@ func (s *Server) initTransaction() {
 	s.router.Mount("/transactions", TransactionDomain)
 }
 
-func (s *Server) initCategory() {
-	categoriesRepo := ctgRepo.NewRepository(s.db)
-	categoriesService := ctgService.New(s.db, categoriesRepo)
-	CategoryDomain := ctgHandler.RegisterHTTPHandlers(categoriesService, s.jwt, s.validator, s.logger)
-	s.router.Mount("/categories", CategoryDomain)
-}
-
 func (s *Server) initMigration() {
 	migrationRepo := migRepo.NewRepository(s.db)
 	accountsRepo := accRepo.NewRepository(s.db)
@@ -121,11 +108,6 @@ func (s *Server) initMigration() {
 	migrationService := migService.New(s.db, migrationRepo, accountsRepo, categoriesRepo, transactionsRepo, s.logger)
 	MigrationDomain := migHandler.RegisterHTTPHandlers(migrationService, s.validator, s.jwt, s.logger)
 	s.router.Mount("/migrate", MigrationDomain)
-}
-
-func (s *Server) initTags() {
-	TagsDomain := tags.RegisterHTTPHandlers()
-	s.router.Mount("/tags", TagsDomain)
 }
 
 func (s *Server) initSync() {

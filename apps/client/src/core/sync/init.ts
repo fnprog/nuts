@@ -187,7 +187,7 @@ class OfflineFirstInitService {
       ["category", categoryService],
       ["preferences", preferencesService],
     ] as const) {
-      const result = await (svc as any).initialize();
+      const result = await (svc as { initialize(): Promise<{ isErr(): boolean; error: unknown }> }).initialize();
       if (result.isErr()) throw result.error;
       this.initializedServices.add(name as ServiceName);
       logger.info(`✓ ${name} service initialized`);
@@ -234,7 +234,7 @@ class OfflineFirstInitService {
     const transactions = crdtService.getTransactions();
     const accounts = crdtService.getAccounts();
     const categories = crdtService.getCategories();
-    const rules = crdtService.getRules();
+    const _rules = crdtService.getRules();
 
     const hasTransactions = Object.keys(transactions).length > 0;
     const hasAccounts = Object.keys(accounts).length > 0;

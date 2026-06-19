@@ -86,7 +86,7 @@ export function TransactionFilters({ filters, onFiltersChange, onClearAll }: Tra
   );
 
   const updateFilter = useCallback(
-    (key: keyof TransactionFilterState, value: any) => {
+    (key: keyof TransactionFilterState, value: TransactionFilterState[keyof TransactionFilterState]) => {
       onFiltersChange({
         ...filters,
         [key]: value || undefined,

@@ -17,12 +17,6 @@ func RegisterHTTPHandlers(service service.Account, validator *validation.Validat
 	router := router.NewRouter()
 	router.Use(middleware.Verify)
 
-	// Just for testing
-	router.Get("/", h.List)
-	router.Post("/", h.Create)
-	router.Put("/{id}", h.Update)
-	router.Delete("/{id}", h.Delete)
-
 	// Bank Connections
 	// router.Get("/institutions", h.SearchInstitutions)
 	// router.Get("/institutions/{id}", h.GetInstitution)

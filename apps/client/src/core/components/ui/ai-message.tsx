@@ -273,7 +273,7 @@ function HighlightedCodeBlock({ code, language, filename, skipHighlighting = fal
     const tagName = el.tagName.toLowerCase();
     const isCodeBlock = tagName === "pre" || tagName === "code";
 
-    const props: Record<string, any> = { key };
+    const props: Record<string, unknown> = { key };
 
     if (el.className) {
       props.className = isCodeBlock ? `${el.className} whitespace-pre-wrap wrap-break-word`.trim() : el.className.trim();
@@ -338,7 +338,7 @@ function MarkdownContent({ content, skipCodeHighlighting = false }: MarkdownCont
     <div className="prose prose-sm dark:prose-invert max-w-none">
       <ReactMarkdown
         components={{
-          code({ node, className, children, ...props }) {
+          code({ node: _node, className, children, ...props }) {
             const match = /language-(\w+)/.exec(className || "");
             const language = match ? match[1] : "";
             const codeString = String(children).replace(/\n$/, "");
@@ -378,7 +378,7 @@ export default function AIMessage({ content, isStreaming = false, onRegenerate, 
       await navigator.clipboard.writeText(content);
       setCopied(true);
       setTimeout(() => setCopied(false), COPY_FEEDBACK_DURATION);
-    } catch {}
+    } catch { /* clipboard write failed */ }
   };
 
   return (

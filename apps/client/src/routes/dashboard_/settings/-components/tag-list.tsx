@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/core/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/core/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/core/components/ui/dialog";
@@ -14,7 +14,7 @@ import { useTagsQuery } from "@/features/tags/services/tags.queries";
 import { useDeleteTagMutation, useUpdateTagMutation } from "@/features/tags/services/tags.mutations";
 
 export function TagList() {
-  const { data: tags, isLoading, error } = useTagsQuery();
+  const { data: tags, isLoading: _isLoading, error: _error } = useTagsQuery();
   const updateTagMutation = useUpdateTagMutation();
   const deleteTagMutation = useDeleteTagMutation();
 

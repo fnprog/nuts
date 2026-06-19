@@ -10,8 +10,8 @@ import { FeatureFlagsDeveloperPanel } from "./core/components/dev/FeatureFlagsDe
 import { HotkeysProvider } from "react-hotkeys-hook";
 
 if (import.meta.env.DEV) {
-  (window as any).__CRDT_SERVICE__ = crdtService;
-  (window as any).__PLUGIN_STORE__ = usePluginStore;
+  window.__CRDT_SERVICE__ = crdtService;
+  window.__PLUGIN_STORE__ = usePluginStore;
 }
 
 function RouterWrapper() {

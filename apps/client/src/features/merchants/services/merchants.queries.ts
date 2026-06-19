@@ -1,4 +1,5 @@
 // ===================== MERCHANTS =====================
+import type { CreateMerchantRequest } from "@/features/merchants/api/merchants";
 
 export const useMerchantsQuery = () => {
   return useAuthenticatedQuery({
@@ -16,7 +17,7 @@ export const useCreateMerchantMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: CreateMerchantRequest) => {
       const result = await merchantsService.createMerchant(data);
       if (result.isErr()) throw result.error;
       return result.value;

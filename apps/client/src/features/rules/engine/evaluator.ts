@@ -1,4 +1,4 @@
-import { RuleCondition, RuleAction, TransactionRule, RuleMatch, ConditionOperator } from "../services/rule.types";
+import { RuleCondition, TransactionRule, RuleMatch } from "../services/rule.types";
 
 export interface TransactionData {
   id: string;

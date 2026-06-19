@@ -121,11 +121,11 @@ export const recurringTransactionService = {
   async getStats(): Promise<Result<RecurringTransactionStats, ServiceError>> {
     try {
       const recurringTransactions = crdtService.getRecurringTransactions();
-      const all = Object.values(recurringTransactions).filter((rt: any) => !rt.deleted_at);
+      const all = Object.values(recurringTransactions as Record<string, RecurringTransaction>).filter((rt) => !rt.deleted_at);
 
-      const active = all.filter((rt: any) => !rt.is_paused);
-      const paused = all.filter((rt: any) => rt.is_paused);
-      const due = active.filter((rt: any) => {
+      const active = all.filter((rt) => !rt.is_paused);
+      const paused = all.filter((rt) => rt.is_paused);
+      const due = active.filter((rt) => {
         const nextDueDate = new Date(rt.next_due_date);
         const today = new Date();
         return nextDueDate <= today;
@@ -145,7 +145,7 @@ export const recurringTransactionService = {
   async getInstances(request: RecurringInstancesRequest): Promise<Result<RecurringInstancesResponse, ServiceError>> {
     try {
       const recurringTransactions = crdtService.getRecurringTransactions();
-      const activeRecurring = Object.values(recurringTransactions).filter((rt: any) => !rt.deleted_at && !rt.is_paused) as RecurringTransaction[];
+      const activeRecurring = Object.values(recurringTransactions as Record<string, RecurringTransaction>).filter((rt) => !rt.deleted_at && !rt.is_paused);
 
       const allInstances: RecurringInstance[] = [];
 

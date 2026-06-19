@@ -156,7 +156,7 @@ export function AddAccountModal({
       onAddAccount(values);
       setModalOpen(false);
     },
-    [onAddAccount, form]
+    [onAddAccount, setModalOpen]
   );
 
   return (

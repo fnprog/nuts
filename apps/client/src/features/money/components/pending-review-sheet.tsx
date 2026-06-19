@@ -6,8 +6,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform } from "motion/react";
 import { toast } from "sonner";
-import { Check, X, ChevronRight, Zap } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Check, X, Zap } from "lucide-react";
 import { Button } from "@/core/components/ui/button";
 import {
   ResponsiveDialog,
@@ -175,7 +174,7 @@ export function PendingReviewSheet({ children, open: controlledOpen, onOpenChang
 
   const handleDismiss = () => {
     const undoQueue = [...queue];
-    const tx = queue[0];
+    const _tx = queue[0];
     setQueue((q) => q.slice(1));
     setReviewed((r) => r + 1);
     toast("Dismissed.", {

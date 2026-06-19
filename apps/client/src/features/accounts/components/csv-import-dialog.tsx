@@ -22,7 +22,7 @@ import { accountService } from "@/features/accounts/services/account";
 import { categoryService } from "@/features/categories/services/category.service";
 import { bulkCreateTransactions } from "@/features/transactions/api/transaction.api";
 import { RecordCreateSchema } from "@/features/transactions/services/transaction.types";
-import { AccountFormSchema } from "@/features/accounts/services/account.types";
+import { AccountFormSchema, AccountCreate } from "@/features/accounts/services/account.types";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { arktypeResolver } from "@hookform/resolvers/arktype";
@@ -104,7 +104,7 @@ export function CSVImportDialog({ children }: React.PropsWithChildren) {
   });
 
   const createAccountMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: AccountCreate) => {
       const result = await accountService.createAccount(data);
       if (result.isErr()) throw result.error;
       return result.value;

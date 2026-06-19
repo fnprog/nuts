@@ -47,7 +47,7 @@ interface ServerSyncResponse {
 // can't accidentally corrupt transaction data, and type errors are caught
 // at the boundary rather than silently downstream.
 
-function normalizeTransaction(raw: any): CRDTTransaction {
+function normalizeTransaction(raw: Record<string, unknown>): CRDTTransaction {
   return {
     id: raw.id,
     amount: coerceNumeric(raw.amount, 0),
@@ -67,7 +67,7 @@ function normalizeTransaction(raw: any): CRDTTransaction {
   };
 }
 
-function normalizeAccount(raw: any): CRDTAccount {
+function normalizeAccount(raw: Record<string, unknown>): CRDTAccount {
   return {
     id: raw.id,
     name: raw.name ?? "",
@@ -91,7 +91,7 @@ function normalizeAccount(raw: any): CRDTAccount {
   };
 }
 
-function normalizeCategory(raw: any): CRDTCategory {
+function normalizeCategory(raw: Record<string, unknown>): CRDTCategory {
   return {
     id: raw.id,
     name: raw.name ?? "",
@@ -107,7 +107,7 @@ function normalizeCategory(raw: any): CRDTCategory {
   };
 }
 
-function normalizeBudget(raw: any): CRDTBudget {
+function normalizeBudget(raw: Record<string, unknown>): CRDTBudget {
   return {
     id: raw.id,
     category_id: raw.category_id ?? "",
@@ -121,7 +121,7 @@ function normalizeBudget(raw: any): CRDTBudget {
   };
 }
 
-function normalizeTag(raw: any): CRDTTag {
+function normalizeTag(raw: Record<string, unknown>): CRDTTag {
   return {
     id: raw.id,
     name: raw.name ?? "",
@@ -130,7 +130,7 @@ function normalizeTag(raw: any): CRDTTag {
   };
 }
 
-function normalizePreference(raw: any): CRDTPreference {
+function normalizePreference(raw: Record<string, unknown>): CRDTPreference {
   return {
     id: raw.id,
     locale: raw.locale ?? "en",
@@ -152,8 +152,8 @@ function normalizePreference(raw: any): CRDTPreference {
 function coerceNumeric(value: unknown, fallback: number): number {
   if (typeof value === "number") return value;
   if (typeof value === "object" && value !== null) {
-    const v = value as any;
-    return parseFloat(v.String ?? v.value ?? fallback) || fallback;
+    const v = value as Record<string, unknown>;
+    return parseFloat(String(v.String ?? v.value ?? fallback)) || fallback;
   }
   return fallback;
 }
@@ -175,7 +175,7 @@ function safeArray<T>(value: unknown): T[] {
 }
 
 function extractHttpStatus(error: unknown): number | null {
-  const e = error as any;
+  const e = error as { response?: { status?: number }; status?: number };
   return e?.response?.status ?? e?.status ?? null;
 }
 
@@ -193,7 +193,7 @@ class SyncService {
     id: string;
     operation: "create" | "update" | "delete";
     type: ResourceType;
-    data: any;
+    data: unknown;
     timestamp: Date;
   }> = [];
 
@@ -326,7 +326,7 @@ class SyncService {
     return ok(undefined);
   }
 
-  addToSyncQueue(operation: { operation: "create" | "update" | "delete"; type: "transaction" | "account" | "category" | "rule"; data: any }): void {
+  addToSyncQueue(operation: { operation: "create" | "update" | "delete"; type: "transaction" | "account" | "category" | "rule"; data: unknown }): void {
     const queueItem = {
       ...operation,
       id: `${operation.type}_${operation.data.id}_${Date.now()}`,
@@ -542,7 +542,7 @@ class SyncService {
         api.get("/categories").then((r) => r.json()),
       ]);
 
-      const extract = (response: any): unknown[] => {
+      const extract = (response: unknown): unknown[] => {
         if (Array.isArray(response?.data)) return response.data;
         if (Array.isArray(response)) return response;
         logger.warn("Unexpected server response format:", response);
@@ -655,13 +655,13 @@ class SyncService {
   private async mergeCollection<T extends { id: string; updated_at?: string }>(
     serverItems: unknown[],
     localItems: Record<string, T>,
-    normalize: (raw: any) => T,
+    normalize: (raw: Record<string, unknown>) => T,
     conflictType: string | null,
     onCreate: (item: Omit<T, "created_at" | "updated_at">) => Promise<Result<string, ServiceError>>,
     onUpdate: ((id: string, item: Partial<T>) => Promise<Result<void, ServiceError>>) | null
   ): Promise<void> {
     for (const raw of serverItems) {
-      const serverItem = raw as any;
+      const serverItem = raw as Record<string, unknown>;
       if (!serverItem?.id) {
         logger.warn("Skipping item without ID in merge:", serverItem);
         continue;
@@ -678,7 +678,7 @@ class SyncService {
       const localItem = localItems[normalized.id];
 
       if (!localItem) {
-        const result = await onCreate(normalized as any);
+        const result = await onCreate(normalized as Omit<T, "created_at" | "updated_at">);
         if (result.isErr()) {
           logger.error(`Failed to create ${normalized.id} from server:`, result.error);
         }
@@ -692,7 +692,7 @@ class SyncService {
       if (conflictType && this.hasLocalModifications(normalized.id)) {
         this.addConflict({
           id: normalized.id,
-          type: conflictType as any,
+          type: conflictType as string,
           localVersion: localItem,
           serverVersion: normalized,
           timestamp: new Date(),
@@ -741,7 +741,7 @@ class SyncService {
     const patches = Automerge.diff(liveDoc, savedHeads, currentHeads);
 
     return patches.some((patch) => {
-      const path = (patch as any).path as string[] | undefined;
+      const path = (patch as { path?: string[] }).path;
       // Paths look like: ["transactions", entityId, "amount"]
       return Array.isArray(path) && path.length >= 2 && path[1] === entityId;
     });
@@ -801,7 +801,7 @@ class SyncService {
     try {
       await db.initialize();
       const result = await db.execute("SELECT * FROM sync_queue ORDER BY timestamp ASC", []);
-      this.syncQueue = (result.results || []).map((row: any) => ({
+      this.syncQueue = (result.results || []).map((row: Record<string, unknown>) => ({
         id: row.id,
         operation: row.operation,
         type: row.type,
@@ -837,7 +837,7 @@ class SyncService {
     db.initialize()
       .then(() => db.execute("SELECT * FROM sync_conflicts ORDER BY timestamp ASC", []))
       .then((result) => {
-        this.conflicts = (result.results || []).map((row: any) => ({
+        this.conflicts = (result.results || []).map((row: Record<string, unknown>) => ({
           id: row.id,
           type: row.type,
           localVersion: JSON.parse(row.local_version),

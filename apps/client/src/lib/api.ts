@@ -11,7 +11,7 @@ export const api = ky.create({
   headers: { "Content-Type": "application/json" },
   hooks: {
     beforeRequest: [
-      (request) => {
+      (_request) => {
         // Block all HTTP calls if we're offline
         if (!connectivityService.hasServerAccess()) {
           throw new Error("Request blocked: App is in offline mode");

@@ -8,7 +8,6 @@ type Config struct {
 	Api
 	DB
 	Storage
-	Cache
 	Integrations
 	SMTP
 	LLM llm.Config
@@ -21,7 +20,6 @@ func New() *Config {
 		Cors:         NewCors(),
 		Api:          API(),
 		Storage:      NewStorage(),
-		Cache:        NewCache(),
 		DB:           DataStore(),
 		Integrations: INTEGRATIONS(),
 		SMTP:         NewSMTP(),

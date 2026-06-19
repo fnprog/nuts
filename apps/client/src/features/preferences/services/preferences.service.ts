@@ -129,7 +129,7 @@ function createPreferencesService() {
         try {
           await getPreferences();
           console.debug("✅ Preferences loaded from server");
-        } catch (error) {
+        } catch {
           console.debug("⚠️  Failed to load preferences from server, will use defaults when needed");
         }
       } else {

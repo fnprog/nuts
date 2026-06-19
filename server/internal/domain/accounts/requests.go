@@ -1,23 +1,5 @@
 package accounts
 
-import "github.com/Fantasy-Programming/nuts/server/internal/repository/dto"
-
-type CreateAccountRequest struct {
-	Meta     dto.AccountMeta `json:"meta,omitempty" validate:"omitempty"`
-	Name     string          `json:"name" validate:"required"`
-	Type     string          `json:"type" validate:"required"`
-	Currency string          `json:"currency" validate:"required"`
-	Balance  float64         `json:"balance" validate:"gte=0"`
-}
-
-type UpdateAccountRequest struct {
-	Name     *string         `json:"name" validate:"required"`
-	Type     *string         `json:"type" validate:"required"`
-	Balance  *float64        `json:"balance" validate:"required"`
-	Currency *string         `json:"currency" validate:"required"`
-	Meta     dto.AccountMeta `json:"meta,omitempty" validate:"omitempty"`
-}
-
 type CreateLinkTokenRequest struct {
 	Provider     string   `json:"provider" validate:"required,oneof=plaid teller gocardless mono brankas"`
 	Products     []string `json:"products,omitempty"`

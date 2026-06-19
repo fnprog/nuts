@@ -123,9 +123,8 @@ func RegisterHTTPHandlers(db *pgxpool.Pool, validator *validation.Validator, jwt
 
 func (h *Handler) sendEmail(w http.ResponseWriter, r *http.Request) {
 	var req SendEmailRequest
-	ctx := r.Context()
 
-	valErr, err := h.validator.ParseAndValidate(ctx, r, &req)
+	valErr, err := h.validator.ParseAndValidate(r, &req)
 	if err != nil {
 		respond.Error(respond.ErrorOptions{
 			W:          w,
@@ -178,9 +177,8 @@ func (h *Handler) sendEmail(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) sendTemplateEmail(w http.ResponseWriter, r *http.Request) {
 	var req SendTemplateRequest
-	ctx := r.Context()
 
-	valErr, err := h.validator.ParseAndValidate(ctx, r, &req)
+	valErr, err := h.validator.ParseAndValidate(r, &req)
 	if err != nil {
 		respond.Error(respond.ErrorOptions{
 			W:          w,
@@ -226,9 +224,8 @@ func (h *Handler) sendTemplateEmail(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) sendWelcomeEmail(w http.ResponseWriter, r *http.Request) {
 	var req SendWelcomeRequest
-	ctx := r.Context()
 
-	valErr, err := h.validator.ParseAndValidate(ctx, r, &req)
+	valErr, err := h.validator.ParseAndValidate(r, &req)
 	if err != nil {
 		respond.Error(respond.ErrorOptions{
 			W:          w,
@@ -274,9 +271,8 @@ func (h *Handler) sendWelcomeEmail(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) sendResetPasswordEmail(w http.ResponseWriter, r *http.Request) {
 	var req SendResetPasswordRequest
-	ctx := r.Context()
 
-	valErr, err := h.validator.ParseAndValidate(ctx, r, &req)
+	valErr, err := h.validator.ParseAndValidate(r, &req)
 	if err != nil {
 		respond.Error(respond.ErrorOptions{
 			W:          w,
@@ -322,9 +318,8 @@ func (h *Handler) sendResetPasswordEmail(w http.ResponseWriter, r *http.Request)
 
 func (h *Handler) sendNotificationEmail(w http.ResponseWriter, r *http.Request) {
 	var req SendNotificationRequest
-	ctx := r.Context()
 
-	valErr, err := h.validator.ParseAndValidate(ctx, r, &req)
+	valErr, err := h.validator.ParseAndValidate(r, &req)
 	if err != nil {
 		respond.Error(respond.ErrorOptions{
 			W:          w,
@@ -370,9 +365,8 @@ func (h *Handler) sendNotificationEmail(w http.ResponseWriter, r *http.Request) 
 
 func (h *Handler) sendOTPEmail(w http.ResponseWriter, r *http.Request) {
 	var req SendOTPRequest
-	ctx := r.Context()
 
-	valErr, err := h.validator.ParseAndValidate(ctx, r, &req)
+	valErr, err := h.validator.ParseAndValidate(r, &req)
 	if err != nil {
 		respond.Error(respond.ErrorOptions{
 			W:          w,
@@ -418,9 +412,8 @@ func (h *Handler) sendOTPEmail(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) sendWhatsNewEmail(w http.ResponseWriter, r *http.Request) {
 	var req SendWhatsNewRequest
-	ctx := r.Context()
 
-	valErr, err := h.validator.ParseAndValidate(ctx, r, &req)
+	valErr, err := h.validator.ParseAndValidate(r, &req)
 	if err != nil {
 		respond.Error(respond.ErrorOptions{
 			W:          w,
@@ -466,9 +459,8 @@ func (h *Handler) sendWhatsNewEmail(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) sendSecurityEmail(w http.ResponseWriter, r *http.Request) {
 	var req SendSecurityRequest
-	ctx := r.Context()
 
-	valErr, err := h.validator.ParseAndValidate(ctx, r, &req)
+	valErr, err := h.validator.ParseAndValidate(r, &req)
 	if err != nil {
 		respond.Error(respond.ErrorOptions{
 			W:          w,
@@ -514,9 +506,8 @@ func (h *Handler) sendSecurityEmail(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) sendDailyDigestEmail(w http.ResponseWriter, r *http.Request) {
 	var req SendDailyDigestRequest
-	ctx := r.Context()
 
-	valErr, err := h.validator.ParseAndValidate(ctx, r, &req)
+	valErr, err := h.validator.ParseAndValidate(r, &req)
 	if err != nil {
 		respond.Error(respond.ErrorOptions{
 			W:          w,
@@ -562,9 +553,8 @@ func (h *Handler) sendDailyDigestEmail(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) sendLowBalanceAlertEmail(w http.ResponseWriter, r *http.Request) {
 	var req SendLowBalanceAlertRequest
-	ctx := r.Context()
 
-	valErr, err := h.validator.ParseAndValidate(ctx, r, &req)
+	valErr, err := h.validator.ParseAndValidate(r, &req)
 	if err != nil {
 		respond.Error(respond.ErrorOptions{
 			W:          w,
@@ -611,3 +601,4 @@ func (h *Handler) sendLowBalanceAlertEmail(w http.ResponseWriter, r *http.Reques
 func (h *Handler) health(w http.ResponseWriter, r *http.Request) {
 	respond.Json(w, http.StatusOK, map[string]string{"status": "ok", "service": "mailer"}, h.logger)
 }
+

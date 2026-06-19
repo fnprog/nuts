@@ -2,10 +2,10 @@
  * Quick-Add Sheet — 2.3 Manual Transaction Entry
  * Trigger via FAB, Home quick-action, or keyboard shortcut N.
  */
-import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { useState, useRef, useEffect, useMemo } from "react";
+import { motion } from "motion/react";
 import { toast } from "sonner";
-import { ArrowUpDown, Calendar, ChevronDown, X } from "lucide-react";
+import { ArrowUpDown, ChevronDown } from "lucide-react";
 import { useMutation, useQueryClient, useQueries } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { Button } from "@/core/components/ui/button";
@@ -112,7 +112,7 @@ export function QuickAddSheet({ children, open: controlledOpen, onOpenChange, de
     (c) => c.type === "income" || ["salary", "freelance", "business"].some((k) => c.name.toLowerCase().includes(k))
   );
   const visibleCategories = txType === "expense" ? expenseCategories : incomeCategories.length ? incomeCategories : (categories ?? []).slice(0, 6);
-  const accounts = accountsRaw ?? [];
+  const accounts = useMemo(() => accountsRaw ?? [], [accountsRaw]);
 
   // Auto-select first account
   useEffect(() => {

@@ -42,7 +42,8 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 function CategoryBreakdownChartComponent({ id, size, isLocked, hasAccounts }: DashboardChartComponentProps) {
-  const chartData = hasAccounts ? useCategoryData(true).data : DUMMY_DATA;
+  const { data: fetchedData } = useCategoryData(!!hasAccounts);
+  const chartData = hasAccounts ? fetchedData : DUMMY_DATA;
 
   const total = chartData.reduce((sum, item) => sum + item.value, 0);
 

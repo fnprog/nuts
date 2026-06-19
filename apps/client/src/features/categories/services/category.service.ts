@@ -79,7 +79,7 @@ export function createCategoryService() {
       updated_at: new Date().toISOString(),
     });
 
-    const { id, ...updates } = crdtUpdates;
+    const { id: _id, ...updates } = crdtUpdates;
 
     const updateResult = await crdtService.updateCategory(categoryId, updates);
     if (updateResult.isErr()) return err(updateResult.error);

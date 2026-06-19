@@ -17,7 +17,7 @@ const DIMENSIONS = {
   FADE_HEIGHT: "80px",
 } as const;
 
-const SHIMMER_CONFIG = {
+const _SHIMMER_CONFIG = {
   DURATION: "5s",
   GRADIENT: "linear-gradient(110deg, #404040 35%, #fff 50%, #404040 75%, #404040)",
   BACKGROUND_SIZE: "200% 100%",

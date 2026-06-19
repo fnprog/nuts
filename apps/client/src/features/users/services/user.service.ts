@@ -4,6 +4,7 @@ import { ResultAsync } from "neverthrow";
 import type { ServiceError } from "@/lib/result";
 import { anonymousUserService } from "@/features/auth/services/anonymous-user.service";
 import { useAuthStore } from "@/features/auth/stores/auth.store";
+import { authApi } from "@/features/auth/api";
 
 export type { UserInfo, LinkedAccount } from "../api/user";
 export type { UserInfo as UserInfoType } from "../api/user";
@@ -190,7 +191,6 @@ function createUserService() {
       return ResultAsync.fromSafePromise(Promise.resolve([]));
     }
 
-    const authApi = require("@/features/auth/api").authApi;
     return authApi.getSessions();
   };
 

@@ -92,7 +92,7 @@ export function TransactionFilterDropdown({ filters, onFiltersChange, onClearAll
   );
 
   const updateFilter = useCallback(
-    (key: keyof TransactionFilterState, value: any) => {
+    (key: keyof TransactionFilterState, value: TransactionFilterState[keyof TransactionFilterState]) => {
       onFiltersChange({
         ...filters,
         [key]: value || undefined,
@@ -114,7 +114,7 @@ export function TransactionFilterDropdown({ filters, onFiltersChange, onClearAll
   const activeFilterCount = Object.values(filters).filter(Boolean).length;
 
   // Helper to get filter label
-  const getFilterLabel = (key: keyof TransactionFilterState, value: any) => {
+  const getFilterLabel = (key: keyof TransactionFilterState, value: TransactionFilterState[keyof TransactionFilterState]) => {
     switch (key) {
       case "account_id":
         return accountOptions.find((opt) => opt.value === value)?.label || "Account";

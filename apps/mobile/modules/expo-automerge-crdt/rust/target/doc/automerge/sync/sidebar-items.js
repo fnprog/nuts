@@ -1,5 +1,0 @@
-window.SIDEBAR_ITEMS = {
-  enum: ['Capability', 'DecodeStateError', 'MessageVersion', 'ReadMessageError'],
-  struct: ['BloomFilter', 'ChunkList', 'DecodeBloomError', 'Have', 'Message', 'State'],
-  trait: ['SyncDoc'],
-};

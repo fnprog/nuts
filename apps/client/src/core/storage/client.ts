@@ -9,7 +9,7 @@ import { logger } from "@/lib/logger";
 
 export interface SQLiteWorkerAPI {
   initialize(): Promise<void>;
-  execute(sql: string, params?: any[]): Promise<{ results: any[]; columns: string[] }>;
+  execute(sql: string, params?: unknown[]): Promise<{ results: Record<string, unknown>[]; columns: string[] }>;
   exec(sql: string): Promise<void>;
   close(): Promise<void>;
 }
@@ -70,7 +70,7 @@ export class DatabaseClient {
 
     this._db = new Kysely<Database>({
       dialect: new WaSqliteDialect({
-        executeQuery: async (sql: string, params: any[]) => {
+        executeQuery: async (sql: string, params: unknown[]) => {
           return await this.workerAPI!.execute(sql, params);
         },
         executeExec: async (sql: string) => {
@@ -97,7 +97,7 @@ export class DatabaseClient {
     return this._db;
   }
 
-  async execute(sql: string, params: any[] = []): Promise<any> {
+  async execute(sql: string, params: unknown[] = []): Promise<{ results: Record<string, unknown>[]; columns: string[] }> {
     if (!this.workerAPI) {
       throw new Error("Worker not initialized");
     }

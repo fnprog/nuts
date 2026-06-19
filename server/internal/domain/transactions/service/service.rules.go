@@ -91,44 +91,6 @@ func (s *TransactionService) ToggleRuleActive(ctx context.Context, id uuid.UUID,
 	return rule, nil
 }
 
-func (s *TransactionService) ApplyRulesToTransaction(ctx context.Context, transactionID uuid.UUID, userID uuid.UUID) ([]transactions.RuleMatch, error) {
-	// Get the transaction data
-	transaction, err := s.trscRepo.GetTransaction(ctx, transactionID)
-	if err != nil {
-		s.logger.Error().Err(err).Str("transaction_id", transactionID.String()).Msg("Failed to get transaction")
-		return nil, fmt.Errorf("failed to get transaction: %w", err)
-	}
-
-	// Convert transaction to TransactionData
-	transactionData := s.convertToTransactionData(transaction)
-
-	// Get active rules for the user
-	rules, err := s.trscRepo.ListActiveRules(ctx, userID)
-	if err != nil {
-		s.logger.Error().Err(err).Str("user_id", userID.String()).Msg("Failed to get active rules")
-		return nil, fmt.Errorf("failed to get active rules: %w", err)
-	}
-
-	// Evaluate rules
-	matches, err := s.evaluator.EvaluateRules(rules, transactionData)
-	if err != nil {
-		s.logger.Error().Err(err).Str("transaction_id", transactionID.String()).Msg("Failed to evaluate rules")
-		return nil, fmt.Errorf("failed to evaluate rules: %w", err)
-	}
-
-	// Apply the actions from the first matching rule (highest priority)
-	if len(matches) > 0 {
-		firstMatch := matches[0]
-		err = s.applyActionsToTransaction(ctx, transactionID, userID, firstMatch.Actions)
-		if err != nil {
-			s.logger.Error().Err(err).Str("transaction_id", transactionID.String()).Str("rule_id", firstMatch.RuleID.String()).Msg("Failed to apply rule actions")
-			return matches, fmt.Errorf("failed to apply rule actions: %w", err)
-		}
-	}
-
-	return matches, nil
-}
-
 func (s *TransactionService) convertToTransactionData(transaction internalRepo.Transaction) *transactions.TransactionData {
 	// Convert amount to decimal
 	amount, _ := transaction.Amount.Float64Value()
@@ -198,24 +160,6 @@ func (s *TransactionService) applyActionsToTransaction(ctx context.Context, tran
 		if err != nil {
 			return fmt.Errorf("failed to update transaction: %w", err)
 		}
-	}
-
-	return nil
-}
-
-// AutoApplyRulesToNewTransaction automatically applies rules to a newly created transaction
-func (s *TransactionService) AutoApplyRulesToNewTransaction(ctx context.Context, transactionID uuid.UUID, userID uuid.UUID) error {
-	matches, err := s.ApplyRulesToTransaction(ctx, transactionID, userID)
-	if err != nil {
-		return err
-	}
-
-	if len(matches) > 0 {
-		s.logger.Info().
-			Str("transaction_id", transactionID.String()).
-			Int("matches", len(matches)).
-			Str("applied_rule", matches[0].RuleName).
-			Msg("Applied rule to transaction")
 	}
 
 	return nil

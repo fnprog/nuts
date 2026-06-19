@@ -106,5 +106,5 @@ export const useRealEstateStore = create<RealEstateStore>()((set, get) => ({
 }));
 
 if (import.meta.env.DEV) {
-  (window as any).__REAL_ESTATE_STORE__ = useRealEstateStore;
+  (window as unknown as Record<string, unknown>).__REAL_ESTATE_STORE__ = useRealEstateStore;
 }

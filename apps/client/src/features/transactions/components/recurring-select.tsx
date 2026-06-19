@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/components/ui/select";
 import { CustomRecurringModal } from "./custom-recurring-modal";
+import type { CustomRecurringData } from "./custom-recurring-modal";
 
 interface RecurringOption {
   value: string;
@@ -10,7 +11,7 @@ interface RecurringOption {
 interface RecurringSelectProps {
   value?: string;
   onChange: (value: string) => void;
-  onCustomSave?: (data: any) => void;
+  onCustomSave?: (data: CustomRecurringData) => void;
 }
 
 export function RecurringSelect({ value, onChange, onCustomSave }: RecurringSelectProps) {
@@ -45,7 +46,7 @@ export function RecurringSelect({ value, onChange, onCustomSave }: RecurringSele
     }
   };
 
-  const handleCustomSave = (data: any) => {
+  const handleCustomSave = (data: CustomRecurringData) => {
     // Generate preview text from the custom data
     const previewText = generatePreviewText(data);
     setCustomPattern(previewText);
@@ -56,7 +57,7 @@ export function RecurringSelect({ value, onChange, onCustomSave }: RecurringSele
     setIsCustomModalOpen(false);
   };
 
-  const generatePreviewText = (data: any) => {
+  const generatePreviewText = (data: CustomRecurringData) => {
     if (data.parsedPattern) {
       return data.parsedPattern;
     }

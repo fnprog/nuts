@@ -51,7 +51,7 @@ export const SummaryCard = ({ accounts }: SummaryCardProps) => {
   const { t } = useTranslation();
   const appCurrency = usePreferencesStore((state) => state.currency);
   const [convertedBalances, setConvertedBalances] = useState<Map<string, number>>(new Map());
-  const [isConverting, setIsConverting] = useState(false);
+  const [_isConverting, setIsConverting] = useState(false);
 
   useEffect(() => {
     const convertAccountBalances = async () => {

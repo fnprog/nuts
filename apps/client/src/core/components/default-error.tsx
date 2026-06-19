@@ -1,6 +1,6 @@
 import { ErrorComponentProps } from "@tanstack/react-router";
 
-export function DefaultError({ error, reset }: ErrorComponentProps) {
+export function DefaultError({ error, reset: _reset }: ErrorComponentProps) {
   <div
     className="mx-auto max-w-md rounded-lg border border-zinc-200 bg-white p-8 text-center shadow-xl dark:border-zinc-800 dark:bg-zinc-900"
     role="alert"

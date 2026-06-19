@@ -49,7 +49,8 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 function CashflowForecastChartComponent({ id, size, isLocked, hasAccounts }: DashboardChartComponentProps) {
-  const chartData = hasAccounts ? useCashflowData(true).data : DUMMY_DATA;
+  const { data: fetchedData } = useCashflowData(!!hasAccounts);
+  const chartData = hasAccounts ? fetchedData : DUMMY_DATA;
 
   const totalSavings = chartData.reduce((sum, item) => sum + item.savings, 0);
 

@@ -122,8 +122,8 @@ export default function AIErrorHandler({
   onContactSupport,
   className,
   showDetails = true,
-  autoRetry = false,
-  autoRetryDelay = 5000,
+  autoRetry: _autoRetry = false,
+  autoRetryDelay: _autoRetryDelay = 5000,
 }: AIErrorHandlerProps) {
   const [isRetrying, setIsRetrying] = useState(false);
   const [showErrorDetails, setShowErrorDetails] = useState(false);

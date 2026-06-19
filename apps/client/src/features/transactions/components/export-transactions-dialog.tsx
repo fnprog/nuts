@@ -7,10 +7,11 @@ import { Button } from "@/core/components/ui/button";
 import { Checkbox } from "@/core/components/ui/checkbox";
 import { Label } from "@/core/components/ui/label";
 import { transactionService } from "../services/transaction.service";
+import type { RecordSchema } from "../services/transaction.types";
 import type { TransactionFilterState } from "./transaction-filter-dropdown";
 
 // The columns the user can choose to include in the CSV.
-const AVAILABLE_COLUMNS: { key: string; label: string; getValue: (tx: any) => string | number }[] = [
+const AVAILABLE_COLUMNS: { key: string; label: string; getValue: (tx: RecordSchema) => string | number }[] = [
   {
     key: "date",
     label: "Date",
@@ -30,7 +31,7 @@ const AVAILABLE_COLUMNS: { key: string; label: string; getValue: (tx: any) => st
   { key: "account", label: "Account", getValue: (tx) => tx.account_name ?? tx.account_id },
   { key: "category", label: "Category", getValue: (tx) => tx.category_name ?? "" },
   { key: "currency", label: "Currency", getValue: (tx) => tx.account_currency ?? "" },
-  { key: "note", label: "Note", getValue: (tx) => (tx.details as any)?.note ?? "" },
+  { key: "note", label: "Note", getValue: (tx) => tx.details?.note ?? "" },
   { key: "is_external", label: "Bank Import", getValue: (tx) => (tx.is_external ? "yes" : "no") },
   { key: "id", label: "ID", getValue: (tx) => tx.id },
 ];

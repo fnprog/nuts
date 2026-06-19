@@ -7,13 +7,11 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"syscall"
 	"time"
 
 	"github.com/Fantasy-Programming/nuts/server/config"
 	"github.com/Fantasy-Programming/nuts/server/internal/repository"
-	"github.com/Fantasy-Programming/nuts/server/internal/utils/i18n"
 	"github.com/Fantasy-Programming/nuts/server/internal/utils/validation"
 	"github.com/Fantasy-Programming/nuts/server/pkg/database"
 	"github.com/Fantasy-Programming/nuts/server/pkg/finance"
@@ -48,7 +46,6 @@ type Server struct {
 	router      router.Router
 	jobsManager *jobs.Service
 	validator   *validation.Validator
-	i18n        *i18n.I18n
 
 	openfinance *finance.ProviderManager
 
@@ -100,7 +97,6 @@ func (s *Server) Init() {
 	s.NewTokenService()
 	s.NewJobService()
 	s.NewValidator()
-	s.NewI18n()
 	s.NewRouter()
 	s.setGlobalMiddleware()
 	s.RegisterDomain()
@@ -297,27 +293,6 @@ func (s *Server) NewValidator() {
 	s.validator = validation.New()
 }
 
-func (s *Server) NewI18n() {
-	var localesDir string
-
-	if os.Getenv("ENVIRONMENT") == "production" {
-		localesDir = filepath.Join(os.Getenv("PWD"), "locales")
-	} else {
-		projectRoot := filepath.Dir(os.Getenv("PWD"))
-		localesDir = filepath.Join(projectRoot, "server", "locales")
-	}
-
-	i18nInstance, err := i18n.New(i18n.Config{
-		DefaultLanguage: "en",
-		LocalesDir:      localesDir,
-	})
-	if err != nil {
-		s.logger.Fatal().Err(err).Msg("Failed to initialize i18n")
-	}
-
-	s.i18n = i18nInstance
-}
-
 // TODO: If the error is that there is no provider then ignore
 func (s *Server) NewOPFinanceManager() {
 	manager, err := finance.NewProviderManager(s.cfg.Integrations, s.logger)
@@ -332,7 +307,6 @@ func (s *Server) setGlobalMiddleware() {
 	s.router.Use(chiMiddleware.RealIP)
 	s.router.Use(chiMiddleware.Recoverer)
 	s.router.Use(chiMiddleware.Timeout(60 * time.Second))
-	s.router.Use(i18n.I18nMiddleware(s.i18n, nil))
 
 	// Add OpenTelemetry HTTP instrumentation only if telemetry is enabled
 	if s.cfg.Otel.Enabled {

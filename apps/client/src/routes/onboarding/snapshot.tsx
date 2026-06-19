@@ -115,7 +115,7 @@ function SnapshotStep() {
           });
         }
       }
-    } catch (_e) {}
+    } catch { /* intentionally empty */ }
 
     completeOnboarding();
     navigate({ to: "/dashboard/home" });

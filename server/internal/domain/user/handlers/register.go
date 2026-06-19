@@ -23,9 +23,5 @@ func RegisterHTTPHandlers(service service.Users, tkn *jwt.Service, validator *va
 	router.Delete("/me", h.DeleteInfo)
 	router.Put("/me/avatar", h.UploadAvatar)
 
-	// preferences
-	router.Get("/preferences", h.GetPreferences)
-	router.Put("/preferences", h.UpdatePreferences)
-
 	return router
 }

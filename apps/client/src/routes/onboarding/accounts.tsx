@@ -7,6 +7,7 @@ import { Label } from "@/core/components/ui/label";
 import { motion, AnimatePresence } from "motion/react";
 import { RiArrowRightLine, RiAddLine, RiSmartphoneLine, RiBankLine, RiCoinsLine, RiCheckLine } from "@remixicon/react";
 import { cn } from "@/lib/utils";
+import { H2, Muted } from "@/core/components/ui/typography";
 
 export const Route = createFileRoute("/onboarding/accounts")({
   component: AccountsStep,
@@ -49,10 +50,10 @@ function AccountsStep() {
   return (
     <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="flex w-full flex-col gap-5 pt-4 pb-2">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Where does your money live?</h1>
-        <p className="text-muted-foreground mt-1 text-sm">
+        <H2>Where does your money live?</H2>
+        <Muted className="mt-1">
           {accounts.length === 0 ? "Let's start with your main account. You can add more in a moment." : "Great start! Your net worth is taking shape."}
-        </p>
+        </Muted>
       </div>
 
       <AnimatePresence mode="wait">

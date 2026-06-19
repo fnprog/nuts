@@ -55,7 +55,7 @@ class CRDTService {
   private doc: Automerge.Doc<CRDTDocument> | null = null;
   private currentUserId: string | null = null;
   // Chain of promises ensures mutations are applied in order
-  private operationQueue: Promise<any> = Promise.resolve();
+  private operationQueue: Promise<unknown> = Promise.resolve();
 
   // Debounced persist: coalesces rapid successive mutations into a single
   // SQLite write. Mutations are always committed to the in-memory Automerge
@@ -78,7 +78,7 @@ class CRDTService {
 
     logger.info(`Migrating CRDT document from version ${doc.version} to ${this.CURRENT_VERSION}`);
 
-    let migratedDoc = doc;
+    const migratedDoc = doc;
 
     return Automerge.change(migratedDoc, (draft) => {
       draft.version = this.CURRENT_VERSION;
@@ -310,7 +310,7 @@ class CRDTService {
     const previousOperation = this.operationQueue;
 
     let resolver!: (value: T) => void;
-    let rejecter!: (error: any) => void;
+    let rejecter!: (error: unknown) => void;
 
     this.operationQueue = new Promise<T>((resolve, reject) => {
       resolver = resolve;
@@ -357,7 +357,7 @@ class CRDTService {
 
       // Assign timestamps
       const timestamp = new Date().toISOString();
-      const entityWithTimestamps = { ...entity } as any;
+      const entityWithTimestamps = { ...entity } as Record<string, unknown>;
 
       for (const field of timestampFields) {
         entityWithTimestamps[field] = timestamp;
@@ -370,7 +370,7 @@ class CRDTService {
 
       this.schedulePersist();
 
-      if (notifyType) this.notifySyncService("create", notifyType as any, entityWithTimestamps);
+      if (notifyType) this.notifySyncService("create", notifyType as "transaction" | "account" | "category" | "rule", entityWithTimestamps);
 
       return ok(entity.id);
     });
@@ -396,11 +396,11 @@ class CRDTService {
         const record = col[id];
         if (!record) return;
 
-        for (const [key, value] of Object.entries(updates) as [keyof CollectionEntity<K>, any][]) {
+        for (const [key, value] of Object.entries(updates) as [keyof CollectionEntity<K>, CollectionEntity<K>[keyof CollectionEntity<K>]][]) {
           record[key] = value;
         }
 
-        (record as any).updated_at = timestamp;
+        (record as { updated_at: string }).updated_at = timestamp;
         doc.updated_at = timestamp;
       });
 
@@ -409,7 +409,7 @@ class CRDTService {
       // fetch fresh entity after update
       if (notifyType) {
         const updated = this.getEntityById<K>(collection, id);
-        if (updated) this.notifySyncService("update", notifyType as any, updated);
+        if (updated) this.notifySyncService("update", notifyType as "transaction" | "account" | "category" | "rule", updated);
       }
       return ok(undefined);
     });
@@ -432,7 +432,7 @@ class CRDTService {
         if (hard) {
           delete col[id];
         } else {
-          (record as any).deleted_at = timestamp;
+          (record as { deleted_at: string }).deleted_at = timestamp;
         }
 
         (doc as CRDTDocument).updated_at = timestamp;
@@ -441,7 +441,7 @@ class CRDTService {
       this.schedulePersist();
 
       if (notifyType) {
-        this.notifySyncService("delete", notifyType as any, {
+        this.notifySyncService("delete", notifyType as "transaction" | "account" | "category" | "rule", {
           id,
           ...(hard ? {} : { deleted_at: timestamp }),
         });
@@ -463,7 +463,7 @@ class CRDTService {
 
     const result: Record<string, CollectionEntity<K>> = {};
     for (const [id, entity] of Object.entries(col)) {
-      if (!(entity as any).deleted_at) result[id] = entity;
+      if (!(entity as { deleted_at?: string }).deleted_at) result[id] = entity;
     }
     return result;
   }
@@ -474,7 +474,7 @@ class CRDTService {
     const col = this.doc[collection] as Record<string, CollectionEntity<K>>;
     const entity = col?.[id];
     if (!entity) return null;
-    return onlyActive && (entity as any).deleted_at ? null : entity;
+    return onlyActive && (entity as { deleted_at?: string }).deleted_at ? null : entity;
   }
 
   // ─── Transactions ─────────────────────────────────────────────────────────
@@ -853,7 +853,7 @@ class CRDTService {
    * If the import fails, changes are persisted locally but won't be queued
    * for server sync until the service restarts.
    */
-  private notifySyncService(operation: "create" | "update" | "delete", type: "transaction" | "account" | "category" | "rule", data: any): void {
+  private notifySyncService(operation: "create" | "update" | "delete", type: "transaction" | "account" | "category" | "rule", data: unknown): void {
     import("./sync")
       .then(({ syncService }) => syncService.addToSyncQueue({ operation, type, data }))
       .catch((error) => logger.error("[CRDT] Failed to notify sync service:", error));

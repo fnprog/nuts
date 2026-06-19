@@ -17,6 +17,7 @@ func RegisterHTTPHandlers(queries *repository.Queries, tkn *jwt.Service, logger 
 	r.Use(middleware.Verify)
 
 	r.Get("/", h.Sync)
+	r.Post("/", h.Push)
 
 	return r
 }

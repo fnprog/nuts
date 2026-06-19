@@ -54,7 +54,8 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 function NetWorthChartComponent({ id, size, isLocked, hasAccounts }: DashboardChartComponentProps) {
-  const chartData = hasAccounts ? useNetWorthData(true).data : DUMMY_DATA;
+  const { data: fetchedData } = useNetWorthData(!!hasAccounts);
+  const chartData = hasAccounts ? fetchedData : DUMMY_DATA;
 
   const latestNetWorth = chartData[chartData.length - 1]?.netWorth || 0;
 

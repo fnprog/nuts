@@ -1,17 +1,18 @@
 import { expose } from "comlink";
 import SQLiteESMFactory from "wa-sqlite/dist/wa-sqlite.mjs";
 import * as SQLite from "wa-sqlite";
+import type { WaSqliteAPI, WaSqliteVFS } from "wa-sqlite";
 import { AccessHandlePoolVFS } from "wa-sqlite/src/examples/AccessHandlePoolVFS.js";
 
 interface QueryResult {
-  results: Record<string, any>[];
+  results: Record<string, unknown>[];
   columns: string[];
 }
 
 class SQLiteWorker {
-  private sqlite3: any = null;
+  private sqlite3: WaSqliteAPI | null = null;
   private db: number | null = null;
-  private vfs: any = null;
+  private vfs: WaSqliteVFS | null = null;
   private initialized = false;
 
   async initialize(): Promise<void> {
@@ -30,19 +31,12 @@ class SQLiteWorker {
     console.log("SQLite worker initialized");
   }
 
-  async execute(sql: string, params: any[] = []): Promise<QueryResult> {
-    if (!this.initialized || !this.db) {
+  async execute(sql: string, params: unknown[] = []): Promise<QueryResult> {
+    if (!this.initialized || !this.db || !this.sqlite3) {
       throw new Error("SQLite worker not initialized");
     }
 
-    // Reject multi-statement SQL (security and correctness)
-    // const trimmed = sql.trim();
-    // const idx = trimmed.indexOf(";");
-    // if (idx !== -1 && idx !== trimmed.length - 1) {
-    //   throw new Error("Refused to execute multi-statement SQL in .execute; use .exec for DDL/multi-statement.");
-    // }
-
-    const results: Record<string, any>[] = [];
+    const results: Record<string, unknown>[] = [];
     let columns: string[] = [];
 
     for await (const stmt of this.sqlite3.statements(this.db, sql)) {
@@ -54,7 +48,7 @@ class SQLiteWorker {
 
       while ((await this.sqlite3.step(stmt)) === SQLite.SQLITE_ROW) {
         const row = this.sqlite3.row(stmt);
-        const rowObject: Record<string, any> = {};
+        const rowObject: Record<string, unknown> = {};
         for (let i = 0; i < columns.length; i++) {
           rowObject[columns[i]] = row[i];
         }
@@ -66,7 +60,7 @@ class SQLiteWorker {
   }
 
   async exec(sql: string): Promise<void> {
-    if (!this.initialized || !this.db) {
+    if (!this.initialized || !this.db || !this.sqlite3) {
       throw new Error("SQLite worker not initialized");
     }
 
@@ -74,7 +68,7 @@ class SQLiteWorker {
   }
 
   async close(): Promise<void> {
-    if (this.db) {
+    if (this.db && this.sqlite3) {
       await this.sqlite3.close(this.db);
       this.db = null;
     }

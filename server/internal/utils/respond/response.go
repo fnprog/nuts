@@ -4,24 +4,22 @@ package respond
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 
-	"github.com/Fantasy-Programming/nuts/server/internal/utils/i18n"
 	"github.com/Fantasy-Programming/nuts/server/internal/utils/validation"
 	"github.com/rs/zerolog"
 )
 
 type ErrorResponse struct {
-	Status  string `json:"status"`
-	Message string `json:"message"`
-	Error   any    `json:"error,omitempty"`
+	Status string `json:"status"`
+	Code   string `json:"code"`
+	Errors any    `json:"errors,omitempty"`
 }
 
 type SuccessResponse struct {
-	Status  string `json:"status"`
-	Message string `json:"message,omitempty"`
-	Data    any    `json:"data,omitempty"`
+	Status string `json:"status"`
+	Code   string `json:"code,omitempty"`
+	Data   any    `json:"data,omitempty"`
 }
 
 type ErrorOptions struct {
@@ -34,16 +32,14 @@ type ErrorOptions struct {
 	Details    any
 }
 
-// Respond with a translated error message
+// Error responds with an error code
 func Error(opts ErrorOptions) {
 	opts.W.Header().Set("Content-Type", "application/json")
 	opts.W.WriteHeader(opts.StatusCode)
 
-	message := i18n.T(opts.R.Context(), opts.ClientErr.Error(), nil) // user friendly message, language based answer for the user
-
 	response := ErrorResponse{
-		Status:  "error",
-		Message: message,
+		Status: "error",
+		Code:   opts.ClientErr.Error(),
 	}
 
 	opts.Logger.Error().
@@ -59,20 +55,17 @@ func Error(opts ErrorOptions) {
 	}
 }
 
-// Handle sending multiple error (mostly used for validation)
+// Errors responds with an error code and a list of field-level errors (validation)
 func Errors(opts ErrorOptions) {
 	opts.W.Header().Set("Content-Type", "application/json")
 	opts.W.WriteHeader(opts.StatusCode)
 
-	message := i18n.T(opts.R.Context(), opts.ClientErr.Error(), nil)
-
 	response := ErrorResponse{
-		Status:  "error",
-		Message: message,
-		Error:   opts.ActualErr,
+		Status: "error",
+		Code:   opts.ClientErr.Error(),
+		Errors: opts.ActualErr,
 	}
 
-	// Add stack trace to the log entry
 	opts.Logger.Error().
 		Int("status_code", opts.StatusCode).
 		Err(opts.ActualErr).
@@ -86,19 +79,16 @@ func Errors(opts ErrorOptions) {
 	}
 }
 
-// JsonResponse responds with a success message and optional data
+// Json responds with raw JSON data and no envelope
 func Json(w http.ResponseWriter, statusCode int, data any, logger *zerolog.Logger) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 
-	// Handle nil payload
 	if data == nil {
 		_, _ = w.Write([]byte("{}"))
 		logger.Debug().Int("status_code", statusCode).Msg("Empty JSON response")
 		return
 	}
-
-	// logger.Info().Int("status_code", statusCode).Interface("data", data).Msg("Success response")
 
 	if err := json.NewEncoder(w).Encode(data); err != nil {
 		logger.Error().
@@ -107,21 +97,21 @@ func Json(w http.ResponseWriter, statusCode int, data any, logger *zerolog.Logge
 	}
 }
 
-// TranslatedResponse responds with a translated success message
-func Response(w http.ResponseWriter, r *http.Request, statusCode int, messageKey string, data any) {
+// Response responds with a success code and optional data
+func Response(w http.ResponseWriter, statusCode int, code string, data any, logger *zerolog.Logger) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 
-	message := i18n.T(r.Context(), messageKey, nil)
-
 	response := SuccessResponse{
-		Status:  "success",
-		Message: message,
-		Data:    data,
+		Status: "success",
+		Code:   code,
+		Data:   data,
 	}
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		fmt.Println("error")
+		logger.Error().
+			Err(err).
+			Msg("Failed to encode JSON response")
 	}
 }
 

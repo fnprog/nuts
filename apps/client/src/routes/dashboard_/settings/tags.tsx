@@ -6,10 +6,8 @@ import { Button } from "@/core/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/core/components/ui/dialog";
 import { Input } from "@/core/components/ui/input";
 import { Label } from "@/core/components/ui/label";
-import { toast } from "sonner";
 import IconPicker from "@/core/components/ui/icon-picker";
 import { TagList } from "@/routes/dashboard_/settings/-components/tag-list";
-import { useCreateTagMutation } from "@/features/preferences/services/settings.queries";
 import { H3 } from "@/core/components/ui/typography";
 
 export const Route = createFileRoute("/dashboard_/settings/tags")({
@@ -19,7 +17,7 @@ export const Route = createFileRoute("/dashboard_/settings/tags")({
 function RouteComponent() {
   const [isOpen, setIsOpen] = useState(false);
   const [newTag, setNewTag] = useState({ name: "", icon: "" });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [_isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

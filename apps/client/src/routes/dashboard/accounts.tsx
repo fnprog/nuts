@@ -100,7 +100,7 @@ function RouteComponent() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Prefer cache-first approach to avoid redundant requests
-  const cachedData = queryClient.getQueryData<Array<any>>(["accounts", "trends"]);
+  const cachedData = queryClient.getQueryData<Array<unknown>>(["accounts", "trends"]);
 
   // Only run the query if there's no cached data (should rarely run, thanks to loader)
   const shouldFetch = !cachedData;
@@ -127,8 +127,8 @@ function RouteComponent() {
   const updateAccount = useUpdateAccount();
   const deleteAccount = useDeleteAccount();
 
-  const onCreate = (values: any) => {
-    createAccount.mutate(values, {
+  const onCreate = (values: unknown) => {
+    createAccount.mutate(values as Parameters<typeof createAccount.mutate>[0], {
       onSuccess: () => {
         setIsModalOpen(false);
         queryClient.invalidateQueries({ queryKey: ["accounts"] });
@@ -136,8 +136,8 @@ function RouteComponent() {
     });
   };
 
-  const onUpdate = (id: string, values: any) => {
-    updateAccount.mutate({ id, account: values });
+  const onUpdate = (id: string, values: unknown) => {
+    updateAccount.mutate({ id, account: values as Parameters<typeof updateAccount.mutate>[0]["account"] });
   };
 
   const onDelete = (id: string) => {

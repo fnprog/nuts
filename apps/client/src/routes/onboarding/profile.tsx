@@ -6,12 +6,41 @@ import { Input } from "@/core/components/ui/input";
 import { Label } from "@/core/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/core/components/ui/select";
 import { motion } from "motion/react";
-import { RiArrowRightLine, RiSeedlingLine, RiLineChartLine, RiHome4Line, RiFocus2Line } from "@remixicon/react";
+import { RiArrowRightLine, RiSeedlingLine, RiLineChartLine, RiHome4Line, RiFocus2Line, RemixiconComponentType } from "@remixicon/react";
 import { cn } from "@/lib/utils";
+import { H2, P } from "@/core/components/ui/typography";
+import { Field, FieldGroup, FieldLabel } from "@/core/components/ui/field";
 
 export const Route = createFileRoute("/onboarding/profile")({
   component: ProfileStep,
 });
+
+const STAGES: { id: FinancialStage; title: string; desc: string; icon: RemixiconComponentType }[] = [
+  {
+    id: "foundation",
+    title: "Building my foundation",
+    desc: "Getting control of spending, paying down debt, starting to save",
+    icon: RiSeedlingLine,
+  },
+  {
+    id: "wealth",
+    title: "Growing my wealth",
+    desc: "Investing, building assets, multiple income streams",
+    icon: RiLineChartLine,
+  },
+  {
+    id: "goal",
+    title: "Working toward a big goal",
+    desc: "House, car, education — I have something specific I'm saving for",
+    icon: RiHome4Line,
+  },
+  {
+    id: "event",
+    title: "Planning a life event",
+    desc: "Wedding, baby, retirement — a major change is coming",
+    icon: RiFocus2Line,
+  },
+];
 
 function ProfileStep() {
   const { setStep, name, setName, currency, setCurrency, financialStage, setFinancialStage } = useOnboardingStore();
@@ -20,33 +49,6 @@ function ProfileStep() {
   useEffect(() => {
     setStep(1);
   }, [setStep]);
-
-  const stages: { id: FinancialStage; title: string; desc: string; icon: any }[] = [
-    {
-      id: "foundation",
-      title: "Building my foundation",
-      desc: "Getting control of spending, paying down debt, starting to save",
-      icon: RiSeedlingLine,
-    },
-    {
-      id: "wealth",
-      title: "Growing my wealth",
-      desc: "Investing, building assets, multiple income streams",
-      icon: RiLineChartLine,
-    },
-    {
-      id: "goal",
-      title: "Working toward a big goal",
-      desc: "House, car, education — I have something specific I'm saving for",
-      icon: RiHome4Line,
-    },
-    {
-      id: "event",
-      title: "Planning a life event",
-      desc: "Wedding, baby, retirement — a major change is coming",
-      icon: RiFocus2Line,
-    },
-  ];
 
   const handleNext = () => {
     if (name && financialStage) {
@@ -57,19 +59,21 @@ function ProfileStep() {
   return (
     <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="flex w-full flex-col gap-10 pt-4 pb-2">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">First, a bit about you</h1>
-        <p className="text-muted-foreground mt-3 text-base">Tell us who you are and where you're at in your journey.</p>
+        <H2>First, a bit about you</H2>
+        <P className="text-muted-foreground mt-3">Tell us who you are and where you're at in your journey.</P>
       </div>
 
       <div className="space-y-10">
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1.5">
-            <Label htmlFor="name">What should we call you?</Label>
-            <Input id="name" placeholder="First name" value={name} onChange={(e) => setName(e.target.value)} />
-          </div>
+        <FieldGroup className="grid gap-3 md:grid-cols-2">
+          <Field>
+            <FieldLabel htmlFor="name">What should we call you?</FieldLabel>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="currency">primary currency</Label>
+            <Input id="name" placeholder="First name" value={name} onChange={(e) => setName(e.target.value)} />
+          </Field>
+
+          <Field>
+            <FieldLabel htmlFor="currency">primary currency</FieldLabel>
+
             <Select value={currency} onValueChange={setCurrency}>
               <SelectTrigger id="currency" className="h-12">
                 <SelectValue placeholder="Select" />
@@ -81,13 +85,14 @@ function ProfileStep() {
                 <SelectItem value="GBP">🇬🇧 GBP — Pound</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-        </div>
+          </Field>
+        </FieldGroup>
 
+        {/* TODO: There is a shacn thing for that, replace it here */}
         <div className="space-y-4">
           <Label>Your financial stage</Label>
           <div className="grid gap-3">
-            {stages.map((stage) => (
+            {STAGES.map((stage) => (
               <button
                 key={stage.id}
                 onClick={() => setFinancialStage(stage.id)}
@@ -119,7 +124,7 @@ function ProfileStep() {
       </div>
 
       <div className="pt-1">
-        <Button variant="primary" size="lg" onClick={handleNext} disabled={!name || !financialStage} className="h-11 w-full gap-2 rounded-xl">
+        <Button variant="primary" size="lg" onClick={handleNext} disabled={!name || !financialStage} className="w-full">
           Next
           <RiArrowRightLine />
         </Button>

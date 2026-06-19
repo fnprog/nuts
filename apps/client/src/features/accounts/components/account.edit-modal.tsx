@@ -73,7 +73,7 @@ export default function EditAccountModal({
       }
       onClose();
     },
-    [onUpdateAccount, form, onClose, account?.id]
+    [onUpdateAccount, onClose, account?.id]
   );
 
   if (!account) return null;

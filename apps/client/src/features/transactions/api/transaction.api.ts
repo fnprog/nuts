@@ -72,7 +72,7 @@ export const bulkUpdateManualTransactions = async (params: {
   accountId?: string;
   transactionDatetime?: Date;
 }): Promise<void> => {
-  const body: Record<string, any> = {
+  const body: Record<string, unknown> = {
     transaction_ids: params.transactionIds,
   };
 

@@ -13,7 +13,7 @@ import {
 } from "kysely";
 
 export interface WaSqliteDialectConfig {
-  executeQuery: (sql: string, params: any[]) => Promise<any>;
+  executeQuery: (sql: string, params: unknown[]) => Promise<{ results: Record<string, unknown>[] }>;
   executeExec: (sql: string) => Promise<void>;
 }
 
@@ -32,7 +32,7 @@ export class WaSqliteDialect implements Dialect {
     return new SqliteQueryCompiler();
   }
 
-  createIntrospector(db: Kysely<any>): DatabaseIntrospector {
+  createIntrospector(db: Kysely<Record<string, unknown>>): DatabaseIntrospector {
     return new SqliteIntrospector(db);
   }
 }
@@ -83,17 +83,17 @@ class WaSqliteDriver implements Driver {
 class WaSqliteConnection implements DatabaseConnection {
   constructor(private config: WaSqliteDialectConfig) {}
 
-  async executeQuery(compiledQuery: any): Promise<any> {
+  async executeQuery(compiledQuery: CompiledQuery): Promise<{ rows: Record<string, unknown>[] }> {
     const { sql, parameters } = compiledQuery;
 
-    const result = await this.config.executeQuery(sql, parameters as any[]);
+    const result = await this.config.executeQuery(sql, parameters as unknown[]);
 
     return {
       rows: result.results || [],
     };
   }
 
-  async *streamQuery(): AsyncIterableIterator<any> {
+  async streamQuery(): Promise<never> {
     throw new Error("Streaming is not supported by wa-sqlite dialect");
   }
 }

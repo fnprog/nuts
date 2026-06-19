@@ -15,7 +15,7 @@ import {
   AlertDialogTitle,
 } from "@/core/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/core/components/ui/tabs";
-import { MapPin, Calendar, ChevronRight, Building, Bed, Bath, Square, Trash2, Edit } from "lucide-react";
+import { MapPin, Calendar, ChevronRight, Building, Bed, Bath, Square, Trash2 } from "lucide-react";
 import { Property } from "../types";
 import { PropertyImage } from "@/core/components/ui/optimized-image";
 import { useRealEstateStore } from "../store";

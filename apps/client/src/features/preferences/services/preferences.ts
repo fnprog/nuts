@@ -25,7 +25,7 @@ const updatePreferences = (preferences: Partial<PreferencesResponse>) => {
 
 const PREFBASEURI = "/meta";
 
-const getLangs = () => {
+const _getLangs = () => {
   return ResultAsync.fromPromise(api.get(`${PREFBASEURI}/lang`).json<unknown>(), ServiceError.fromKyError);
 };
 

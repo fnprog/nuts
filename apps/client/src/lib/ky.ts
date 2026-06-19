@@ -9,6 +9,7 @@ import { userService } from "@/features/users/services/user.service";
 type QueuedRequest = (token: string) => void;
 let isRefreshing = false;
 let refreshSubscribers: QueuedRequest[] = [];
+const retrySet = new WeakSet<Request>();
 
 function subscribeTokenRefresh(cb: QueuedRequest) {
   refreshSubscribers.push(cb);
@@ -33,7 +34,7 @@ const api: KyInstance = ky.create({
   },
   hooks: {
     beforeRequest: [
-      ({ request }) => {
+      ({ request: _request }) => {
         // Block network requests if offline
         if (!connectivityService.hasServerAccess()) {
           throw new Error("Request blocked: App is in offline mode");
@@ -42,7 +43,7 @@ const api: KyInstance = ky.create({
     ],
     afterResponse: [
       async (request, _, response) => {
-        if (response.status === 401 && !isAuthRoute(request.url) && !(request as any)._retry) {
+        if (response.status === 401 && !isAuthRoute(request.url) && !retrySet.has(request)) {
           // Only allow one refresh at a time
           if (isRefreshing) {
             return new Promise<Response>((resolve) => {
@@ -52,7 +53,7 @@ const api: KyInstance = ky.create({
               });
             });
           }
-          (request as any)._retry = true;
+          retrySet.add(request);
           isRefreshing = true;
           try {
             await authService.refresh();

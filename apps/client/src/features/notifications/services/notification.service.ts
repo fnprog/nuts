@@ -28,7 +28,7 @@ export const notificationService = {
     return ResultAsync.fromPromise(
       (async () => {
         const notifications = crdtService.getNotifications();
-        return Object.values(notifications).filter((n: any) => n.status === "unread") as Notification[];
+        return Object.values(notifications as Record<string, Notification>).filter((n) => n.status === "unread") as Notification[];
       })(),
       ServiceError.fromError
     );
@@ -38,7 +38,7 @@ export const notificationService = {
     return ResultAsync.fromPromise(
       (async () => {
         const notifications = crdtService.getNotifications();
-        return Object.values(notifications).filter((n: any) => n.status === status) as Notification[];
+        return Object.values(notifications as Record<string, Notification>).filter((n) => n.status === status) as Notification[];
       })(),
       ServiceError.fromError
     );
@@ -48,7 +48,7 @@ export const notificationService = {
     return ResultAsync.fromPromise(
       (async () => {
         const notifications = crdtService.getNotifications();
-        return Object.values(notifications).filter((n: any) => n.type === type) as Notification[];
+        return Object.values(notifications as Record<string, Notification>).filter((n) => n.type === type) as Notification[];
       })(),
       ServiceError.fromError
     );
@@ -58,7 +58,7 @@ export const notificationService = {
     return ResultAsync.fromPromise(
       (async () => {
         const notifications = crdtService.getNotifications();
-        return Object.values(notifications).filter((n: any) => n.related_recurring_id === recurringId) as Notification[];
+        return Object.values(notifications as Record<string, Notification>).filter((n) => n.related_recurring_id === recurringId) as Notification[];
       })(),
       ServiceError.fromError
     );
@@ -135,10 +135,10 @@ export const notificationService = {
         const now = new Date().toISOString();
         const notifications = crdtService.getNotifications();
 
-        const expiredNotifications = Object.values(notifications).filter((n: any) => n.expires_at && new Date(n.expires_at) < new Date(now));
+        const expiredNotifications = Object.values(notifications as Record<string, Notification>).filter((n) => n.expires_at && new Date(n.expires_at) < new Date(now));
 
         for (const notification of expiredNotifications) {
-          await crdtService.deleteNotification((notification as any).id);
+          await crdtService.deleteNotification(notification.id);
         }
 
         return expiredNotifications.length;

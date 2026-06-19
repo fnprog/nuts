@@ -1,1 +1,0 @@
-/home/ghost/Documents/code/nuts/mobile/modules/expo-automerge-crdt/rust/target/armv7-linux-androideabi/release/libexpo_automerge.a: /home/ghost/Documents/code/nuts/mobile/modules/expo-automerge-crdt/rust/src/lib.rs

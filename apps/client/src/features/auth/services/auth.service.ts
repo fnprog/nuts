@@ -9,7 +9,7 @@ import { connectivityService } from "@/core/sync/connectivity";
 import { authApi } from "@/features/auth/api";
 import { userService } from "@/features/users/services/user.service";
 import { useAuthStore } from "@/features/auth/stores/auth.store";
-import type { AuthNullable, RefreshAuthRes } from "@/features/auth/services/auth.types";
+import type { AuthNullable, RefreshAuthRes, LoginFormValues, SignupFormValues, LoginResponse } from "@/features/auth/services/auth.types";
 import { Result, ok, err, ServiceError } from "@/lib/result";
 import { logger } from "@/lib/logger";
 import { uuidV7 } from "@nuts/utils";
@@ -88,7 +88,7 @@ export function createAuthservice() {
   /**
    * Login with offline fallback
    */
-  const login = async (credentials: any): Promise<any> => {
+  const login = async (credentials: LoginFormValues): Promise<LoginResponse> => {
     if (connectivityService.hasServerAccess()) {
       // Online: use server login
       try {
@@ -125,9 +125,7 @@ export function createAuthservice() {
         }
 
         return response;
-      } catch (error) {
-        throw error;
-      }
+      } catch (e) { }
     } else {
       // Offline: check if we have cached credentials (for development/testing)
       throw new Error("Cannot login while offline - server connectivity required for authentication");
@@ -152,7 +150,7 @@ export function createAuthservice() {
     useAuthStore.getState().resetState();
   };
 
-  const upgradeToAuthenticated = async (credentials: any): Promise<any> => {
+  const upgradeToAuthenticated = async (credentials: LoginFormValues): Promise<LoginResponse> => {
     const result = await login(credentials);
 
     const { dataMigrationService } = await import("@/core/sync/data-migration");
@@ -511,7 +509,7 @@ export function createAuthservice() {
     clearAllAuthData();
   };
 
-  const signup = async (credentials: any): Promise<any> => {
+  const signup = async (credentials: SignupFormValues): Promise<unknown> => {
     if (connectivityService.hasServerAccess()) {
       const result = await authApi.signup(credentials);
       if (result.isErr()) throw result.error;

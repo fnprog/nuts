@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { arktypeResolver } from "@hookform/resolvers/arktype";
 
@@ -28,7 +28,6 @@ import {
   TRANSACTION_TYPE_OPTIONS,
 } from "@/features/rules/services/rule.types";
 import { useCreateRule, useUpdateRule } from "@/features/rules/services/rules.mutation";
-import { transactionService } from "@/features/transactions/services/transaction.service";
 import { categoryService } from "@/features/categories/services/category.service";
 import { accountService } from "@/features/accounts/services/account";
 import { toast } from "sonner";
@@ -157,7 +156,7 @@ export function CreateEditRuleDialog({ open, onOpenChange, rule, prefillData }: 
       }
       onOpenChange(false);
       form.reset();
-    } catch (error) {
+    } catch {
       toast.error(isEditing ? "Failed to update rule" : "Failed to create rule");
     }
   };
@@ -170,7 +169,7 @@ export function CreateEditRuleDialog({ open, onOpenChange, rule, prefillData }: 
     actionsArray.append({ type: "set_category", value: "" });
   };
 
-  const getValueInput = (type: ConditionType, value: any, onChange: (value: any) => void) => {
+  const getValueInput = (type: ConditionType, value: unknown, onChange: (value: unknown) => void) => {
     switch (type) {
       case "amount":
         return <Input type="number" step="0.01" placeholder="0.00" value={value || ""} onChange={(e) => onChange(parseFloat(e.target.value) || 0)} />;

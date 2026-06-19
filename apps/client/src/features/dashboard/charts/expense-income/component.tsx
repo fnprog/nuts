@@ -47,7 +47,8 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 function ExpenseIncomeChartComponent({ id, size, isLocked, hasAccounts }: DashboardChartComponentProps) {
-  const chartData = hasAccounts ? useExpenseIncomeData(true).data : DUMMY_DATA;
+  const { data: fetchedData } = useExpenseIncomeData(!!hasAccounts);
+  const chartData = hasAccounts ? fetchedData : DUMMY_DATA;
 
   const latestMonth = chartData[chartData.length - 1];
   const netAmount = latestMonth ? latestMonth.income - latestMonth.expense : 0;

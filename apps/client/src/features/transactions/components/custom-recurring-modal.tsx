@@ -25,7 +25,7 @@ const customRecurringSchema = type({
   "previewDays?": "1 <= number <= 30 | string.numeric.parse",
 });
 
-type CustomRecurringData = typeof customRecurringSchema.infer;
+export type CustomRecurringData = typeof customRecurringSchema.infer;
 
 interface CustomRecurringModalProps {
   isOpen: boolean;
@@ -76,7 +76,7 @@ export function CustomRecurringModal({ isOpen, onClose, onSave, defaultValues }:
         if (patterns.interval) form.setValue("interval", patterns.interval);
         if (patterns.period) form.setValue("period", patterns.period);
         if (patterns.dayOfWeek) form.setValue("dayOfWeek", patterns.dayOfWeek);
-      } catch (error) {
+      } catch {
         setParsedPattern("Unable to parse pattern");
       }
     } else {
